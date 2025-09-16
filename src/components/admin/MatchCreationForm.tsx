@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { 
   validateMatchCreation,
   getAvailableTimeSlots,
+  getAvailableDurations,
   calculateRecurringDates,
   formatDateForInput,
   formatTimeForInput,
@@ -38,6 +39,7 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
   const [formData, setFormData] = useState({
     date: '',
     time: '12:00',
+    duration: 60, // in minutes
     maxPlayers: 12,
     description: '',
     adminCreate: false,
@@ -64,6 +66,7 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
   }
 
   const availableTimeSlots = getAvailableTimeSlots()
+  const availableDurations = getAvailableDurations()
   const quickPresets = getQuickPresets()
 
   const handleInputChange = (field: string, value: any) => {
@@ -205,6 +208,7 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
     setFormData({
       date: '',
       time: '12:00',
+      duration: 60,
       maxPlayers: 12,
       description: '',
       adminCreate: false,
@@ -283,8 +287,8 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Date and Time */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Date, Time and Duration */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
                 Date du match *
@@ -314,6 +318,24 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
               >
                 {availableTimeSlots.map(slot => (
                   <option key={slot} value={slot}>{slot}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
+                Durée *
+              </label>
+              <select
+                id="duration"
+                value={formData.duration}
+                onChange={(e) => handleInputChange('duration', parseInt(e.target.value))}
+                disabled={loading}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {availableDurations.map(duration => (
+                  <option key={duration.value} value={duration.value}>{duration.label}</option>
                 ))}
               </select>
             </div>

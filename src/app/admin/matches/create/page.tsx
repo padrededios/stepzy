@@ -56,13 +56,13 @@ export default function AdminMatchCreatePage() {
           )}
 
           {/* Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <div className="flex items-center">
                 <div className="text-blue-500 text-2xl mr-3">🕐</div>
                 <div>
                   <h3 className="text-lg font-semibold text-blue-900">Horaires</h3>
-                  <p className="text-sm text-blue-700">Matchs de 12h à 14h uniquement</p>
+                  <p className="text-sm text-blue-700">Toute heure disponible</p>
                 </div>
               </div>
             </div>
@@ -73,6 +73,16 @@ export default function AdminMatchCreatePage() {
                 <div>
                   <h3 className="text-lg font-semibold text-green-900">Jours</h3>
                   <p className="text-sm text-green-700">Lundi au vendredi uniquement</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+              <div className="flex items-center">
+                <div className="text-orange-500 text-2xl mr-3">⏱️</div>
+                <div>
+                  <h3 className="text-lg font-semibold text-orange-900">Avance</h3>
+                  <p className="text-sm text-orange-700">4h minimum à l'avance</p>
                 </div>
               </div>
             </div>

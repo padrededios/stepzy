@@ -17,7 +17,7 @@ export interface ValidationResult {
 export type RecurringFrequency = 'day' | 'week' | 'month'
 
 /**
- * Validates if a time string is within allowed match hours (12:00-14:00)
+ * Validates if a time string has valid format (any hour allowed)
  */
 export function isValidMatchTime(timeString: string): boolean {
   if (!timeString || typeof timeString !== 'string') {
@@ -27,29 +27,13 @@ export function isValidMatchTime(timeString: string): boolean {
   const timeRegex = /^([0-1]?\d|2[0-3]):([0-5]?\d)$/
   const match = timeString.match(timeRegex)
   
-  if (!match) {
-    return false
-  }
-
-  const hours = parseInt(match[1], 10)
-  const minutes = parseInt(match[2], 10)
-  
-  // Valid time range: 12:00 to 13:30 (last possible start for 90min match ending before 15:00)
-  if (hours < 12 || hours > 13) {
-    return false
-  }
-  
-  if (hours === 13 && minutes > 30) {
-    return false
-  }
-
-  return true
+  return match !== null
 }
 
 /**
  * Validates if a date is valid for match creation
  * - Must be weekday (Monday-Friday)
- * - Must be at least 24h in advance
+ * - Must be at least 4h in advance
  * - Must not be more than 2 weeks in advance
  */
 export function isValidMatchDate(date: Date, referenceDate?: Date): boolean {
@@ -62,11 +46,11 @@ export function isValidMatchDate(date: Date, referenceDate?: Date): boolean {
     return false
   }
   
-  // Check minimum advance booking (24 hours)
+  // Check minimum advance booking (4 hours)
   const diffInMs = matchDate.getTime() - now.getTime()
   const diffInHours = diffInMs / (1000 * 60 * 60)
   
-  if (diffInHours < 24) {
+  if (diffInHours < 4) {
     return false
   }
   
@@ -80,10 +64,31 @@ export function isValidMatchDate(date: Date, referenceDate?: Date): boolean {
 }
 
 /**
- * Returns available time slots for match creation
+ * Returns available time slots for match creation (every 15 minutes from 6:00 to 23:00)
  */
 export function getAvailableTimeSlots(): string[] {
-  return ['12:00', '12:30', '13:00', '13:30']
+  const slots: string[] = []
+  
+  for (let hour = 6; hour <= 23; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+      slots.push(timeString)
+    }
+  }
+  
+  return slots
+}
+
+/**
+ * Returns available duration options in minutes
+ */
+export function getAvailableDurations(): { value: number; label: string }[] {
+  return [
+    { value: 30, label: '30 minutes' },
+    { value: 60, label: '1 heure' },
+    { value: 90, label: '1h30' },
+    { value: 120, label: '2 heures' }
+  ]
 }
 
 /**
@@ -104,8 +109,8 @@ export function validateMatchCreation(data: MatchCreationData): ValidationResult
       errors.push('Les matchs ne peuvent avoir lieu que du lundi au vendredi')
     }
     
-    if (diffInHours < 24) {
-      errors.push('Le match doit être créé au moins 24h à l\'avance')
+    if (diffInHours < 4) {
+      errors.push('Le match doit être créé au moins 4h à l\'avance')
     }
     
     if (diffInDays > 14) {
@@ -121,7 +126,7 @@ export function validateMatchCreation(data: MatchCreationData): ValidationResult
   })
   
   if (!isValidMatchTime(timeString)) {
-    errors.push('L\'heure doit être entre 12h00 et 14h00')
+    errors.push('L\'heure saisie n\'est pas valide')
   }
   
   // Validate player constraints
