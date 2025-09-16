@@ -99,16 +99,8 @@ export async function POST(request: NextRequest) {
       }
 
       const matchDate = new Date(body.date)
-      const hour = matchDate.getHours()
       const dayOfWeek = matchDate.getDay()
-
-      // Validate lunch hours (12h-14h)
-      if (hour < 12 || hour >= 14) {
-        return NextResponse.json(
-          { success: false, error: 'Les matchs doivent être programmés entre 12h-14h' },
-          { status: 400 }
-        )
-      }
+      const now = new Date()
 
       // Validate working days (Monday-Friday: 1-5)
       if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -118,8 +110,17 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      // Validate minimum advance booking (4 hours)
+      const hoursDifference = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60)
+      
+      if (hoursDifference < 4) {
+        return NextResponse.json(
+          { success: false, error: 'Les matchs doivent être créés au moins 4h à l\'avance' },
+          { status: 400 }
+        )
+      }
+
       // Validate reservation advance limit (2 weeks)
-      const now = new Date()
       const daysDifference = Math.floor((matchDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
       
       if (daysDifference > 14) {
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      if (daysDifference < 0) {
+      if (hoursDifference < 0) {
         return NextResponse.json(
           { success: false, error: 'Impossible de créer un match dans le passé' },
           { status: 400 }
