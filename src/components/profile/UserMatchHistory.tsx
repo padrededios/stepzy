@@ -3,6 +3,23 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
+// Utility function for safe date formatting
+function formatDateSafely(
+  dateValue: Date | string | number,
+  options: Intl.DateTimeFormatOptions,
+  fallback: string = 'Date invalide'
+): string {
+  try {
+    const date = dateValue instanceof Date ? dateValue : new Date(dateValue)
+    if (isFinite(date.getTime())) {
+      return new Intl.DateTimeFormat('fr-FR', options).format(date)
+    }
+    return fallback
+  } catch {
+    return fallback
+  }
+}
+
 interface Match {
   id: string
   date: Date
@@ -183,14 +200,14 @@ export default function UserMatchHistory({ userId, onError }: UserMatchHistoryPr
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
                   <div className="text-sm font-medium text-gray-900">
-                    {new Intl.DateTimeFormat('fr-FR', {
+                    {formatDateSafely(match.date, {
                       weekday: 'short',
                       day: 'numeric',
                       month: 'short',
                       year: 'numeric',
                       hour: '2-digit',
                       minute: '2-digit'
-                    }).format(match.date)}
+                    })}
                   </div>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(match.status)}`}>
                     {getStatusText(match.status)}
@@ -219,12 +236,12 @@ export default function UserMatchHistory({ userId, onError }: UserMatchHistoryPr
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Inscrit le {new Intl.DateTimeFormat('fr-FR', {
+                      Inscrit le {formatDateSafely(match.matchPlayers[0].joinedAt, {
                         day: 'numeric',
                         month: 'short',
                         hour: '2-digit',
                         minute: '2-digit'
-                      }).format(match.matchPlayers[0].joinedAt)}
+                      }, 'Date inconnue')}
                     </span>
                   )}
                   
