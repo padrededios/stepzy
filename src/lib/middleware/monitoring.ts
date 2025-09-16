@@ -198,7 +198,10 @@ export async function cachedDatabaseQuery<T>(
  * Performance monitoring decorator for service methods
  */
 export function monitorPerformance(metricName: string) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (target: any, propertyKey: string, descriptor?: PropertyDescriptor) {
+    if (!descriptor) {
+      descriptor = Object.getOwnPropertyDescriptor(target, propertyKey)!
+    }
     const originalMethod = descriptor.value
 
     descriptor.value = async function (...args: any[]) {
