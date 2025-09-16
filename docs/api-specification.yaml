@@ -1,0 +1,889 @@
+openapi: 3.0.3
+info:
+  title: Futsal Reservation API
+  description: |
+    API complète pour l'application de réservation de matchs de futsal.
+    
+    Cette API permet de gérer :
+    - L'authentification des utilisateurs
+    - La gestion des matchs (création, inscription, désinscription)
+    - Les notifications et annonces
+    - L'administration des utilisateurs et statistiques
+    
+    ## Authentification
+    L'API utilise Better-auth avec des sessions sécurisées. Les cookies sont automatiquement gérés par le navigateur.
+    
+    ## Rate Limiting
+    - Login : 5 tentatives/minute par IP
+    - Register : 3 tentatives/minute par IP
+    - API générale : Protection par utilisateur authentifié
+    
+    ## Codes d'erreur
+    - 400: Requête invalide (validation échouée)
+    - 401: Non authentifié
+    - 403: Accès refusé (permissions insuffisantes)
+    - 404: Ressource non trouvée
+    - 429: Limite de débit dépassée
+    - 500: Erreur serveur interne
+    
+  version: 1.0.0
+  contact:
+    name: Futsal App Support
+    email: support@futsal.app
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Serveur de développement
+  - url: https://api.futsal.app
+    description: Serveur de production
+
+tags:
+  - name: Authentication
+    description: Gestion de l'authentification utilisateur
+  - name: Matches
+    description: Gestion des matchs et inscriptions
+  - name: Users
+    description: Gestion des profils utilisateur
+  - name: Notifications
+    description: Système de notifications
+  - name: Admin
+    description: Fonctionnalités d'administration
+  - name: Health
+    description: Monitoring et santé de l'API
+
+paths:
+  # Authentication endpoints
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Inscription d'un nouvel utilisateur
+      description: Crée un nouveau compte utilisateur avec email et mot de passe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - pseudo
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                pseudo:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._-]{3,20}$"
+                  example: "john_doe"
+                password:
+                  type: string
+                  minLength: 8
+                  example: "StrongPassword123!"
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email déjà utilisé
+        '429':
+          description: Trop de tentatives
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Connexion utilisateur
+      description: Authentifie un utilisateur et démarre une session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Identifiants incorrects
+        '429':
+          description: Trop de tentatives
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Déconnexion utilisateur
+      description: Termine la session utilisateur
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Déconnexion réussie
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Informations utilisateur connecté
+      description: Récupère les informations de l'utilisateur authentifié
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Informations utilisateur
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
+
+  # Matches endpoints
+  /api/matches:
+    get:
+      tags:
+        - Matches
+      summary: Liste des matchs
+      description: Récupère la liste des matchs avec filtres et pagination
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Nombre maximum de matchs à retourner
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Décalage pour la pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: status
+          in: query
+          description: Filtrer par statut
+          schema:
+            type: string
+            enum: [open, full, cancelled, completed]
+      responses:
+        '200':
+          description: Liste des matchs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          matches:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MatchWithPlayers'
+                          total:
+                            type: integer
+                          pagination:
+                            $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Matches
+      summary: Créer un match (Admin)
+      description: Crée un nouveau match (réservé aux administrateurs)
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMatchRequest'
+      responses:
+        '201':
+          description: Match créé
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Match'
+        '400':
+          description: Données invalides
+        '403':
+          description: Accès refusé (admin requis)
+
+  /api/matches/{id}:
+    get:
+      tags:
+        - Matches
+      summary: Détails d'un match
+      description: Récupère les détails complets d'un match avec la liste des joueurs
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID du match
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Détails du match
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MatchWithPlayers'
+        '404':
+          description: Match non trouvé
+
+    put:
+      tags:
+        - Matches
+      summary: Modifier un match (Admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMatchRequest'
+      responses:
+        '200':
+          description: Match modifié
+        '403':
+          description: Accès refusé
+        '404':
+          description: Match non trouvé
+
+    delete:
+      tags:
+        - Matches
+      summary: Supprimer un match (Admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Match supprimé
+        '403':
+          description: Accès refusé
+        '404':
+          description: Match non trouvé
+
+  /api/matches/{id}/join:
+    post:
+      tags:
+        - Matches
+      summary: S'inscrire à un match
+      description: Inscrit l'utilisateur connecté au match spécifié
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Inscription réussie
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [confirmed, waiting]
+                          position:
+                            type: integer
+        '400':
+          description: Impossible de s'inscrire (déjà inscrit, match complet, etc.)
+        '404':
+          description: Match non trouvé
+
+  /api/matches/{id}/leave:
+    delete:
+      tags:
+        - Matches
+      summary: Se désinscrire d'un match
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Désinscription réussie
+        '400':
+          description: Impossible de se désinscrire
+        '404':
+          description: Match non trouvé
+
+  # User endpoints
+  /api/user/profile:
+    get:
+      tags:
+        - Users
+      summary: Profil utilisateur
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Profil utilisateur
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfile'
+
+    put:
+      tags:
+        - Users
+      summary: Modifier le profil
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pseudo:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._-]{3,20}$"
+                avatar:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: Profil mis à jour
+
+  /api/user/stats:
+    get:
+      tags:
+        - Users
+      summary: Statistiques utilisateur
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Statistiques
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserStats'
+
+  # Notifications endpoints
+  /api/notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Liste des notifications
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: filter
+          in: query
+          schema:
+            type: string
+            enum: [all, unread]
+            default: all
+      responses:
+        '200':
+          description: Liste des notifications
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          notifications:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Notification'
+
+    put:
+      tags:
+        - Notifications
+      summary: Marquer toutes comme lues
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [mark_all_read]
+      responses:
+        '200':
+          description: Notifications marquées comme lues
+
+  /api/notifications/count:
+    get:
+      tags:
+        - Notifications
+      summary: Nombre de notifications non lues
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Compteur
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          count:
+                            type: integer
+
+  # Admin endpoints
+  /api/admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Liste des utilisateurs (Admin)
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Liste des utilisateurs
+        '403':
+          description: Accès refusé
+
+  /api/admin/statistics:
+    get:
+      tags:
+        - Admin
+      summary: Statistiques globales (Admin)
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Statistiques
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AdminStatistics'
+
+  # Health endpoint
+  /api/health:
+    get:
+      tags:
+        - Health
+      summary: État de santé de l'API
+      description: Vérifie l'état des services (base de données, cache, etc.)
+      responses:
+        '200':
+          description: Système en bonne santé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Système dégradé ou en panne
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: better-auth.session_token
+
+  schemas:
+    SuccessResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Message d'erreur"
+        details:
+          type: object
+          description: Détails supplémentaires sur l'erreur
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        pseudo:
+          type: string
+        avatar:
+          type: string
+          format: uri
+        role:
+          type: string
+          enum: [user, root]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Match:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date-time
+        maxPlayers:
+          type: integer
+          minimum: 2
+          maximum: 24
+          default: 12
+        status:
+          type: string
+          enum: [open, full, cancelled, completed]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MatchPlayer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        matchId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [confirmed, waiting]
+        joinedAt:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/User'
+
+    MatchWithPlayers:
+      allOf:
+        - $ref: '#/components/schemas/Match'
+        - type: object
+          properties:
+            players:
+              type: array
+              items:
+                $ref: '#/components/schemas/MatchPlayer'
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [match_created, match_updated, match_cancelled, match_reminder, match_joined, match_left, waiting_list_promoted, announcement, system]
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        matchId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateMatchRequest:
+      type: object
+      required:
+        - date
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: Date et heure du match (entre 12h et 14h, jours ouvrés uniquement)
+        maxPlayers:
+          type: integer
+          minimum: 2
+          maximum: 24
+          default: 12
+
+    UpdateMatchRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        maxPlayers:
+          type: integer
+          minimum: 2
+          maximum: 24
+        status:
+          type: string
+          enum: [open, full, cancelled, completed]
+
+    AuthResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/User'
+
+    UserProfile:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            matchesPlayed:
+              type: integer
+            participationRate:
+              type: number
+              format: float
+            badges:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  earned:
+                    type: boolean
+                  progress:
+                    type: number
+
+    UserStats:
+      type: object
+      properties:
+        totalMatches:
+          type: integer
+        confirmedMatches:
+          type: integer
+        completedMatches:
+          type: integer
+        participationRate:
+          type: number
+        averagePlayersPerMatch:
+          type: number
+        favoriteTimeSlot:
+          type: string
+        currentStreak:
+          type: integer
+
+    AdminStatistics:
+      type: object
+      properties:
+        users:
+          type: object
+          properties:
+            total:
+              type: integer
+            active:
+              type: integer
+            newThisMonth:
+              type: integer
+        matches:
+          type: object
+          properties:
+            total:
+              type: integer
+            thisMonth:
+              type: integer
+            upcoming:
+              type: integer
+            averageParticipants:
+              type: number
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        checks:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [healthy, slow, error]
+            cache:
+              type: string
+              enum: [healthy, degraded, error]
+            memory:
+              type: string
+              enum: [healthy, warning, critical]
+        metrics:
+          type: object
+          properties:
+            uptime:
+              type: number
+            responseTime:
+              type: number
+            memory:
+              type: object
+
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrevious:
+          type: boolean
