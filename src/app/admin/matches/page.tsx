@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
-import ProtectedRoute from '@/components/layout/ProtectedRoute'
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 
 interface Match {
   id: string
@@ -343,8 +343,8 @@ function AdminMatchesContent() {
 
 export default function AdminMatchesPage() {
   return (
-    <ProtectedRoute requireRole="root">
-      <AdminMatchesContent />
+    <ProtectedRoute requireAdmin={true}>
+      {(user) => <AdminMatchesContent />}
     </ProtectedRoute>
   )
 }
