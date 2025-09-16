@@ -5,6 +5,13 @@ import { prisma } from '../../../../lib/database/prisma'
 export async function POST(request: NextRequest) {
   return requireAuth(request, async (req, context) => {
     try {
+      if (!context.user) {
+        return NextResponse.json({
+          success: false,
+          error: 'Utilisateur non authentifié'
+        }, { status: 401 })
+      }
+
       const formData = await req.formData()
       const file = formData.get('avatar') as File
 

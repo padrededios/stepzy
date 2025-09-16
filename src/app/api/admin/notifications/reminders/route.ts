@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   return requireAuth(request, async (req, context) => {
     try {
       // Only admins can trigger reminders manually
-      if (context.user.role !== 'root') {
+      if (!context.user || context.user.role !== 'root') {
         return NextResponse.json({
           success: false,
           error: 'Accès non autorisé'

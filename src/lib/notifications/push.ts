@@ -49,7 +49,6 @@ export async function sendBrowserNotification(data: PushNotificationData): Promi
       icon: data.icon || '/icon-192x192.png',
       badge: data.badge || '/badge-72x72.png',
       data: data.data,
-      actions: data.actions,
       requireInteraction: false,
       silent: false
     })

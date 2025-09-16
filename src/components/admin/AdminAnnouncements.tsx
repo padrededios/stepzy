@@ -30,7 +30,7 @@ export default function AdminAnnouncements({ onSuccess, onError }: AdminAnnounce
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    priority: 'normal' as const,
+    priority: 'normal' as 'low' | 'normal' | 'high' | 'urgent',
     sendNotifications: false
   })
 

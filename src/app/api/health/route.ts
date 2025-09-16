@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       uptime: process.uptime(),
       memory: process.memoryUsage(),
       responseTime: 0
-    }
+    } as any
   }
 
   try {

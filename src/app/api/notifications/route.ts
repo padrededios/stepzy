@@ -9,6 +9,13 @@ export async function GET(request: NextRequest) {
       const limit = parseInt(searchParams.get('limit') || '20')
       const unreadOnly = searchParams.get('unreadOnly') === 'true'
 
+      if (!context.user) {
+        return NextResponse.json({
+          success: false,
+          error: 'Utilisateur non authentifié'
+        }, { status: 401 })
+      }
+
       const notifications = await getUserNotifications(
         context.user.id,
         Math.min(limit, 50), // Max 50 notifications
@@ -37,6 +44,13 @@ export async function PUT(request: NextRequest) {
       const { action } = body
 
       if (action === 'mark_all_read') {
+        if (!context.user) {
+          return NextResponse.json({
+            success: false,
+            error: 'Utilisateur non authentifié'
+          }, { status: 401 })
+        }
+        
         const count = await markAllNotificationsAsRead(context.user.id)
         
         return NextResponse.json({

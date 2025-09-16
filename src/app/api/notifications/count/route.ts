@@ -5,6 +5,13 @@ import { getUnreadNotificationCount } from '../../../../lib/notifications/servic
 export async function GET(request: NextRequest) {
   return requireAuth(request, async (req, context) => {
     try {
+      if (!context.user) {
+        return NextResponse.json({
+          success: false,
+          error: 'Utilisateur non authentifié'
+        }, { status: 401 })
+      }
+
       const count = await getUnreadNotificationCount(context.user.id)
 
       return NextResponse.json({

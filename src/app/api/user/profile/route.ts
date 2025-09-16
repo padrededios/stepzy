@@ -33,6 +33,14 @@ export async function PUT(request: NextRequest) {
         }, { status: 400 })
       }
 
+      // Check if user exists
+      if (!context.user) {
+        return NextResponse.json({
+          success: false,
+          error: 'Utilisateur non trouvé'
+        }, { status: 401 })
+      }
+
       // Check if pseudo is already taken by another user
       if (pseudo !== context.user.pseudo) {
         const existingUser = await prisma.user.findFirst({

@@ -11,6 +11,13 @@ export async function GET(request: NextRequest) {
       // Get user preferences from database
       // In a real implementation, you might have a separate UserPreferences table
       // For now, we'll return default preferences
+      if (!context.user) {
+        return NextResponse.json({
+          success: false,
+          error: 'Non autorisé'
+        }, { status: 401 })
+      }
+
       const user = await prisma.user.findUnique({
         where: { id: context.user.id }
       })
@@ -74,7 +81,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Log the preference update
-      console.log(`User ${context.user.id} updated preferences:`, preferences)
+      console.log(`User ${context.user?.id} updated preferences:`, preferences)
 
       return NextResponse.json({
         success: true,

@@ -4,7 +4,7 @@ import { prisma } from '../../../../lib/database'
 
 export async function GET(request: NextRequest) {
   return requireAuth(request, async (req, context) => {
-    if (context.user.role !== 'root') {
+    if (!context.user || context.user.role !== 'root') {
       return NextResponse.json(
         { success: false, error: 'Access denied' },
         { status: 403 }
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
       })
 
       // Transform recent activity data
-      const formattedActivity = recentActivity.map(activity => ({
+      const formattedActivity = recentActivity.map((activity: { id: any; status: string; user: { pseudo: any }; match: { date: any }; joinedAt: any }) => ({
         id: activity.id,
         type: activity.status === 'confirmed' ? 'match_join' : 'match_leave',
         user: { pseudo: activity.user.pseudo },

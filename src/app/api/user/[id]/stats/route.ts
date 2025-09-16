@@ -15,7 +15,7 @@ export async function GET(
       const { id } = await params
 
       // Users can only view their own stats unless they are admin
-      if (context.user.id !== id && context.user.role !== 'root') {
+      if (!context.user || (context.user.id !== id && context.user.role !== 'root')) {
         return NextResponse.json({
           success: false,
           error: 'Accès non autorisé'

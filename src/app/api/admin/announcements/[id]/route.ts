@@ -13,7 +13,7 @@ export async function PUT(
   return requireAuth(request, async (req, context) => {
     try {
       // Only admins can update announcements
-      if (context.user.role !== 'root') {
+      if (!context.user || context.user.role !== 'root') {
         return NextResponse.json({
           success: false,
           error: 'Accès non autorisé'
@@ -98,7 +98,7 @@ export async function DELETE(
   return requireAuth(request, async (req, context) => {
     try {
       // Only admins can delete announcements
-      if (context.user.role !== 'root') {
+      if (!context.user || context.user.role !== 'root') {
         return NextResponse.json({
           success: false,
           error: 'Accès non autorisé'

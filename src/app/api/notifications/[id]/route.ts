@@ -17,6 +17,13 @@ export async function PUT(
       const { action } = body
 
       if (action === 'mark_read') {
+        if (!context.user) {
+          return NextResponse.json({
+            success: false,
+            error: 'Utilisateur non authentifié'
+          }, { status: 401 })
+        }
+        
         const success = await markNotificationAsRead(id, context.user.id)
         
         if (success) {

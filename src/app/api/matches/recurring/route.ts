@@ -10,7 +10,7 @@ import {
 export async function POST(request: NextRequest) {
   return requireAuth(request, async (req, context) => {
     // Only admins can create recurring matches
-    if (context.user.role !== 'root') {
+    if (!context.user || context.user.role !== 'root') {
       return NextResponse.json(
         { success: false, error: 'Seuls les administrateurs peuvent créer des matchs récurrents' },
         { status: 403 }
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (existingMatches.length > 0) {
-        const conflictDates = existingMatches.map(match => 
+        const conflictDates = existingMatches.map((match: { date: { toLocaleDateString: (arg0: string) => any } }) => 
           match.date.toLocaleDateString('fr-FR')
         ).join(', ')
         
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: `${createdMatches.length} matchs récurrents créés avec succès`,
         data: {
-          matches: createdMatches.map(match => ({
+          matches: createdMatches.map((match: { id: any; date: any; maxPlayers: any; description: any; status: any }) => ({
             id: match.id,
             date: match.date,
             maxPlayers: match.maxPlayers,
