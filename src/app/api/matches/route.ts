@@ -59,6 +59,18 @@ export async function GET(request: NextRequest) {
           date: match.date,
           maxPlayers: match.maxPlayers,
           status: match.status,
+          _count: {
+            matchPlayers: match.players.length
+          },
+          matchPlayers: match.players.map(p => ({
+            user: {
+              id: p.user.id,
+              pseudo: p.user.pseudo,
+              email: p.user.email || ''
+            },
+            status: p.status === 'confirmed' ? 'active' as const : 'waiting' as const,
+            joinedAt: p.joinedAt.toISOString()
+          })),
           players: confirmedPlayers,
           waitingList
         }

@@ -91,7 +91,8 @@ function AdminMatchesContent() {
         throw new Error('Erreur lors du chargement des matchs')
       }
       const data = await response.json()
-      setMatches(data.matches || [])
+      console.log('API Response:', data) // Debug log
+      setMatches(data.data?.matches || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
