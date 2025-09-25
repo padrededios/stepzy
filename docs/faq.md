@@ -1,16 +1,47 @@
 # ❓ FAQ - Questions Fréquentes
 
-Réponses aux questions les plus courantes sur l'utilisation de l'application de réservation de matchs de futsal.
+Réponses aux questions les plus courantes sur l'utilisation de la plateforme Stepzy de réservation d'activités sportives.
 
 ## 📋 Table des matières
 
+- [Sports disponibles](#-sports-disponibles)
 - [Compte et authentification](#-compte-et-authentification)
-- [Inscriptions aux matchs](#-inscriptions-aux-matchs)
+- [Inscriptions aux activités](#-inscriptions-aux-activités)
 - [Liste d'attente](#-liste-dattente)
 - [Profil et statistiques](#-profil-et-statistiques)
 - [Notifications](#-notifications)
 - [Problèmes techniques](#-problèmes-techniques)
 - [Règles et politiques](#-règles-et-politiques)
+
+---
+
+## 🏅 Sports disponibles
+
+### Quels sports puis-je pratiquer sur Stepzy ?
+
+Stepzy supporte actuellement **5 sports différents** :
+
+| Sport | Participants | Description |
+|-------|-------------|-------------|
+| **⚽ Football** | 8-12 joueurs | Match de football à 5 contre 5 avec remplaçants |
+| **🏸 Badminton** | 2-4 joueurs | Parties en simple (1v1) ou double (2v2) |
+| **🏐 Volleyball** | 6-12 joueurs | Match de volleyball 6 contre 6 |
+| **🏓 Ping-Pong** | 2-4 joueurs | Tournoi en simple ou double |
+| **🏈 Rugby** | 10-15 joueurs | Match de rugby à XV |
+
+### Comment choisir le sport lors de la création d'activité ?
+
+Les **administrateurs** peuvent sélectionner le sport lors de la création :
+1. Interface visuelle avec icônes pour chaque sport
+2. Le nombre de joueurs s'adapte automatiquement selon le sport choisi
+3. Configuration spécifique par sport (terrain, équipement, règles)
+
+### Puis-je participer à plusieurs sports ?
+
+**Absolument !** Votre profil Stepzy vous permet de :
+- Participer à toutes les activités sportives disponibles
+- Consulter vos statistiques par sport
+- Recevoir des badges multisports selon vos participations
 
 ---
 
@@ -56,7 +87,7 @@ Vos données seront anonymisées conformément au RGPD.
 
 ---
 
-## ⚽ Inscriptions aux matchs
+## 🏅 Inscriptions aux activités
 
 ### Comment s'inscrire à un match ?
 

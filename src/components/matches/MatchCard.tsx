@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { SportType, getSportConfig } from '../../config/sports'
 
 interface User {
   id: string
@@ -20,6 +21,7 @@ interface MatchPlayer {
 interface Match {
   id: string
   date: Date
+  sport: SportType
   maxPlayers: number
   status: 'open' | 'full' | 'cancelled' | 'completed'
   players: MatchPlayer[]
@@ -201,7 +203,7 @@ export function MatchCard({ match, currentUser, onUpdate }: MatchCardProps) {
           disabled={isLoading}
           className="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isLoading ? 'Quitter...' : 'Quitter le match'}
+          {isLoading ? 'Quitter...' : "Quitter l'activité"}
         </button>
       )
     }
@@ -217,7 +219,7 @@ export function MatchCard({ match, currentUser, onUpdate }: MatchCardProps) {
             disabled={isLoading}
             className="w-full px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading ? 'Quitter...' : 'Quitter la liste d\'attente'}
+            {isLoading ? 'Quitter...' : "Quitter la liste d'attente"}
           </button>
         </div>
       )
@@ -241,7 +243,7 @@ export function MatchCard({ match, currentUser, onUpdate }: MatchCardProps) {
         disabled={isLoading}
         className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        {isLoading ? 'Rejoindre...' : 'Rejoindre le match'}
+        {isLoading ? 'Rejoindre...' : "Rejoindre l'activité"}
       </button>
     )
   }
@@ -251,9 +253,22 @@ export function MatchCard({ match, currentUser, onUpdate }: MatchCardProps) {
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 capitalize">
+          <div className="flex items-center mb-2">
+            <div className="relative w-8 h-8 mr-3">
+              <Image
+                src={getSportConfig(match.sport).icon}
+                alt={getSportConfig(match.sport).name}
+                fill
+                className="rounded-full object-cover"
+              />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {getSportConfig(match.sport).name}
+            </h3>
+          </div>
+          <p className="text-sm font-medium text-gray-900 capitalize">
             {formatDate(match.date)}
-          </h3>
+          </p>
           <p className="text-sm text-gray-600">
             {formatTime(match.date)}
           </p>
@@ -311,7 +326,7 @@ export function MatchCard({ match, currentUser, onUpdate }: MatchCardProps) {
             href={`/matches/${match.id}`}
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            Voir les détails du match →
+            Voir les détails de l&apos;activité →
           </Link>
         </div>
       </div>

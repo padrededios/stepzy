@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { MatchCard } from '@/components/matches/MatchCard'
 import AnnouncementBanner from '@/components/announcements/AnnouncementBanner'
+import { SportType } from '@/config/sports'
 
 interface User {
   id: string
@@ -28,6 +29,7 @@ interface MatchPlayer {
 interface Match {
   id: string
   date: Date
+  sport: SportType
   maxPlayers: number
   status: 'open' | 'full' | 'cancelled' | 'completed'
   players: MatchPlayer[]
@@ -179,7 +181,7 @@ function DashboardContent({ user }: { user: User }) {
                 Bonjour {user.pseudo} 👋
               </h1>
               <p className="text-gray-600 mt-1">
-                Bienvenue sur votre tableau de bord Futsal
+                Bienvenue sur votre tableau de bord Stepzy
               </p>
             </div>
             <div className="text-right">

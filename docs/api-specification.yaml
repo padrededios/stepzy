@@ -1,12 +1,13 @@
 openapi: 3.0.3
 info:
-  title: Futsal Reservation API
+  title: Stepzy Multisports API
   description: |
-    API complète pour l'application de réservation de matchs de futsal.
-    
+    API complète pour la plateforme Stepzy de réservation d'activités sportives multiples.
+
     Cette API permet de gérer :
     - L'authentification des utilisateurs
-    - La gestion des matchs (création, inscription, désinscription)
+    - La gestion des activités multisports (création, inscription, désinscription)
+    - Sélection de sports (Football, Badminton, Volleyball, Ping-Pong, Rugby)
     - Les notifications et annonces
     - L'administration des utilisateurs et statistiques
     
@@ -28,8 +29,8 @@ info:
     
   version: 1.0.0
   contact:
-    name: Futsal App Support
-    email: support@futsal.app
+    name: Stepzy Support
+    email: support@stepzy.app
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -37,7 +38,7 @@ info:
 servers:
   - url: http://localhost:3000
     description: Serveur de développement
-  - url: https://api.futsal.app
+  - url: https://api.stepzy.app
     description: Serveur de production
 
 tags:
@@ -668,11 +669,15 @@ components:
         date:
           type: string
           format: date-time
+        sport:
+          type: string
+          enum: [football, badminton, volley, pingpong, rugby]
+          description: Type de sport pour cette activité
         maxPlayers:
           type: integer
           minimum: 2
-          maximum: 24
-          default: 12
+          maximum: 15
+          description: Nombre maximum de joueurs (varie selon le sport)
         status:
           type: string
           enum: [open, full, cancelled, completed]

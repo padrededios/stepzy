@@ -1,11 +1,11 @@
-# 🥅 Futsal Reservation SaaS
+# 🏅 Stepzy - Plateforme Multisports
 
-Application web moderne pour la gestion et réservation de matchs de futsal entre midi et deux. Développée avec Next.js, TypeScript, et une approche TDD complète.
+Plateforme web moderne pour la gestion et réservation d'activités sportives multiples (Football, Badminton, Volleyball, Ping-Pong, Rugby). Développée avec Next.js, TypeScript, et une approche TDD complète.
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/username/futsal)
-[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://github.com/username/futsal)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/username/futsal)
-[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/username/futsal/blob/main/LICENSE)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/username/stepzy)
+[![Test Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](https://github.com/username/stepzy)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/username/stepzy)
+[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/username/stepzy/blob/main/LICENSE)
 
 ## 📋 Table des matières
 
@@ -31,19 +31,20 @@ Application web moderne pour la gestion et réservation de matchs de futsal entr
 - Rate limiting anti-brute force
 - Protection XSS et injection SQL
 
-### ⚽ Gestion des matchs
-- Création de matchs par les administrateurs
-- Inscription/désinscription des joueurs
+### 🏅 Gestion des activités multisports
+- Création d'activités par les administrateurs (Football, Badminton, Volleyball, Ping-Pong, Rugby)
+- Sélection visuelle du sport avec icônes dédiées
+- Adaptation automatique du nombre de joueurs par sport
+- Inscription/désinscription des participants
 - Système de liste d'attente automatique
 - Promotion FIFO depuis la liste d'attente
-- Contraintes horaires (12h-14h, jours ouvrés)
-- Vue terrain style MPG avec positions 6v6
+- Configuration spécifique par sport (min/max joueurs)
 
 ### 👥 Profils utilisateur
 - Profils personnalisés avec avatar
-- Historique complet des matchs
-- Statistiques de participation
-- Système de badges et récompenses
+- Historique complet des activités sportives
+- Statistiques de participation par sport
+- Système de badges et récompenses multisports
 - Préférences de notifications
 
 ### 🔔 Notifications temps réel
@@ -108,8 +109,8 @@ Application web moderne pour la gestion et réservation de matchs de futsal entr
 
 ```bash
 # Cloner le repository
-git clone https://github.com/username/futsal.git
-cd futsal
+git clone https://github.com/username/stepzy.git
+cd stepzy
 
 # Installer les dépendances
 npm install
@@ -133,7 +134,7 @@ L'application sera disponible sur [http://localhost:3000](http://localhost:3000)
 ### Compte administrateur par défaut
 
 ```
-Email: root@futsal.com
+Email: admin@stepzy.local
 Mot de passe: RootPass123!
 ```
 
@@ -190,7 +191,7 @@ docker-compose down
 ### Pour les administrateurs
 
 1. **Connexion admin** : Utilisez le compte root par défaut
-2. **Créer matches** : Planifiez les créneaux futsal
+2. **Créer activités** : Planifiez les créneaux multisports
 3. **Gestion utilisateurs** : Administrez les comptes
 4. **Statistiques** : Consultez les métriques d'usage
 5. **Annonces** : Communiquez avec la communauté
@@ -207,7 +208,7 @@ src/
 │   └── admin/             # Pages admin
 ├── components/            # Composants React
 │   ├── auth/             # Authentification
-│   ├── matches/          # Gestion matchs
+│   ├── matches/          # Gestion activités
 │   ├── layout/           # Layout
 │   └── notifications/    # Notifications
 ├── lib/                   # Utilitaires
@@ -444,6 +445,6 @@ copies of the Software...
 
 ---
 
-**🚀 Prêt à jouer au futsal ?** [Commencez maintenant](http://localhost:3000) ou consultez la [documentation complète](docs/).
+**🚀 Prêt à pratiquer du multisport ?** [Commencez maintenant](http://localhost:3000) ou consultez la [documentation complète](docs/).
 
-Made with ❤️ and ⚽ for the futsal community.
+Made with ❤️ and 🏅 for the multisports community.

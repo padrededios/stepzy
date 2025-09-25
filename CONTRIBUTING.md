@@ -1,6 +1,6 @@
-# 🤝 Guide de Contribution - Futsal Reservation SaaS
+# 🤝 Guide de Contribution - Stepzy Plateforme Multisports
 
-Merci de votre intérêt pour contribuer au projet Futsal ! Ce guide vous aidera à comprendre comment participer au développement de l'application.
+Merci de votre intérêt pour contribuer au projet Stepzy ! Ce guide vous aidera à comprendre comment participer au développement de la plateforme multisports.
 
 ## 📋 Table des matières
 

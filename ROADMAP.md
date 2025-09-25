@@ -1,7 +1,7 @@
-# 🥅 Plan de Travail - SaaS Réservation Futsal
+# 🏅 Plan de Travail - Stepzy Plateforme Multisports
 
 ## 📋 Vue d'ensemble
-Application Next.js (App Router) avec Better-auth et PostgreSQL pour la réservation de matchs de futsal entre midi et deux, développée en TDD.
+Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservation d'activités sportives multiples, développée en TDD.
 
 ---
 
@@ -226,7 +226,34 @@ Application Next.js (App Router) avec Better-auth et PostgreSQL pour la réserva
 
 ---
 
-## 📚 Phase 10 : Documentation & Finition
+## 🏅 Phase 10 : Évolution Multisports (Version 2.0)
+
+### 10.1 Modèle de données multisports
+- ✅ Ajout du champ `sport` au modèle Match
+- ✅ Création de l'enum SportType (football, badminton, volley, pingpong, rugby)
+- ✅ Configuration spécifique par sport (min/max joueurs)
+- ✅ Migration de la base de données
+
+### 10.2 Interface utilisateur
+- ✅ Sélection visuelle du sport avec icônes
+- ✅ Adaptation automatique du nombre de joueurs
+- ✅ Mise à jour du branding (Stepzy)
+- ✅ Affichage des sports dans les cartes d'activité
+
+### 10.3 APIs et backend
+- ✅ Support multisports dans les APIs
+- ✅ Mise à jour des notifications (emails, push)
+- ✅ Adaptation des données de seed
+- ✅ Configuration des sports centralisée
+
+### 10.4 Documentation
+- ✅ Mise à jour complète de la documentation
+- ✅ Guides utilisateur multisports
+- ✅ Spécifications techniques mises à jour
+
+---
+
+## 📚 Phase 11 : Documentation & Finition
 
 ### 10.1 Documentation Technique
 - [ ] Documentation API (OpenAPI/Swagger)

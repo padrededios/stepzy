@@ -62,7 +62,7 @@ async function main() {
 
   console.log(`✅ ${testUsers.length} utilisateurs de test créés`)
 
-  // Créer quelques matchs de démonstration
+  // Créer quelques activités de démonstration multisports
   const now = new Date()
   const tomorrow = new Date(now)
   tomorrow.setDate(now.getDate() + 1)
@@ -72,6 +72,10 @@ async function main() {
   nextWeek.setDate(now.getDate() + 7)
   nextWeek.setHours(13, 0, 0, 0) // 13h00
 
+  const dayAfterTomorrow = new Date(now)
+  dayAfterTomorrow.setDate(now.getDate() + 2)
+  dayAfterTomorrow.setHours(14, 0, 0, 0) // 14h00
+
   const demoMatches = await Promise.all([
     prisma.match.upsert({
       where: { id: 'demo-match-1' },
@@ -79,6 +83,8 @@ async function main() {
       create: {
         id: 'demo-match-1',
         date: tomorrow,
+        sport: 'football',
+        maxPlayers: 12,
         status: 'open',
       },
     }),
@@ -88,12 +94,25 @@ async function main() {
       create: {
         id: 'demo-match-2',
         date: nextWeek,
+        sport: 'badminton',
+        maxPlayers: 4,
+        status: 'open',
+      },
+    }),
+    prisma.match.upsert({
+      where: { id: 'demo-match-3' },
+      update: {},
+      create: {
+        id: 'demo-match-3',
+        date: dayAfterTomorrow,
+        sport: 'volley',
+        maxPlayers: 12,
         status: 'open',
       },
     }),
   ])
 
-  console.log(`✅ ${demoMatches.length} matchs de démonstration créés`)
+  console.log(`✅ ${demoMatches.length} activités de démonstration créées`)
 
   // Inscrire quelques joueurs au premier match
   await Promise.all([

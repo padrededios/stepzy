@@ -85,19 +85,22 @@ export function Header({ user, onMobileMenuToggle }: HeaderProps) {
               </button>
             )}
             
-            <Link 
+            <Link
               href={user ? '/dashboard' : '/'}
               className="flex items-center ml-2 md:ml-0"
               aria-label="Accueil"
             >
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                  </svg>
+                <div className="relative w-10 h-10">
+                  <Image
+                    src="/images/stepzy_logo.jpg"
+                    alt="Stepzy Logo"
+                    fill
+                    className="rounded-lg object-cover"
+                  />
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900">
-                  Futsal Réservation
+                <span className="ml-3 text-xl font-bold text-gray-900">
+                  Stepzy
                 </span>
               </div>
             </Link>
@@ -106,11 +109,11 @@ export function Header({ user, onMobileMenuToggle }: HeaderProps) {
           {/* Navigation for desktop */}
           {user && (
             <nav className="hidden md:flex space-x-8">
-              <Link 
-                href="/dashboard" 
+              <Link
+                href="/dashboard"
                 className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
               >
-                Matchs
+                Activités
               </Link>
               {isAdmin && (
                 <Link 
@@ -216,7 +219,7 @@ export function Header({ user, onMobileMenuToggle }: HeaderProps) {
               href="/dashboard"
               className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
             >
-              Matchs
+              Activités
             </Link>
             {isAdmin && (
               <Link

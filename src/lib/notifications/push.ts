@@ -99,11 +99,11 @@ export const MatchNotifications = {
   }),
 
   matchReminder: (matchDate: string, time: string) => sendBrowserNotification({
-    title: '⏰ Rappel de match',
-    body: `Votre match de futsal commence ${time === '2h' ? 'dans 2 heures' : 'demain'} - ${matchDate}`,
+    title: '⏰ Rappel d\'activité',
+    body: `Votre activité sportive commence ${time === '2h' ? 'dans 2 heures' : 'demain'} - ${matchDate}`,
     data: { type: 'match_reminder' },
     actions: [
-      { action: 'view', title: 'Voir le match' },
+      { action: 'view', title: 'Voir l\'activité' },
       { action: 'dismiss', title: 'Ignorer' }
     ]
   }),

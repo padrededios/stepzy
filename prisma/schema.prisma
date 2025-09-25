@@ -38,6 +38,7 @@ model User {
 model Match {
   id         String      @id @default(cuid())
   date       DateTime
+  sport      SportType   @default(football)
   maxPlayers Int         @default(12)
   status     MatchStatus @default(open)
   createdAt  DateTime    @default(now())
@@ -85,6 +86,16 @@ enum PlayerStatus {
   waiting
 
   @@map("player_status")
+}
+
+enum SportType {
+  football
+  badminton
+  volley
+  pingpong
+  rugby
+
+  @@map("sport_type")
 }
 
 // Tables Better-auth

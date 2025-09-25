@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
         return {
           id: match.id,
           date: match.date,
+          sport: match.sport,
           maxPlayers: match.maxPlayers,
           status: match.status,
           _count: {
@@ -153,6 +154,7 @@ export async function POST(request: NextRequest) {
       const match = await prisma.match.create({
         data: {
           date: matchDate,
+          sport: body.sport || 'football',
           maxPlayers: body.maxPlayers || 12,
           status: 'open'
         },

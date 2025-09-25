@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     try {
       const body = await req.json()
-      const { date, maxPlayers, description, recurring } = body
+      const { date, sport, maxPlayers, description, recurring } = body
 
       // Validate input
       if (!date || !recurring || !recurring.frequency || !recurring.count) {
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
           prisma.match.create({
             data: {
               date: matchDate,
+              sport: sport || 'football',
               maxPlayers: maxPlayers || 12,
               description: description || '',
               status: 'open'
@@ -100,9 +101,10 @@ export async function POST(request: NextRequest) {
         success: true,
         message: `${createdMatches.length} matchs récurrents créés avec succès`,
         data: {
-          matches: createdMatches.map((match: { id: any; date: any; maxPlayers: any; description: any; status: any }) => ({
+          matches: createdMatches.map((match: { id: any; date: any; sport: any; maxPlayers: any; description: any; status: any }) => ({
             id: match.id,
             date: match.date,
+            sport: match.sport,
             maxPlayers: match.maxPlayers,
             description: match.description,
             status: match.status

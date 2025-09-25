@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
+import {
   validateMatchCreation,
   getAvailableTimeSlots,
   getAvailableDurations,
@@ -12,6 +12,8 @@ import {
   getQuickPresets,
   type RecurringFrequency
 } from '../../lib/utils/time-constraints'
+import { SportType, getSportConfig, getAllSports } from '../../config/sports'
+import Image from 'next/image'
 
 interface MatchCreationFormProps {
   currentUser: {
@@ -40,6 +42,7 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
     date: '',
     time: '12:00',
     duration: 60, // in minutes
+    sport: 'football' as SportType,
     maxPlayers: 12,
     description: '',
     adminCreate: false,
@@ -70,7 +73,15 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
   const quickPresets = getQuickPresets()
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value }
+      // Auto-adjust maxPlayers based on selected sport
+      if (field === 'sport') {
+        const sportConfig = getSportConfig(value as SportType)
+        newData.maxPlayers = sportConfig.maxPlayers
+      }
+      return newData
+    })
     setValidationErrors([]) // Clear errors on input change
   }
 
@@ -161,6 +172,7 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         date: matchDate.toISOString(),
+        sport: formData.sport,
         maxPlayers: formData.maxPlayers,
         description: formData.description
       })
@@ -184,6 +196,7 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         date: startDate.toISOString(),
+        sport: formData.sport,
         maxPlayers: formData.maxPlayers,
         description: formData.description,
         recurring: {
@@ -209,6 +222,7 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
       date: '',
       time: '12:00',
       duration: 60,
+      sport: 'football' as SportType,
       maxPlayers: 12,
       description: '',
       adminCreate: false,
@@ -237,9 +251,9 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
     <div className="max-w-2xl mx-auto">
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Créer un nouveau match</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Créer une nouvelle activité</h2>
           <p className="text-gray-600">
-            Créez des matchs individuels ou récurrents pour la communauté futsal.
+            Créez des activités sportives individuelles ou récurrentes pour la communauté.
           </p>
         </div>
 
@@ -287,6 +301,44 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Sport Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Type de sport *
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {getAllSports().map((sport) => (
+                <label
+                  key={sport.id}
+                  className={`relative flex flex-col items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    formData.sport === sport.id
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="sport"
+                    value={sport.id}
+                    checked={formData.sport === sport.id}
+                    onChange={(e) => handleInputChange('sport', e.target.value)}
+                    className="sr-only"
+                  />
+                  <div className="relative w-12 h-12 mb-2">
+                    <Image
+                      src={sport.icon}
+                      alt={sport.name}
+                      fill
+                      className="rounded-full object-cover"
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-center">{sport.name}</span>
+                  <span className="text-xs text-gray-500 text-center">{sport.minPlayers}-{sport.maxPlayers} joueurs</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
           {/* Date, Time and Duration */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -351,12 +403,15 @@ const MatchCreationForm: React.FC<MatchCreationFormProps> = ({
               id="maxPlayers"
               value={formData.maxPlayers}
               onChange={(e) => handleInputChange('maxPlayers', parseInt(e.target.value) || 0)}
-              min={2}
-              max={12}
+              min={getSportConfig(formData.sport).minPlayers}
+              max={getSportConfig(formData.sport).maxPlayers}
               disabled={loading}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="mt-1 text-sm text-gray-500">
+              Pour {getSportConfig(formData.sport).name}: {getSportConfig(formData.sport).minPlayers} à {getSportConfig(formData.sport).maxPlayers} joueurs
+            </p>
           </div>
 
           {/* Description */}

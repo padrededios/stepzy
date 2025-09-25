@@ -1,8 +1,8 @@
-# 📋 Cahier des Charges - SaaS Réservation Futsal
+# 📋 Cahier des Charges - Stepzy Plateforme Multisports
 
 ## 🎯 Vision du Projet
 
-Application Next.js (App Router) avec Better-auth et PostgreSQL pour la réservation de matchs de futsal entre midi et deux, développée en méthodologie TDD (Test-Driven Development).
+Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservation d'activités sportives multiples (Football, Badminton, Volleyball, Ping-Pong, Rugby), développée en méthodologie TDD (Test-Driven Development).
 
 ## 🏗️ Architecture Technique
 
@@ -36,8 +36,9 @@ Application Next.js (App Router) avec Better-auth et PostgreSQL pour la réserva
 
 #### Match
 - `id` (string, PK)
-- `date` (DateTime, entre 12h-14h)
-- `maxPlayers` (int, default: 12)
+- `date` (DateTime, horaires flexibles)
+- `sport` (enum: 'football' | 'badminton' | 'volley' | 'pingpong' | 'rugby')
+- `maxPlayers` (int, dépend du sport)
 - `status` (enum: 'open' | 'full' | 'cancelled' | 'completed')
 - `createdAt`, `updatedAt`
 
@@ -60,18 +61,18 @@ Application Next.js (App Router) avec Better-auth et PostgreSQL pour la réserva
 - **Avatars**: Auto-génération via DiceBear si non fourni
 - **Rate limiting**: Protection contre les attaques par force brute
 
-### Gestion des Matchs
+### Gestion des Activités Multisports
 
 #### Pour les Utilisateurs
 - **Visualisation**: Semaine courante + semaine suivante
 - **Inscription**: Automatique si places disponibles
-- **Liste d'attente**: Auto-ajout si match complet (max 12 joueurs)
+- **Liste d'attente**: Auto-ajout si activité complète (max dépend du sport)
 - **Promotion automatique**: Premier en attente → confirmé si désistement
-- **Interface MPG-style**: Vue terrain 6v6 avec avatars des joueurs
+- **Sélection de sport**: Interface visuelle avec icônes par sport
 - **Actions**: Inscription/désinscription via clics sur avatars
 
 #### Pour les Administrateurs
-- **CRUD complet**: Création, modification, suppression de matchs
+- **CRUD complet**: Création, modification, suppression d'activités multisports
 - **Gestion forcée**: Inscrire/désinscrire n'importe qui
 - **Remplacement**: Échanger des joueurs entre eux
 - **Statistiques**: Vue globale des inscriptions

@@ -88,7 +88,7 @@ export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
       )
     },
     {
-      name: 'Gestion Matchs',
+      name: 'Gestion Activités',
       href: '/admin/matches',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +97,7 @@ export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
       )
     },
     {
-      name: 'Créer Matchs',
+      name: 'Créer Activité',
       href: '/admin/matches/create',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,13 +142,16 @@ export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center px-4 py-4 border-b border-gray-200">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-              </svg>
+            <div className="relative w-10 h-10">
+              <Image
+                src="/images/stepzy_logo.jpg"
+                alt="Stepzy Logo"
+                fill
+                className="rounded-lg object-cover"
+              />
             </div>
             <span className="ml-3 text-lg font-semibold text-gray-900">
-              Futsal
+              Stepzy
             </span>
           </div>
 

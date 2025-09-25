@@ -29,9 +29,9 @@ export default function AdminMatchCreatePage() {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Créer des matchs</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Créer des activités</h1>
                 <p className="mt-2 text-gray-600">
-                  Organisez de nouveaux matchs pour la communauté futsal
+                  Organisez de nouvelles activités sportives pour la communauté
                 </p>
               </div>
             </div>

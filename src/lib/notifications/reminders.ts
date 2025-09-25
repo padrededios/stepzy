@@ -69,7 +69,7 @@ export async function sendMatchReminders() {
         match.id,
         userIds,
         `⏰ Rappel : Match demain à ${matchTime}`,
-        `N'oubliez pas votre match de futsal prévu ${matchDate} à ${matchTime}. Pensez à vous équiper !`,
+        `N'oubliez pas votre activité sportive prévue ${matchDate} à ${matchTime}. Pensez à vous équiper !`,
         {
           matchDate: match.date,
           playersCount: match.players.length,
@@ -137,7 +137,7 @@ export async function sendMatchStartingSoon() {
         match.id,
         userIds,
         '🚀 Votre match commence dans 2h !',
-        'Préparez-vous, votre match de futsal commence bientôt. Bon match !',
+        'Préparez-vous, votre activité sportive commence bientôt. Bon match !',
         {
           matchDate: match.date,
           timeUntilMatch: '2 heures',

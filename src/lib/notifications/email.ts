@@ -38,10 +38,10 @@ export function generateMatchNotificationEmail(data: MatchNotificationData): Ema
   }).format(date)
 
   const subjects = {
-    created: '🥅 Nouveau match de futsal disponible !',
-    updated: '📝 Mise à jour du match de futsal',
-    cancelled: '❌ Match de futsal annulé',
-    reminder: '⏰ Rappel : Match de futsal demain'
+    created: '🏅 Nouvelle activité sportive disponible !',
+    updated: '📝 Mise à jour de l\'activité sportive',
+    cancelled: '❌ Activité sportive annulée',
+    reminder: '⏰ Rappel : Activité sportive demain'
   }
 
   const subject = subjects[type]
