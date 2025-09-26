@@ -4,8 +4,8 @@ export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="mt-auto bg-gray-50 border-t border-gray-200" role="contentinfo">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="mt-auto bg-gray-50 rounded-b-2xl" role="contentinfo">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="py-8">
           <div className="md:flex md:items-center md:justify-between">
             {/* Links */}
@@ -39,7 +39,7 @@ export function Footer() {
             {/* Copyright */}
             <div className="mt-4 md:mt-0 md:order-1">
               <p className="text-center md:text-left text-sm text-gray-600">
-                © {currentYear} Futsal Réservation. Tous droits réservés.
+                © {currentYear} Stepzy. Tous droits réservés.
               </p>
             </div>
           </div>

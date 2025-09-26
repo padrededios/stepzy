@@ -84,8 +84,8 @@ export function Header({ user }: HeaderProps) {
   const isAdmin = user?.role === 'root'
 
   return (
-    <header className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-lg rounded-t-2xl">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center h-16 relative">
           {/* Conteneur unifié - tout centré ensemble */}
           <div className="flex items-center space-x-6">
