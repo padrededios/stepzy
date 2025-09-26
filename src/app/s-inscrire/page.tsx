@@ -32,7 +32,6 @@ function SInscrireContent({ user }: { user: User }) {
     getAvailableActivities,
     registerForActivity,
     unregisterFromActivity,
-    joinWaitingList,
     loading
   } = useActivities(user.id)
 
@@ -41,16 +40,23 @@ function SInscrireContent({ user }: { user: User }) {
 
   const activities = getAvailableActivities()
 
-  const handleJoinMatch = (activityId: string) => {
-    registerForActivity(activityId)
+  const handleJoinMatch = async (activityId: string) => {
+    const result = await registerForActivity(activityId)
+    if (!result?.success) {
+      alert(result?.error || 'Erreur lors de l\'inscription')
+    }
   }
 
-  const handleLeaveMatch = (activityId: string) => {
-    unregisterFromActivity(activityId)
+  const handleLeaveMatch = async (activityId: string) => {
+    const result = await unregisterFromActivity(activityId)
+    if (!result?.success) {
+      alert(result?.error || 'Erreur lors de la désinscription')
+    }
   }
 
-  const handleJoinWaitingList = (activityId: string) => {
-    joinWaitingList(activityId)
+  const handleJoinWaitingList = async (activityId: string) => {
+    // La liste d'attente est maintenant gérée automatiquement par registerForActivity
+    await handleJoinMatch(activityId)
   }
 
   const filteredAndSortedActivities = activities

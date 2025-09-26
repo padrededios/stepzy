@@ -35,7 +35,7 @@ export async function GET(
 
       if (!match) {
         return NextResponse.json(
-          { success: false, error: 'Match non trouvé' },
+          { success: false, error: 'Activité non trouvée' },
           { status: 404 }
         )
       }
@@ -56,6 +56,7 @@ export async function GET(
           match: {
             id: match.id,
             date: match.date,
+            sport: match.sport,
             maxPlayers: match.maxPlayers,
             status: match.status,
             createdAt: match.createdAt,
@@ -188,7 +189,7 @@ export async function DELETE(
 
       if (!match) {
         return NextResponse.json(
-          { success: false, error: 'Match non trouvé' },
+          { success: false, error: 'Activité non trouvée' },
           { status: 404 }
         )
       }

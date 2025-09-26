@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
       })
 
       // Transform data to separate confirmed players and waiting list
+      const currentUserId = context.user?.id
       const transformedMatches = matches.map(match => {
         const confirmedPlayers = match.players
           .filter(p => p.status === 'confirmed')
@@ -53,6 +54,13 @@ export async function GET(request: NextRequest) {
           .filter(p => p.status === 'waiting' || p.status === 'confirmed')
           .slice(match.maxPlayers)
           .map(p => ({ ...p, status: 'waiting' as const }))
+
+        // Vérifier si l'utilisateur courant est inscrit
+        const userRegistration = match.players.find(p => p.userId === currentUserId)
+        let userStatus = null
+        if (userRegistration) {
+          userStatus = userRegistration.status === 'confirmed' ? 'active' : 'waiting'
+        }
 
         return {
           id: match.id,
@@ -73,7 +81,9 @@ export async function GET(request: NextRequest) {
             joinedAt: p.joinedAt.toISOString()
           })),
           players: confirmedPlayers,
-          waitingList
+          waitingList,
+          // Ajouter le statut de l'utilisateur courant
+          currentUserStatus: userStatus
         }
       })
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { SPORTS_CONFIG, type SportType } from '@/config/sports'
@@ -168,10 +169,18 @@ function ActivityCard({
   activity: Activity
   getStatusBadge: (activity: Activity) => JSX.Element | null
 }) {
+  const router = useRouter()
   const sportConfig = SPORTS_CONFIG[activity.sport]
 
+  const handleClick = () => {
+    router.push(`/matches/${activity.id}`)
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+    <div
+      className="bg-white rounded-lg shadow border border-gray-200 p-6 cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={handleClick}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-4">
           {/* Sport Icon */}

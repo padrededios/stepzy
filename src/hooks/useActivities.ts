@@ -15,193 +15,135 @@ export interface Activity {
   isWaitingList: boolean
 }
 
-export interface UserRegistration {
-  activityId: string
-  status: 'confirmed' | 'waiting'
-  registeredAt: string
-}
 
-// Données mockées des activités disponibles
-const MOCK_ACTIVITIES: Activity[] = [
-  {
-    id: '1',
-    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    maxPlayers: 12,
-    currentPlayers: 8,
-    description: 'Match de football amical au stade municipal',
-    sport: 'football',
-    status: 'open',
-    isParticipant: false,
-    isWaitingList: false
-  },
-  {
-    id: '2',
-    date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    maxPlayers: 4,
-    currentPlayers: 4,
-    description: 'Tournoi de badminton - tous niveaux',
-    sport: 'badminton',
-    status: 'full',
-    isParticipant: false,
-    isWaitingList: false
-  },
-  {
-    id: '3',
-    date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    maxPlayers: 12,
-    currentPlayers: 6,
-    description: 'Match de volleyball en salle',
-    sport: 'volley',
-    status: 'open',
-    isParticipant: false,
-    isWaitingList: false
-  },
-  {
-    id: '4',
-    date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    maxPlayers: 4,
-    currentPlayers: 2,
-    description: 'Partie de ping-pong conviviale',
-    sport: 'pingpong',
-    status: 'open',
-    isParticipant: false,
-    isWaitingList: false
-  },
-  {
-    id: '5',
-    date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-    maxPlayers: 15,
-    currentPlayers: 12,
-    description: 'Match de rugby - niveau débutant/intermédiaire',
-    sport: 'rugby',
-    status: 'open',
-    isParticipant: false,
-    isWaitingList: false
+// Fonction pour récupérer les matches depuis l'API
+const fetchMatchesFromAPI = async (userId?: string): Promise<Activity[]> => {
+  try {
+    const response = await fetch('/api/matches')
+    if (!response.ok) {
+      throw new Error('Failed to fetch matches')
+    }
+
+    const result = await response.json()
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to fetch matches')
+    }
+
+    // Transformer les matches en format Activity
+    return result.data.matches.map((match: any) => {
+      // Utiliser directement currentUserStatus de l'API
+      const isParticipant = match.currentUserStatus === 'active'
+      const isWaitingList = match.currentUserStatus === 'waiting'
+
+      return {
+        id: match.id,
+        date: match.date,
+        maxPlayers: match.maxPlayers,
+        currentPlayers: match.players ? match.players.length : 0,
+        description: `Match de ${match.sport}`,
+        sport: match.sport,
+        status: match.status,
+        isParticipant,
+        isWaitingList
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching matches:', error)
+    return []
   }
-]
+}
 
 export function useActivities(userId?: string) {
   const [activities, setActivities] = useState<Activity[]>([])
-  const [userRegistrations, setUserRegistrations] = useState<UserRegistration[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Charger les données depuis le localStorage
+  // Charger les données depuis l'API et localStorage
   useEffect(() => {
-    if (!userId) {
+    const loadData = async () => {
+      if (!userId) {
+        setLoading(false)
+        return
+      }
+
+      // Récupérer les matches depuis l'API avec les statuts utilisateur
+      const fetchedActivities = await fetchMatchesFromAPI(userId)
+
+      // Les activités ont déjà les bons statuts depuis l'API
+      setActivities(fetchedActivities)
+
+      // Nettoyer le localStorage des anciennes inscriptions (optionnel)
+      localStorage.removeItem(`user-registrations-${userId}`)
       setLoading(false)
-      return
     }
 
-    const savedRegistrations = localStorage.getItem(`user-registrations-${userId}`)
-    const registrations = savedRegistrations ? JSON.parse(savedRegistrations) : []
-    setUserRegistrations(registrations)
-
-    // Mettre à jour les activités avec les statuts utilisateur
-    const updatedActivities = MOCK_ACTIVITIES.map(activity => {
-      const userReg = registrations.find((reg: UserRegistration) => reg.activityId === activity.id)
-      return {
-        ...activity,
-        isParticipant: userReg?.status === 'confirmed',
-        isWaitingList: userReg?.status === 'waiting',
-        currentPlayers: activity.currentPlayers + (userReg?.status === 'confirmed' ? 1 : 0)
-      }
-    })
-
-    setActivities(updatedActivities)
-    setLoading(false)
+    loadData()
   }, [userId])
 
-  // Sauvegarder dans le localStorage
-  const saveRegistrations = (registrations: UserRegistration[]) => {
-    if (userId) {
-      localStorage.setItem(`user-registrations-${userId}`, JSON.stringify(registrations))
-      setUserRegistrations(registrations)
-    }
-  }
 
-  // S'inscrire à une activité
-  const registerForActivity = (activityId: string) => {
-    const activity = activities.find(a => a.id === activityId)
-    if (!activity || !userId) return
-
-    const isActivityFull = activity.currentPlayers >= activity.maxPlayers
-    const status: 'confirmed' | 'waiting' = isActivityFull ? 'waiting' : 'confirmed'
-
-    const newRegistration: UserRegistration = {
-      activityId,
-      status,
-      registeredAt: new Date().toISOString()
-    }
-
-    const updatedRegistrations = [...userRegistrations, newRegistration]
-    saveRegistrations(updatedRegistrations)
-
-    // Mettre à jour les activités
-    setActivities(prev => prev.map(activity => {
-      if (activity.id === activityId) {
-        return {
-          ...activity,
-          isParticipant: status === 'confirmed',
-          isWaitingList: status === 'waiting',
-          currentPlayers: status === 'confirmed' ? activity.currentPlayers + 1 : activity.currentPlayers
-        }
-      }
-      return activity
-    }))
-  }
-
-  // Se désinscrire d'une activité
-  const unregisterFromActivity = (activityId: string) => {
+  // S'inscrire à une activité via l'API
+  const registerForActivity = async (activityId: string) => {
     if (!userId) return
 
-    const updatedRegistrations = userRegistrations.filter(reg => reg.activityId !== activityId)
-    saveRegistrations(updatedRegistrations)
+    try {
+      const response = await fetch(`/api/matches/${activityId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-    // Mettre à jour les activités
-    setActivities(prev => prev.map(activity => {
-      if (activity.id === activityId) {
-        const wasConfirmed = activity.isParticipant
-        return {
-          ...activity,
-          isParticipant: false,
-          isWaitingList: false,
-          currentPlayers: wasConfirmed ? Math.max(0, activity.currentPlayers - 1) : activity.currentPlayers
-        }
+      const result = await response.json()
+
+      if (result.success) {
+        // Recharger les activités depuis l'API avec les statuts à jour
+        const fetchedActivities = await fetchMatchesFromAPI(userId)
+        setActivities(fetchedActivities)
+        return { success: true, status: result.data.status }
+      } else {
+        throw new Error(result.error || 'Erreur lors de l\'inscription')
       }
-      return activity
-    }))
+    } catch (error) {
+      console.error('Error registering for activity:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de l\'inscription' }
+    }
   }
 
-  // Rejoindre la liste d'attente
-  const joinWaitingList = (activityId: string) => {
+  // Se désinscrire d'une activité via l'API
+  const unregisterFromActivity = async (activityId: string) => {
     if (!userId) return
 
-    const newRegistration: UserRegistration = {
-      activityId,
-      status: 'waiting',
-      registeredAt: new Date().toISOString()
-    }
+    try {
+      const response = await fetch(`/api/matches/${activityId}/leave`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-    const updatedRegistrations = [...userRegistrations, newRegistration]
-    saveRegistrations(updatedRegistrations)
+      const result = await response.json()
 
-    // Mettre à jour les activités
-    setActivities(prev => prev.map(activity => {
-      if (activity.id === activityId) {
-        return {
-          ...activity,
-          isWaitingList: true,
-          isParticipant: false
-        }
+      if (result.success) {
+        // Recharger les activités depuis l'API avec les statuts à jour
+        const fetchedActivities = await fetchMatchesFromAPI(userId)
+        setActivities(fetchedActivities)
+        return { success: true }
+      } else {
+        throw new Error(result.error || 'Erreur lors de la désinscription')
       }
-      return activity
-    }))
+    } catch (error) {
+      console.error('Error unregistering from activity:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la désinscription' }
+    }
   }
+
+  // La liste d'attente est maintenant gérée automatiquement par l'API lors de l'inscription
 
   // Obtenir les activités de l'utilisateur (pour "Mes activités")
   const getUserActivities = () => {
-    const userActivityIds = userRegistrations.map(reg => reg.activityId)
-    const userActivities = activities.filter(activity => userActivityIds.includes(activity.id))
+    // Filtrer les activités où l'utilisateur est inscrit (confirmé ou en liste d'attente)
+    const userActivities = activities.filter(activity =>
+      activity.isParticipant || activity.isWaitingList
+    )
 
     const now = new Date()
 
@@ -218,11 +160,9 @@ export function useActivities(userId?: string) {
 
   return {
     activities,
-    userRegistrations,
     loading,
     registerForActivity,
     unregisterFromActivity,
-    joinWaitingList,
     getUserActivities,
     getAvailableActivities
   }

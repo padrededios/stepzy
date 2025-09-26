@@ -76,34 +76,36 @@ async function main() {
   dayAfterTomorrow.setDate(now.getDate() + 2)
   dayAfterTomorrow.setHours(14, 0, 0, 0) // 14h00
 
+  // Supprimer les anciens matchs de démonstration
+  await prisma.match.deleteMany({
+    where: {
+      OR: [
+        { date: tomorrow },
+        { date: nextWeek },
+        { date: dayAfterTomorrow },
+      ],
+    },
+  })
+
   const demoMatches = await Promise.all([
-    prisma.match.upsert({
-      where: { id: 'demo-match-1' },
-      update: {},
-      create: {
-        id: 'demo-match-1',
+    prisma.match.create({
+      data: {
         date: tomorrow,
         sport: 'football',
         maxPlayers: 12,
         status: 'open',
       },
     }),
-    prisma.match.upsert({
-      where: { id: 'demo-match-2' },
-      update: {},
-      create: {
-        id: 'demo-match-2',
+    prisma.match.create({
+      data: {
         date: nextWeek,
         sport: 'badminton',
         maxPlayers: 4,
         status: 'open',
       },
     }),
-    prisma.match.upsert({
-      where: { id: 'demo-match-3' },
-      update: {},
-      create: {
-        id: 'demo-match-3',
+    prisma.match.create({
+      data: {
         date: dayAfterTomorrow,
         sport: 'volley',
         maxPlayers: 12,

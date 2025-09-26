@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { use } from 'react'
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { SPORTS_CONFIG } from '@/config/sports'
 import MatchView from '@/components/matches/MatchView'
 
 interface User {
@@ -23,52 +26,33 @@ interface MatchPlayer {
 interface Match {
   id: string
   date: Date
+  sport: 'football' | 'badminton' | 'volley' | 'pingpong' | 'rugby'
   maxPlayers: number
   status: 'open' | 'full' | 'cancelled' | 'completed'
   players: MatchPlayer[]
   waitingList: MatchPlayer[]
 }
 
-interface CurrentUser {
+interface MatchDetailUser {
   id: string
   pseudo: string
+  email: string
   role: 'user' | 'root'
 }
 
-export default function MatchDetailPage({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
+function MatchDetailContent({
+  params,
+  user
+}: {
+  params: Promise<{ id: string }>
+  user: MatchDetailUser
 }) {
   const resolvedParams = use(params)
   const router = useRouter()
   const [match, setMatch] = useState<Match | null>(null)
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch('/api/auth/me')
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.user) {
-          setCurrentUser({
-            id: data.user.id,
-            pseudo: data.user.pseudo,
-            role: data.user.role
-          })
-        } else {
-          router.push('/login')
-        }
-      } else {
-        router.push('/login')
-      }
-    } catch (error) {
-      console.error('Error fetching current user:', error)
-      router.push('/login')
-    }
-  }
 
   const fetchMatch = async () => {
     try {
@@ -80,6 +64,7 @@ export default function MatchDetailPage({
           setMatch({
             ...matchData,
             date: new Date(matchData.date),
+            sport: matchData.sport,
             players: matchData.players.map((p: any) => ({
               ...p,
               joinedAt: new Date(p.joinedAt)
@@ -90,26 +75,25 @@ export default function MatchDetailPage({
             })) || []
           })
         } else {
-          setError('Match non trouvé')
+          setError('Activité non trouvée')
         }
       } else {
         const data = await response.json()
-        setError(data.error || 'Erreur lors du chargement du match')
+        setError(data.error || 'Erreur lors du chargement de l\'activité')
       }
     } catch (error) {
       console.error('Error fetching match:', error)
-      setError('Erreur lors du chargement du match')
+      setError('Erreur lors du chargement de l\'activité')
     }
   }
 
   useEffect(() => {
     const initializePage = async () => {
       setLoading(true)
-      await fetchCurrentUser()
       await fetchMatch()
       setLoading(false)
     }
-    
+
     initializePage()
   }, [resolvedParams.id])
 
@@ -123,91 +107,135 @@ export default function MatchDetailPage({
     setTimeout(() => setError(null), 5000)
   }
 
-  const handleBackToDashboard = () => {
-    router.push('/dashboard')
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(date)
+  }
+
+  const formatTime = (date: Date) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date)
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-sm text-gray-600">Chargement du match...</p>
+      <DashboardLayout user={user}>
+        <div className="flex items-center justify-center min-h-96">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
+      <DashboardLayout user={user}>
+        <div className="text-center py-12">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Erreur</h1>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
-            onClick={handleBackToDashboard}
+            onClick={() => router.push('/mes-activites')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Retour au dashboard
+            Retour aux activités
           </button>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
-  if (!match || !currentUser) {
+  if (!match) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Match non trouvé</h1>
+      <DashboardLayout user={user}>
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Activité non trouvée</h1>
           <button
-            onClick={handleBackToDashboard}
+            onClick={() => router.push('/mes-activites')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Retour au dashboard
+            Retour aux activités
           </button>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
+
+  const sportConfig = SPORTS_CONFIG[match.sport]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header with back button */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button
-            onClick={handleBackToDashboard}
-            className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            <svg 
-              className="w-5 h-5 mr-2" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+    <DashboardLayout user={user}>
+      <div className="space-y-6">
+        {/* Page Header with activity info */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => router.push('/mes-activites')}
+              className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M15 19l-7-7 7-7" 
-              />
-            </svg>
-            Retour au dashboard
-          </button>
-          
-          <h1 className="text-xl font-semibold text-gray-800">
-            Détails du match
-          </h1>
-          
-          <div></div> {/* Spacer for centering */}
-        </div>
-      </div>
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              Retour aux activités
+            </button>
+          </div>
 
-      {/* Error notification */}
-      {error && (
-        <div className="max-w-4xl mx-auto px-4 pt-4">
+          <div className="flex items-start space-x-4">
+            <div className="relative w-16 h-16 flex-shrink-0">
+              <img
+                src={sportConfig.icon}
+                alt={sportConfig.name}
+                className="rounded-lg object-cover w-full h-full"
+              />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                {sportConfig.name}
+              </h1>
+              <div className="flex items-center space-x-6 text-gray-600">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v10m0-10V7m0 10V7m6 0v10m0-10V7" />
+                  </svg>
+                  <span className="font-medium">
+                    {formatDate(match.date).charAt(0).toUpperCase() + formatDate(match.date).slice(1)}
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-medium">{formatTime(match.date)}</span>
+                </div>
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <span className="font-medium">{match.players.length}/{match.maxPlayers} joueurs</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Error notification */}
+        {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center">
               <div className="text-red-500 mr-3">
@@ -226,18 +254,28 @@ export default function MatchDetailPage({
               </svg>
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Match details */}
-      <div className="py-6">
+        {/* Match details */}
         <MatchView
           match={match}
-          currentUser={currentUser}
+          currentUser={user}
           onMatchUpdate={handleMatchUpdate}
           onError={handleError}
         />
       </div>
-    </div>
+    </DashboardLayout>
+  )
+}
+
+export default function MatchDetailPage({
+  params
+}: {
+  params: Promise<{ id: string }>
+}) {
+  return (
+    <ProtectedRoute>
+      {(user) => <MatchDetailContent params={params} user={user} />}
+    </ProtectedRoute>
   )
 }

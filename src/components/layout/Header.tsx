@@ -86,16 +86,17 @@ export function Header({ user }: HeaderProps) {
   return (
     <header className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex items-center">
+        <div className="flex items-center justify-center h-16 relative">
+          {/* Conteneur unifié - tout centré ensemble */}
+          <div className="flex items-center space-x-6">
+            {/* Logo sans fond pour transparence totale */}
             <Link
               href={user ? '/mes-activites' : '/'}
-              className="flex items-center"
+              className="flex items-center rounded-full px-4 py-2 hover:bg-white hover:bg-opacity-10 transition-colors"
               aria-label="Accueil"
             >
               <div className="flex items-center">
-                <div className="relative w-10 h-10">
+                <div className="relative w-8 h-8">
                   <Image
                     src="/images/stepzy_logo.jpg"
                     alt="Stepzy Logo"
@@ -103,47 +104,45 @@ export function Header({ user }: HeaderProps) {
                     className="rounded-lg object-cover"
                   />
                 </div>
-                <span className="ml-3 text-xl font-bold text-gray-900">
+                <span className="ml-2 text-lg font-bold text-white">
                   Stepzy
                 </span>
               </div>
             </Link>
-          </div>
 
-          {/* Navigation for desktop */}
-          {user && (
-            <nav className="hidden md:flex space-x-8">
-              <Link
-                href="/mes-activites"
-                className="text-white hover:text-blue-200 px-3 py-2 text-sm font-medium transition-colors"
-              >
-                Mes activités
-              </Link>
-              <Link
-                href="/s-inscrire"
-                className="text-white hover:text-blue-200 px-3 py-2 text-sm font-medium transition-colors"
-              >
-                S'inscrire
-              </Link>
-              <Link
-                href="/mes-statistiques"
-                className="text-white hover:text-blue-200 px-3 py-2 text-sm font-medium transition-colors"
-              >
-                Mes statistiques
-              </Link>
-            </nav>
-          )}
+            {/* Navigation pour desktop sans fond pour transparence totale */}
+            {user && (
+              <nav className="hidden md:flex rounded-full px-4 py-2">
+                <div className="flex space-x-4">
+                  <Link
+                    href="/mes-activites"
+                    className="text-white hover:text-blue-200 px-3 py-1 text-sm font-medium transition-colors rounded-full hover:bg-white hover:bg-opacity-10"
+                  >
+                    Mes activités
+                  </Link>
+                  <Link
+                    href="/s-inscrire"
+                    className="text-white hover:text-blue-200 px-3 py-1 text-sm font-medium transition-colors rounded-full hover:bg-white hover:bg-opacity-10"
+                  >
+                    S'inscrire
+                  </Link>
+                  <Link
+                    href="/mes-statistiques"
+                    className="text-white hover:text-blue-200 px-3 py-1 text-sm font-medium transition-colors rounded-full hover:bg-white hover:bg-opacity-10"
+                  >
+                    Mes statistiques
+                  </Link>
+                </div>
+              </nav>
+            )}
 
-          {/* Right side */}
-          <div className="flex items-center">
+            {/* Section droite sans fond pour transparence totale */}
             {user ? (
-              <>
-                {/* User section with background */}
-                <div className="flex items-center bg-white bg-opacity-20 rounded-full px-4 py-2">
+              <div className="flex items-center rounded-full px-4 py-2">
                   {/* User info - clickable */}
                   <button
                     onClick={toggleUserMenu}
-                    className="hover:bg-white hover:bg-opacity-10 rounded-full p-1 transition-colors mr-4"
+                    className="hover:bg-white hover:bg-opacity-10 rounded-full p-1 transition-colors mr-3"
                   >
                     <div className="relative w-8 h-8">
                       <Image
@@ -155,16 +154,16 @@ export function Header({ user }: HeaderProps) {
                     </div>
                   </button>
 
-                  {/* Icons */}
-                  <div className="flex items-center space-x-2">
+                  {/* Icons avec espacement réduit */}
+                  <div className="flex items-center space-x-1">
                     {/* Notifications with badge */}
                     <div className="relative">
                       <button
                         onClick={handleNotificationsClick}
-                        className="p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-full transition-colors w-10 h-10 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                        className="p-1.5 text-white hover:bg-white hover:bg-opacity-10 rounded-full transition-colors w-8 h-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
                         title="Notifications"
                       >
-                        <span className="text-xl">🔔</span>
+                        🔔
                       </button>
                       {/* Notification badge */}
                       <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold pointer-events-none">
@@ -175,37 +174,25 @@ export function Header({ user }: HeaderProps) {
                     {/* Settings */}
                     <button
                       onClick={handleSettingsClick}
-                      className="p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-full transition-colors w-10 h-10 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                      className="p-1.5 text-white hover:bg-white hover:bg-opacity-10 rounded-full transition-colors w-8 h-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
                       title="Paramètres"
                     >
-                      <span className="text-xl">⚙️</span>
+                      ⚙️
                     </button>
 
                     {/* Messages */}
                     <button
                       onClick={handleMessagesClick}
-                      className="p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-full transition-colors w-10 h-10 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                      className="p-1.5 text-white hover:bg-white hover:bg-opacity-10 rounded-full transition-colors w-8 h-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
                       title="Messages"
                     >
-                      <span className="text-xl">💬</span>
+                      💬
                     </button>
                   </div>
-                </div>
-
-                {/* Mobile user menu button */}
-                <button
-                  onClick={toggleUserMenu}
-                  className="ml-3 p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-full transition-colors md:hidden"
-                  aria-label="Ouvrir le menu utilisateur"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </>
+              </div>
             ) : (
               /* Guest buttons */
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 <Link
                   href="/login"
                   className="text-white hover:text-blue-200 px-3 py-2 text-sm font-medium"
@@ -221,6 +208,19 @@ export function Header({ user }: HeaderProps) {
               </div>
             )}
           </div>
+
+          {/* Mobile user menu button - position absolue */}
+          {user && (
+            <button
+              onClick={toggleUserMenu}
+              className="absolute right-4 p-2 text-white hover:bg-white hover:bg-opacity-10 rounded-full transition-colors md:hidden"
+              aria-label="Ouvrir le menu utilisateur"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 

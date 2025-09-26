@@ -21,6 +21,7 @@ interface MatchPlayer {
 interface Match {
   id: string
   date: Date
+  sport: 'football' | 'badminton' | 'volley' | 'pingpong' | 'rugby'
   maxPlayers: number
   status: 'open' | 'full' | 'cancelled' | 'completed'
   players: MatchPlayer[]
@@ -183,6 +184,63 @@ const MatchView: React.FC<MatchViewProps> = ({
     )
   }
 
+  const PingPongTable = () => (
+    <div
+      data-testid="pingpong-table"
+      className="relative bg-blue-600 rounded-lg p-4 min-h-[400px] mb-6"
+      style={{
+        backgroundImage: `
+          linear-gradient(90deg, white 0%, transparent 2%, transparent 98%, white 100%),
+          linear-gradient(0deg, white 0%, transparent 2%, transparent 98%, white 100%)
+        `
+      }}
+    >
+      {/* Net */}
+      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-white"></div>
+
+      {/* Center line across the net */}
+      <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white"></div>
+
+      {/* Team A (Left side) */}
+      <div
+        data-testid="team-a-side"
+        className="absolute left-4 top-4 bottom-4 w-1/2 flex flex-col justify-center items-center"
+      >
+        <div className="text-white font-bold mb-4">Équipe A</div>
+        <div className="grid grid-cols-1 gap-8">
+          {[...Array(2)].map((_, index) => (
+            <div key={index} data-testid={`position-a-${index + 1}`}>
+              <PlayerAvatar
+                player={teamA[index]}
+                position={index + 1}
+                team="A"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Team B (Right side) */}
+      <div
+        data-testid="team-b-side"
+        className="absolute right-4 top-4 bottom-4 w-1/2 flex flex-col justify-center items-center"
+      >
+        <div className="text-white font-bold mb-4">Équipe B</div>
+        <div className="grid grid-cols-1 gap-8">
+          {[...Array(2)].map((_, index) => (
+            <div key={index} data-testid={`position-b-${index + 1}`}>
+              <PlayerAvatar
+                player={teamB[index]}
+                position={index + 3}
+                team="B"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+
   const FootballField = () => (
     <div 
       data-testid="football-field"
@@ -297,34 +355,208 @@ const MatchView: React.FC<MatchViewProps> = ({
 
   const MatchInfo = () => (
     <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-xl font-bold text-gray-800">
-            {formatDate(match.date).charAt(0).toUpperCase() + formatDate(match.date).slice(1)}
-          </h2>
-          <p className="text-lg text-gray-600">{formatTime(match.date)}</p>
-        </div>
-        <div className="text-right">
-          <div className="text-lg font-semibold text-gray-800">
-            {match.players.length}/{match.maxPlayers} joueurs
-          </div>
+      <div className="flex justify-center items-center mb-4">
+        <div className="text-center">
           {match.status === 'full' && (
-            <span className="inline-block px-2 py-1 bg-red-100 text-red-700 text-sm rounded-full">
+            <span className="inline-block px-3 py-2 bg-red-100 text-red-700 text-sm rounded-full font-medium">
               Match complet
             </span>
           )}
           {match.status === 'cancelled' && (
-            <span 
+            <span
               data-testid="cancelled-indicator"
-              className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
+              className="inline-block px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-full font-medium"
             >
               Match annulé
+            </span>
+          )}
+          {match.status === 'open' && match.players.length < match.maxPlayers && (
+            <span className="inline-block px-3 py-2 bg-green-100 text-green-700 text-sm rounded-full font-medium">
+              Places disponibles
             </span>
           )}
         </div>
       </div>
     </div>
   )
+
+  const BadmintonCourt = () => (
+    <div
+      data-testid="badminton-court"
+      className="relative bg-orange-400 rounded-lg p-4 min-h-[400px] mb-6"
+      style={{
+        backgroundImage: `
+          linear-gradient(90deg, white 0%, transparent 2%, transparent 98%, white 100%),
+          linear-gradient(0deg, white 0%, transparent 2%, transparent 98%, white 100%)
+        `
+      }}
+    >
+      {/* Net */}
+      <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white transform -translate-y-0.5"></div>
+
+      {/* Team A (Top side) */}
+      <div
+        data-testid="team-a-side"
+        className="absolute left-4 right-4 top-4 h-1/2 flex flex-col justify-center items-center"
+      >
+        <div className="text-white font-bold mb-4">Équipe A</div>
+        <div className="grid grid-cols-2 gap-8">
+          {[...Array(2)].map((_, index) => (
+            <div key={index} data-testid={`position-a-${index + 1}`}>
+              <PlayerAvatar
+                player={teamA[index]}
+                position={index + 1}
+                team="A"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Team B (Bottom side) */}
+      <div
+        data-testid="team-b-side"
+        className="absolute left-4 right-4 bottom-4 h-1/2 flex flex-col justify-center items-center"
+      >
+        <div className="text-white font-bold mb-4">Équipe B</div>
+        <div className="grid grid-cols-2 gap-8">
+          {[...Array(2)].map((_, index) => (
+            <div key={index} data-testid={`position-b-${index + 1}`}>
+              <PlayerAvatar
+                player={teamB[index]}
+                position={index + 3}
+                team="B"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+
+  const VolleyballCourt = () => (
+    <div
+      data-testid="volleyball-court"
+      className="relative bg-yellow-500 rounded-lg p-4 min-h-[400px] mb-6"
+      style={{
+        backgroundImage: `
+          linear-gradient(90deg, white 0%, transparent 2%, transparent 98%, white 100%),
+          linear-gradient(0deg, white 0%, transparent 2%, transparent 98%, white 100%)
+        `
+      }}
+    >
+      {/* Net */}
+      <div className="absolute top-1/2 left-0 right-0 h-1 bg-white transform -translate-y-0.5"></div>
+
+      {/* Team A (Top side) */}
+      <div
+        data-testid="team-a-side"
+        className="absolute left-4 right-4 top-4 h-1/2 flex flex-col justify-center items-center"
+      >
+        <div className="text-white font-bold mb-4">Équipe A</div>
+        <div className="grid grid-cols-3 gap-4">
+          {[...Array(6)].map((_, index) => (
+            <div key={index} data-testid={`position-a-${index + 1}`}>
+              <PlayerAvatar
+                player={teamA[index]}
+                position={index + 1}
+                team="A"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Team B (Bottom side) */}
+      <div
+        data-testid="team-b-side"
+        className="absolute left-4 right-4 bottom-4 h-1/2 flex flex-col justify-center items-center"
+      >
+        <div className="text-white font-bold mb-4">Équipe B</div>
+        <div className="grid grid-cols-3 gap-4">
+          {[...Array(6)].map((_, index) => (
+            <div key={index} data-testid={`position-b-${index + 1}`}>
+              <PlayerAvatar
+                player={teamB[index]}
+                position={index + 7}
+                team="B"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+
+  const RugbyField = () => (
+    <div
+      data-testid="rugby-field"
+      className="relative bg-green-600 rounded-lg p-4 min-h-[400px] mb-6"
+      style={{
+        backgroundImage: `
+          linear-gradient(90deg, white 0%, transparent 2%, transparent 98%, white 100%),
+          linear-gradient(0deg, white 0%, transparent 2%, transparent 98%, white 100%)
+        `
+      }}
+    >
+      {/* Center line */}
+      <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white transform -translate-y-0.5"></div>
+
+      {/* Team A (Top side) */}
+      <div
+        data-testid="team-a-side"
+        className="absolute left-4 right-4 top-4 h-1/2 flex flex-col justify-center items-center"
+      >
+        <div className="text-white font-bold mb-4">Équipe A</div>
+        <div className="grid grid-cols-5 gap-3">
+          {[...Array(8)].map((_, index) => (
+            <div key={index} data-testid={`position-a-${index + 1}`}>
+              <PlayerAvatar
+                player={teamA[index]}
+                position={index + 1}
+                team="A"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Team B (Bottom side) */}
+      <div
+        data-testid="team-b-side"
+        className="absolute left-4 right-4 bottom-4 h-1/2 flex flex-col justify-center items-center"
+      >
+        <div className="text-white font-bold mb-4">Équipe B</div>
+        <div className="grid grid-cols-5 gap-3">
+          {[...Array(8)].map((_, index) => (
+            <div key={index} data-testid={`position-b-${index + 1}`}>
+              <PlayerAvatar
+                player={teamB[index]}
+                position={index + 9}
+                team="B"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+
+  const getSportField = () => {
+    switch (match.sport) {
+      case 'pingpong':
+        return <PingPongTable />
+      case 'badminton':
+        return <BadmintonCourt />
+      case 'volley':
+        return <VolleyballCourt />
+      case 'rugby':
+        return <RugbyField />
+      case 'football':
+      default:
+        return <FootballField />
+    }
+  }
 
   const EmptyState = () => (
     <div className="text-center py-12 bg-gray-50 rounded-lg">
@@ -373,13 +605,23 @@ const MatchView: React.FC<MatchViewProps> = ({
       
       <AdminControls />
       
-      {match.players.length === 0 && match.waitingList.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <>
-          <FootballField />
-          <WaitingList />
-        </>
+      {/* Toujours afficher le terrain, même sans joueurs */}
+      {getSportField()}
+
+      {/* Afficher la liste d'attente */}
+      <WaitingList />
+
+      {/* Message d'encouragement si aucun joueur */}
+      {match.players.length === 0 && match.waitingList.length === 0 && (
+        <div className="text-center py-6 bg-blue-50 rounded-lg mt-4">
+          <div className="text-blue-400 mb-2">
+            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-blue-600 mb-1">Aucun joueur inscrit</h3>
+          <p className="text-blue-500 text-sm">Soyez le premier à rejoindre cette activité !</p>
+        </div>
       )}
     </div>
   )
