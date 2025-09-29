@@ -1,54 +1,35 @@
-// Types pour l'application futsal
-export type UserRole = 'user' | 'root';
+/**
+ * Main type exports for the application
+ */
 
-export type MatchStatus = 'scheduled' | 'cancelled' | 'completed';
+// Re-export all types from specific modules
+export * from './user';
+export * from './match';
 
-export type PlayerStatus = 'titulaire' | 'remplaçant';
-
-export interface User {
-  id: string;
-  email: string;
-  pseudo: string;
-  avatar?: string;
-  role: UserRole;
-  createdAt: Date;
-  updatedAt: Date;
+// Common API types
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
 }
 
-export interface Match {
-  id: string;
-  date: Date;
-  status: MatchStatus;
-  createdAt: Date;
-  updatedAt: Date;
-  players: MatchPlayer[];
-}
-
-export interface MatchPlayer {
-  id: string;
-  userId: string;
-  matchId: string;
-  status: PlayerStatus;
-  joinedAt: Date;
-  user: User;
-  match: Match;
-}
-
-// Types pour les opérations CRUD
+// Form data types
 export interface CreateUserData {
   email: string;
   password: string;
   pseudo: string;
   avatar?: string;
-  role?: UserRole;
+  role?: 'user' | 'root';
 }
 
-export interface CreateMatchData {
-  date: Date;
-  status?: MatchStatus;
+export interface UpdateUserData {
+  pseudo?: string;
+  avatar?: string;
+  email?: string;
 }
 
-export interface JoinMatchData {
-  userId: string;
-  matchId: string;
+export interface LoginData {
+  email: string;
+  password: string;
 }
