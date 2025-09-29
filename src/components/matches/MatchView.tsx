@@ -43,9 +43,17 @@ const MatchView: React.FC<MatchViewProps> = ({
   const handleLeaveMatch = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/matches/${match.id}/leave`, {
+      // Essayer d'abord l'API des sessions d'activités, puis l'API des matches traditionnels
+      let response = await fetch(`/api/activities/sessions/${match.id}/leave`, {
         method: 'DELETE'
       })
+
+      // Si ça ne fonctionne pas, essayer l'API des matches traditionnels
+      if (!response.ok) {
+        response = await fetch(`/api/matches/${match.id}/leave`, {
+          method: 'DELETE'
+        })
+      }
 
       if (response.ok) {
         setSelectedPlayer(null)

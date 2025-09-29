@@ -14,18 +14,6 @@ interface User {
   role: 'user' | 'root'
 }
 
-// Utility function to format dates
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date)
-}
 
 function SInscrireContent({ user }: { user: User }) {
   const {
@@ -36,34 +24,37 @@ function SInscrireContent({ user }: { user: User }) {
   } = useActivities(user.id)
 
   const [selectedSport, setSelectedSport] = useState<SportType | 'all'>('all')
-  const [sortBy, setSortBy] = useState<'date' | 'sport'>('date')
+  const [sortBy, setSortBy] = useState<'name' | 'sport'>('name')
 
   const activities = getAvailableActivities()
 
-  const handleJoinMatch = async (activityId: string) => {
-    const result = await registerForActivity(activityId)
-    if (!result?.success) {
-      alert(result?.error || 'Erreur lors de l\'inscription')
-    }
+  const handleManageActivity = (activityId: string) => {
+    // Rediriger vers la page de gestion de l'activité
+    // TODO: Implémenter la page de gestion
+    alert('Fonctionnalité de gestion à implémenter')
   }
 
-  const handleLeaveMatch = async (activityId: string) => {
-    const result = await unregisterFromActivity(activityId)
-    if (!result?.success) {
-      alert(result?.error || 'Erreur lors de la désinscription')
-    }
+  const handleJoinActivity = async (activityId: string) => {
+    // Pour l'instant, rediriger vers les sessions disponibles
+    // En attendant l'implémentation d'une page dédiée
+    window.location.href = '/mes-activites?tab=available'
   }
 
-  const handleJoinWaitingList = async (activityId: string) => {
-    // La liste d'attente est maintenant gérée automatiquement par registerForActivity
-    await handleJoinMatch(activityId)
+  const handleLeaveActivity = async (activityId: string) => {
+    // Désinscription de toutes les sessions de l'activité
+    // TODO: Implémenter une API pour se désinscrire de toutes les sessions d'une activité
+    if (confirm('Êtes-vous sûr de vouloir vous désinscrire de toutes les sessions de cette activité ?')) {
+      alert('Désinscription de toutes les sessions à implémenter')
+      // Recharger la page pour voir les changements
+      window.location.reload()
+    }
   }
 
   const filteredAndSortedActivities = activities
     .filter(activity => selectedSport === 'all' || activity.sport === selectedSport)
     .sort((a, b) => {
-      if (sortBy === 'date') {
-        return new Date(a.date).getTime() - new Date(b.date).getTime()
+      if (sortBy === 'name') {
+        return a.name.localeCompare(b.name)
       } else {
         return SPORTS_CONFIG[a.sport].name.localeCompare(SPORTS_CONFIG[b.sport].name)
       }
@@ -113,10 +104,10 @@ function SInscrireContent({ user }: { user: User }) {
               <label className="text-sm font-medium text-gray-700">Trier par :</label>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'date' | 'sport')}
+                onChange={(e) => setSortBy(e.target.value as 'name' | 'sport')}
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="date">Date</option>
+                <option value="name">Nom</option>
                 <option value="sport">Sport</option>
               </select>
             </div>
@@ -135,9 +126,9 @@ function SInscrireContent({ user }: { user: User }) {
               <ActivityCard
                 key={activity.id}
                 activity={activity}
-                onJoin={handleJoinMatch}
-                onLeave={handleLeaveMatch}
-                onJoinWaitingList={handleJoinWaitingList}
+                onJoin={handleJoinActivity}
+                onLeave={handleLeaveActivity}
+                onManage={handleManageActivity}
               />
             ))}
           </div>
@@ -171,63 +162,74 @@ function ActivityCard({
   activity,
   onJoin,
   onLeave,
-  onJoinWaitingList
+  onManage
 }: {
   activity: Activity
   onJoin: (id: string) => void
   onLeave: (id: string) => void
-  onJoinWaitingList: (id: string) => void
+  onManage: (id: string) => void
 }) {
   const sportConfig = SPORTS_CONFIG[activity.sport]
-  const spotsLeft = activity.maxPlayers - activity.currentPlayers
-  const isNearlyFull = spotsLeft <= 2 && spotsLeft > 0
 
-  const getActionButton = () => {
-    if (activity.status === 'cancelled') {
-      return (
-        <button disabled className="w-full bg-gray-300 text-gray-500 py-2 px-4 rounded-md text-sm font-medium cursor-not-allowed">
-          Activité annulée
-        </button>
-      )
+  // Formater les jours de récurrence
+  const formatRecurringDays = (days: string[], type: string) => {
+    const dayLabels: Record<string, string> = {
+      monday: 'Lundi',
+      tuesday: 'Mardi',
+      wednesday: 'Mercredi',
+      thursday: 'Jeudi',
+      friday: 'Vendredi',
+      saturday: 'Samedi',
+      sunday: 'Dimanche'
     }
 
+    const formattedDays = days.map(day => dayLabels[day] || day).join(', ')
+    return `${formattedDays} (${type === 'weekly' ? 'hebdomadaire' : 'mensuel'})`
+  }
+
+  const getActionButtons = () => {
+    const buttons = []
+
+    // Bouton principal : S'inscrire ou voir les sessions
     if (activity.isParticipant) {
-      return (
+      buttons.push(
         <button
+          key="unsubscribe"
           onClick={() => onLeave(activity.id)}
-          className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
         >
           Se désinscrire
         </button>
       )
-    }
-
-    if (activity.isWaitingList) {
-      return (
-        <button disabled className="w-full bg-yellow-500 text-white py-2 px-4 rounded-md text-sm font-medium cursor-not-allowed">
-          En liste d\'attente
+    } else {
+      buttons.push(
+        <button
+          key="subscribe"
+          onClick={() => onJoin(activity.id)}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+        >
+          S'inscrire
         </button>
       )
     }
 
-    if (activity.status === 'full') {
-      return (
+    // Bouton de gestion pour le créateur
+    if (activity.canManage) {
+      buttons.push(
         <button
-          onClick={() => onJoinWaitingList(activity.id)}
-          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+          key="manage"
+          onClick={() => onManage(activity.id)}
+          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
         >
-          Rejoindre la liste d\'attente
+          Gérer
         </button>
       )
     }
 
     return (
-      <button
-        onClick={() => onJoin(activity.id)}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
-      >
-        S'inscrire
-      </button>
+      <div className="flex space-x-2">
+        {buttons}
+      </div>
     )
   }
 
@@ -246,16 +248,16 @@ function ActivityCard({
               />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">{sportConfig.name}</h3>
+              <h3 className="text-lg font-semibold text-white">{activity.name}</h3>
               <p className="text-sm text-white opacity-90">
-                {formatDate(activity.date)}
+                {sportConfig.name}
               </p>
             </div>
           </div>
 
-          {isNearlyFull && (
+          {activity.isParticipant && (
             <span className="bg-white bg-opacity-20 text-white px-2 py-1 rounded-full text-xs font-medium">
-              Plus que {spotsLeft} place{spotsLeft > 1 ? 's' : ''}
+              Inscrit
             </span>
           )}
         </div>
@@ -267,30 +269,47 @@ function ActivityCard({
           <p className="text-gray-600 text-sm mb-4">{activity.description}</p>
         )}
 
-        {/* Players info */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        {/* Creator info */}
+        <div className="flex items-center space-x-2 mb-3">
+          <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
+            {activity.creator.avatar ? (
+              <Image
+                src={activity.creator.avatar}
+                alt={activity.creator.pseudo}
+                width={24}
+                height={24}
+                className="rounded-full"
+              />
+            ) : (
+              <span className="text-xs text-gray-500">{activity.creator.pseudo[0]}</span>
+            )}
+          </div>
+          <span className="text-sm text-gray-600">Par {activity.creator.pseudo}</span>
+        </div>
+
+        {/* Recurring info */}
+        <div className="mb-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <span className="text-sm text-gray-600">
-              {activity.currentPlayers}/{activity.maxPlayers} joueurs
+              {formatRecurringDays(activity.recurringDays, activity.recurringType)}
             </span>
           </div>
 
-          <div className="w-24 bg-gray-200 rounded-full h-2">
-            <div
-              className={`h-2 rounded-full transition-all duration-300 ${
-                activity.status === 'full' ? 'bg-red-500' :
-                isNearlyFull ? 'bg-yellow-500' : 'bg-green-500'
-              }`}
-              style={{ width: `${(activity.currentPlayers / activity.maxPlayers) * 100}%` }}
-            />
+          <div className="flex items-center space-x-2">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span className="text-sm text-gray-600">
+              Jusqu'à {activity.maxPlayers} joueurs par session
+            </span>
           </div>
         </div>
 
-        {/* Action button */}
-        {getActionButton()}
+        {/* Action buttons */}
+        {getActionButtons()}
       </div>
     </div>
   )

@@ -162,7 +162,7 @@ function CreateActivityContent({ user }: { user: User }) {
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Ex: Foot entre collègues, Badminton du mardi..."
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               />
             </div>
 
@@ -178,7 +178,7 @@ function CreateActivityContent({ user }: { user: User }) {
                 placeholder="Informations supplémentaires sur l'activité..."
                 disabled={loading}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               />
             </div>
 
@@ -215,7 +215,7 @@ function CreateActivityContent({ user }: { user: User }) {
                       />
                     </div>
                     <span className="text-xs font-medium text-center">{sport.name}</span>
-                    <span className="text-xs text-gray-500 text-center">
+                    <span className="text-xs text-gray-900 font-semibold text-center">
                       {sport.minPlayers}-{sport.maxPlayers} joueurs
                     </span>
                   </label>
@@ -236,7 +236,7 @@ function CreateActivityContent({ user }: { user: User }) {
                 min={SPORTS_CONFIG[formData.sport].minPlayers}
                 max={SPORTS_CONFIG[formData.sport].maxPlayers}
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               />
               <p className="mt-1 text-sm text-gray-500">
                 Pour {SPORTS_CONFIG[formData.sport].name}: {SPORTS_CONFIG[formData.sport].minPlayers} à {SPORTS_CONFIG[formData.sport].maxPlayers} joueurs
@@ -267,7 +267,7 @@ function CreateActivityContent({ user }: { user: User }) {
                       disabled={loading}
                       className="sr-only"
                     />
-                    <span className="text-sm font-medium">{label}</span>
+                    <span className="text-sm font-medium text-gray-900">{label}</span>
                   </label>
                 ))}
               </div>
@@ -298,7 +298,7 @@ function CreateActivityContent({ user }: { user: User }) {
                       disabled={loading}
                       className="sr-only"
                     />
-                    <span className="text-sm font-medium">{DAY_LABELS[day]}</span>
+                    <span className="text-sm font-medium text-gray-900">{DAY_LABELS[day]}</span>
                   </label>
                 ))}
               </div>

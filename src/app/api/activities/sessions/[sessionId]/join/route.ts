@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { ActivityParticipationService } from '@/lib/services/activity-participation.service'
 
 interface Params {
@@ -14,18 +13,49 @@ export async function POST(
   context: { params: Params }
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
-    if (!session?.user) {
+    // Get session token from cookie
+    const cookieHeader = request.headers.get('cookie')
+    let sessionToken = null
+
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.trim().split('=')
+        acc[key] = value
+        return acc
+      }, {} as Record<string, string>)
+
+      sessionToken = cookies['futsal.session-token']
+    }
+
+    if (!sessionToken) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       )
     }
 
+    // Find session in database
+    const { prisma } = await import('@/lib/database/prisma')
+    const sessionData = await prisma.session.findUnique({
+      where: { token: sessionToken },
+      include: {
+        user: true
+      }
+    })
+
+    if (!sessionData || sessionData.expiresAt < new Date()) {
+      return NextResponse.json(
+        { success: false, error: 'Non authentifié' },
+        { status: 401 }
+      )
+    }
+
+    const user = sessionData.user
+
     const { sessionId } = context.params
 
     // Vérifier si l'utilisateur peut rejoindre la session
-    const canJoin = await ActivityParticipationService.canUserJoinSession(sessionId, session.user.id)
+    const canJoin = await ActivityParticipationService.canUserJoinSession(sessionId, user.id)
 
     if (!canJoin.canJoin) {
       return NextResponse.json(
@@ -35,7 +65,7 @@ export async function POST(
     }
 
     // Rejoindre la session
-    const participation = await ActivityParticipationService.joinSession(sessionId, session.user.id)
+    const participation = await ActivityParticipationService.joinSession(sessionId, user.id)
 
     // Récupérer les stats mises à jour
     const stats = await ActivityParticipationService.getSessionStats(sessionId)
@@ -80,18 +110,49 @@ export async function DELETE(
   context: { params: Params }
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
-    if (!session?.user) {
+    // Get session token from cookie
+    const cookieHeader = request.headers.get('cookie')
+    let sessionToken = null
+
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.trim().split('=')
+        acc[key] = value
+        return acc
+      }, {} as Record<string, string>)
+
+      sessionToken = cookies['futsal.session-token']
+    }
+
+    if (!sessionToken) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       )
     }
 
+    // Find session in database
+    const { prisma } = await import('@/lib/database/prisma')
+    const sessionData = await prisma.session.findUnique({
+      where: { token: sessionToken },
+      include: {
+        user: true
+      }
+    })
+
+    if (!sessionData || sessionData.expiresAt < new Date()) {
+      return NextResponse.json(
+        { success: false, error: 'Non authentifié' },
+        { status: 401 }
+      )
+    }
+
+    const user = sessionData.user
+
     const { sessionId } = context.params
 
     // Quitter la session
-    await ActivityParticipationService.leaveSession(sessionId, session.user.id)
+    await ActivityParticipationService.leaveSession(sessionId, user.id)
 
     // Récupérer les stats mises à jour
     const stats = await ActivityParticipationService.getSessionStats(sessionId)

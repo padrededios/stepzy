@@ -1,37 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { ActivitySessionService } from '@/lib/services/activity-session.service'
-import { z } from 'zod'
-
-const querySchema = z.object({
-  sport: z.string().optional(),
-  weeksAhead: z.string().transform(val => parseInt(val) || 2).optional(),
-  availableOnly: z.string().transform(val => val === 'true').optional()
-})
 
 /**
  * GET /api/activities/upcoming-sessions - Récupérer toutes les sessions à venir
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
-    if (!session?.user) {
+    // Get session token from cookie
+    const cookieHeader = request.headers.get('cookie')
+    let sessionToken = null
+
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.trim().split('=')
+        acc[key] = value
+        return acc
+      }, {} as Record<string, string>)
+
+      sessionToken = cookies['futsal.session-token']
+    }
+
+    if (!sessionToken) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       )
     }
 
-    const { searchParams } = new URL(request.url)
-    const query = querySchema.parse({
-      sport: searchParams.get('sport'),
-      weeksAhead: searchParams.get('weeksAhead'),
-      availableOnly: searchParams.get('availableOnly')
+    // Find session in database
+    const { prisma } = await import('@/lib/database/prisma')
+    const sessionData = await prisma.session.findUnique({
+      where: { token: sessionToken },
+      include: {
+        user: true
+      }
     })
 
-    const weeksAhead = query.weeksAhead || 2
-    const sportFilter = query.sport
-    const availableOnly = query.availableOnly || false
+    if (!sessionData || sessionData.expiresAt < new Date()) {
+      return NextResponse.json(
+        { success: false, error: 'Non authentifié' },
+        { status: 401 }
+      )
+    }
+
+    const user = sessionData.user
+
+    const { searchParams } = new URL(request.url)
+
+    const weeksAhead = parseInt(searchParams.get('weeksAhead') || '2')
+    const sportFilter = searchParams.get('sport')
+    const availableOnly = searchParams.get('availableOnly') === 'true'
 
     let sessions
     if (availableOnly) {
@@ -96,7 +114,7 @@ export async function GET(request: NextRequest) {
     const enrichedSessions = sessions.map(session => {
       const confirmedParticipants = session.participants.filter(p => p.status === 'confirmed')
       const waitingParticipants = session.participants.filter(p => p.status === 'waiting')
-      const userParticipation = session.participants.find(p => p.userId === session.user.id)
+      const userParticipation = session.participants.find(p => p.userId === user.id)
 
       return {
         id: session.id,
@@ -169,13 +187,6 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: 'Paramètres de requête invalides' },
-        { status: 400 }
-      )
-    }
-
     console.error('Erreur lors de la récupération des sessions à venir:', error)
     return NextResponse.json(
       { success: false, error: 'Erreur lors de la récupération des sessions à venir' },

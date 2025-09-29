@@ -58,7 +58,7 @@ export function LoginForm() {
     setErrors({});
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/sign-in/email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,13 +71,13 @@ export function LoginForm() {
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
+      if (response.ok && (data.success || data.user)) {
         // Redirect to specified URL or activities page
-        const destination = redirectTo || data.redirectTo || '/mes-activites';
+        const destination = redirectTo || '/mes-activites';
         router.replace(destination);
       } else {
         setErrors({
-          general: data.error || 'Erreur lors de la connexion',
+          general: data.error || 'Email ou mot de passe incorrect',
         });
       }
     } catch (error) {

@@ -111,7 +111,7 @@ export function RegisterForm() {
       const avatarUrl =
         formData.avatar.trim() || generateAvatarUrl(formData.pseudo);
 
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/sign-up/email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export function RegisterForm() {
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
+      if (response.ok && (data.success || data.user)) {
         router.replace('/mes-activites');
       } else {
         setErrors({

@@ -28,10 +28,9 @@ function MesActivitesContent({ user }: { user: User }) {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
-  // Combiner les anciennes activités et les nouvelles
-  const { upcoming: upcomingActivities, past: pastActivities } = getUserActivities()
-  const upcomingRecurring = participationActivities.upcoming
-  const pastRecurring = participationActivities.past
+  // Utiliser uniquement les nouvelles participations aux activités récurrentes
+  const upcomingParticipations = participationActivities.upcoming
+  const pastParticipations = participationActivities.past
 
   // Actions pour les sessions
   const handleJoinSession = async (sessionId: string) => {
@@ -168,7 +167,7 @@ function MesActivitesContent({ user }: { user: User }) {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Mes participations ({upcomingActivities.length + upcomingRecurring.length})
+              Mes participations ({upcomingParticipations.reduce((total, activity) => total + activity.sessions.length, 0)})
             </button>
             <button
               onClick={() => setActiveTab('available')}
@@ -188,7 +187,7 @@ function MesActivitesContent({ user }: { user: User }) {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Historique ({pastActivities.length + pastRecurring.length})
+              Historique ({pastParticipations.reduce((total, activity) => total + activity.sessions.length, 0)})
             </button>
           </nav>
         </div>
@@ -197,26 +196,20 @@ function MesActivitesContent({ user }: { user: User }) {
         <div className="space-y-4">
           {activeTab === 'upcoming' && (
             <>
-              {/* Anciennes activités */}
-              {upcomingActivities.map((activity) => (
-                <ActivityCard key={`old-${activity.id}`} activity={activity} getStatusBadge={getStatusBadge} />
-              ))}
-
-              {/* Nouvelles activités récurrentes */}
-              {upcomingRecurring.map((activity) => (
-                <RecurringActivityCard key={`rec-${activity.id}`} activity={activity} />
-              ))}
-
-              {upcomingActivities.length === 0 && upcomingRecurring.length === 0 && (
+              {upcomingParticipations.length > 0 ? (
+                upcomingParticipations.map((activity) => (
+                  <ParticipationActivityCard key={`participation-${activity.id}`} activity={activity} />
+                ))
+              ) : (
                 <div className="text-center py-12">
                   <div className="mx-auto h-12 w-12 text-gray-400">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v10m0-10V7m0 10V7m6 0v10m0-10V7" />
                     </svg>
                   </div>
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune activité à venir</h3>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune participation à venir</h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Inscrivez-vous à de nouvelles activités pour les voir apparaître ici.
+                    Inscrivez-vous à des sessions pour les voir apparaître ici.
                   </p>
                 </div>
               )}
@@ -235,6 +228,7 @@ function MesActivitesContent({ user }: { user: User }) {
                     key={session.id}
                     session={session}
                     onJoin={handleJoinSession}
+                    onLeave={handleLeaveSession}
                     loading={actionLoading === session.id}
                   />
                 ))
@@ -256,15 +250,11 @@ function MesActivitesContent({ user }: { user: User }) {
 
           {activeTab === 'past' && (
             <>
-              {pastActivities.map((activity) => (
-                <ActivityCard key={`old-past-${activity.id}`} activity={activity} getStatusBadge={getStatusBadge} />
-              ))}
-
-              {pastRecurring.map((activity) => (
-                <RecurringActivityCard key={`rec-past-${activity.id}`} activity={activity} />
-              ))}
-
-              {pastActivities.length === 0 && pastRecurring.length === 0 && (
+              {pastParticipations.length > 0 ? (
+                pastParticipations.map((activity) => (
+                  <ParticipationActivityCard key={`past-participation-${activity.id}`} activity={activity} />
+                ))
+              ) : (
                 <div className="text-center py-12">
                   <div className="mx-auto h-12 w-12 text-gray-400">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,7 +263,7 @@ function MesActivitesContent({ user }: { user: User }) {
                   </div>
                   <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun historique</h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Vos activités passées apparaîtront ici après votre participation.
+                    Vos participations passées apparaîtront ici.
                   </p>
                 </div>
               )}
@@ -352,8 +342,8 @@ function ActivityCard({
   )
 }
 
-// Nouveau composant pour les activités récurrentes
-function RecurringActivityCard({ activity }: { activity: RecurringActivity }) {
+// Composant pour afficher les participations (sessions auxquelles l'utilisateur participe)
+function ParticipationActivityCard({ activity }: { activity: RecurringActivity }) {
   const sportConfig = SPORTS_CONFIG[activity.sport]
 
   return (
@@ -380,35 +370,39 @@ function RecurringActivityCard({ activity }: { activity: RecurringActivity }) {
               )}
             </div>
             <div className="flex items-center space-x-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                Récurrent
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Inscrit
               </span>
             </div>
           </div>
 
-          {/* Sessions à venir */}
+          {/* Mes sessions dans cette activité */}
           {activity.sessions && activity.sessions.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700">Prochaines sessions :</h4>
+              <h4 className="text-sm font-medium text-gray-700">Mes sessions :</h4>
               <div className="space-y-1">
-                {activity.sessions.slice(0, 3).map((session: any) => (
-                  <div key={session.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="text-sm text-gray-600">
-                      {formatDateTime(session.date)}
-                    </span>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-gray-500">
-                        {session.confirmedParticipants || 0}/{session.maxPlayers} joueurs
-                      </span>
-                      {session.userStatus?.isParticipant && (
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          session.userStatus.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                          session.userStatus.status === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {PARTICIPANT_STATUS_LABELS[session.userStatus.status]}
+                {activity.sessions.map((session: any) => (
+                  <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900">
+                          📅 {formatDateTime(session.date)}
                         </span>
-                      )}
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-500">
+                            {session.confirmedParticipants || 0}/{session.maxPlayers} joueurs
+                          </span>
+                          {session.userParticipation && (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              session.userParticipation.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                              session.userParticipation.status === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {PARTICIPANT_STATUS_LABELS[session.userParticipation.status] || session.userParticipation.status}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -425,17 +419,30 @@ function RecurringActivityCard({ activity }: { activity: RecurringActivity }) {
 function SessionCard({
   session,
   onJoin,
+  onLeave,
   loading
 }: {
   session: any
   onJoin: (sessionId: string) => void
+  onLeave: (sessionId: string) => void
   loading: boolean
 }) {
   const sportConfig = SPORTS_CONFIG[session.activity.sport]
   const canJoin = session.userStatus?.canJoin && !session.userStatus?.isParticipant
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Empêcher la navigation si on clique sur un bouton
+    if ((e.target as HTMLElement).closest('button')) {
+      return
+    }
+    window.location.href = `/matches/${session.id}`
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+    <div
+      className="bg-white rounded-lg shadow border border-gray-200 p-6 cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={handleCardClick}
+    >
       <div className="flex items-start space-x-4">
         {/* Sport Icon */}
         <div className="relative w-12 h-12 flex-shrink-0">
@@ -479,7 +486,15 @@ function SessionCard({
               Créé par <strong>{session.activity.creator.pseudo}</strong>
             </div>
 
-            {canJoin ? (
+            {session.userStatus?.isParticipant ? (
+              <button
+                onClick={() => onLeave(session.id)}
+                disabled={loading}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                {loading ? 'Désinscription...' : 'Quitter'}
+              </button>
+            ) : canJoin ? (
               <button
                 onClick={() => onJoin(session.id)}
                 disabled={loading}
@@ -487,14 +502,6 @@ function SessionCard({
               >
                 {loading ? 'Inscription...' : 'Rejoindre'}
               </button>
-            ) : session.userStatus?.isParticipant ? (
-              <span className={`inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium ${
-                session.userStatus.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                session.userStatus.status === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-blue-100 text-blue-800'
-              }`}>
-                {PARTICIPANT_STATUS_LABELS[session.userStatus.status]}
-              </span>
             ) : (
               <span className="text-sm text-gray-400">Non disponible</span>
             )}

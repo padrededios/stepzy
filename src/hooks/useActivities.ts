@@ -5,18 +5,66 @@ import { SportType } from '@/config/sports'
 
 export interface Activity {
   id: string
-  date: string
-  maxPlayers: number
-  currentPlayers: number
+  name: string
   description?: string
   sport: SportType
-  status: 'open' | 'full' | 'cancelled' | 'completed'
+  maxPlayers: number
+  recurringDays: string[]
+  recurringType: 'weekly' | 'monthly'
+  isPublic: boolean
+  createdBy: string
+  creator: {
+    id: string
+    pseudo: string
+    avatar?: string
+  }
+  upcomingSessionsCount: number
+  totalParticipants: number
   isParticipant: boolean
-  isWaitingList: boolean
+  canManage: boolean
 }
 
 
-// Fonction pour récupérer les matches depuis l'API
+// Fonction pour récupérer les activités récurrentes depuis l'API
+const fetchActivitiesFromAPI = async (userId?: string): Promise<Activity[]> => {
+  try {
+    const response = await fetch('/api/activities')
+    if (!response.ok) {
+      // Si l'API des activités ne fonctionne pas, revenir aux matches
+      return await fetchMatchesFromAPI(userId)
+    }
+
+    const result = await response.json()
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to fetch activities')
+    }
+
+    // Transformer les activités en format Activity
+    return result.data.activities.map((activity: any) => {
+      return {
+        id: activity.id,
+        name: activity.name,
+        description: activity.description,
+        sport: activity.sport,
+        maxPlayers: activity.maxPlayers,
+        recurringDays: activity.recurringDays,
+        recurringType: activity.recurringType,
+        isPublic: activity.isPublic,
+        createdBy: activity.createdBy,
+        creator: activity.creator,
+        upcomingSessionsCount: activity.upcomingSessionsCount || 0,
+        totalParticipants: activity.totalParticipants || 0,
+        isParticipant: activity.userStatus?.isParticipant || false,
+        canManage: userId === activity.createdBy
+      }
+    })
+  } catch (error) {
+    // Si l'API des activités ne fonctionne pas, revenir aux matches
+    return await fetchMatchesFromAPI(userId)
+  }
+}
+
+// Fonction pour récupérer les matches depuis l'API (fallback)
 const fetchMatchesFromAPI = async (userId?: string): Promise<Activity[]> => {
   try {
     const response = await fetch('/api/matches')
@@ -29,22 +77,25 @@ const fetchMatchesFromAPI = async (userId?: string): Promise<Activity[]> => {
       throw new Error(result.error || 'Failed to fetch matches')
     }
 
-    // Transformer les matches en format Activity
+    // Transformer les matches en format Activity pour compatibilité
     return result.data.matches.map((match: any) => {
-      // Utiliser directement currentUserStatus de l'API
       const isParticipant = match.currentUserStatus === 'active'
-      const isWaitingList = match.currentUserStatus === 'waiting'
 
       return {
         id: match.id,
-        date: match.date,
-        maxPlayers: match.maxPlayers,
-        currentPlayers: match.players ? match.players.length : 0,
+        name: `Match de ${match.sport}`,
         description: `Match de ${match.sport}`,
         sport: match.sport,
-        status: match.status,
+        maxPlayers: match.maxPlayers,
+        recurringDays: [],
+        recurringType: 'weekly' as const,
+        isPublic: true,
+        createdBy: '',
+        creator: { id: '', pseudo: 'Système', avatar: null },
+        upcomingSessionsCount: 1,
+        totalParticipants: match.players ? match.players.length : 0,
         isParticipant,
-        isWaitingList
+        canManage: false
       }
     })
   } catch (error) {
@@ -65,8 +116,8 @@ export function useActivities(userId?: string) {
         return
       }
 
-      // Récupérer les matches depuis l'API avec les statuts utilisateur
-      const fetchedActivities = await fetchMatchesFromAPI(userId)
+      // Récupérer les activités récurrentes depuis l'API avec les statuts utilisateur
+      const fetchedActivities = await fetchActivitiesFromAPI(userId)
 
       // Les activités ont déjà les bons statuts depuis l'API
       setActivities(fetchedActivities)
@@ -96,7 +147,7 @@ export function useActivities(userId?: string) {
 
       if (result.success) {
         // Recharger les activités depuis l'API avec les statuts à jour
-        const fetchedActivities = await fetchMatchesFromAPI(userId)
+        const fetchedActivities = await fetchActivitiesFromAPI(userId)
         setActivities(fetchedActivities)
         return { success: true, status: result.data.status }
       } else {
@@ -124,7 +175,7 @@ export function useActivities(userId?: string) {
 
       if (result.success) {
         // Recharger les activités depuis l'API avec les statuts à jour
-        const fetchedActivities = await fetchMatchesFromAPI(userId)
+        const fetchedActivities = await fetchActivitiesFromAPI(userId)
         setActivities(fetchedActivities)
         return { success: true }
       } else {

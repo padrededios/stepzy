@@ -56,7 +56,14 @@ function MatchDetailContent({
 
   const fetchMatch = async () => {
     try {
-      const response = await fetch(`/api/matches/${resolvedParams.id}`)
+      // Essayer d'abord l'API des matches traditionnels
+      let response = await fetch(`/api/matches/${resolvedParams.id}`)
+
+      // Si ça ne fonctionne pas, essayer l'API des sessions d'activités
+      if (!response.ok) {
+        response = await fetch(`/api/activities/sessions/${resolvedParams.id}`)
+      }
+
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.data.match) {

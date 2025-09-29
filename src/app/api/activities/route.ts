@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/database/prisma'
 import { ActivitySessionService } from '@/lib/services/activity-session.service'
 import { CreateActivityData, ActivityFilters } from '@/types/activity'
@@ -28,13 +27,43 @@ const filtersSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
-    if (!session?.user) {
+    // Get session token from cookie
+    const cookieHeader = request.headers.get('cookie')
+    let sessionToken = null
+
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.trim().split('=')
+        acc[key] = value
+        return acc
+      }, {} as Record<string, string>)
+
+      sessionToken = cookies['futsal.session-token']
+    }
+
+    if (!sessionToken) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       )
     }
+
+    // Find session in database
+    const sessionData = await prisma.session.findUnique({
+      where: { token: sessionToken },
+      include: {
+        user: true
+      }
+    })
+
+    if (!sessionData || sessionData.expiresAt < new Date()) {
+      return NextResponse.json(
+        { success: false, error: 'Non authentifié' },
+        { status: 401 }
+      )
+    }
+
+    const user = sessionData.user
 
     const body = await request.json()
 
@@ -56,7 +85,7 @@ export async function POST(request: NextRequest) {
         description: validatedData.description,
         sport: validatedData.sport,
         maxPlayers: validatedData.maxPlayers,
-        createdBy: session.user.id,
+        createdBy: user.id,
         recurringDays: validatedData.recurringDays,
         recurringType: validatedData.recurringType,
         isPublic: true
@@ -127,26 +156,55 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
-    if (!session?.user) {
+    // Get session token from cookie
+    const cookieHeader = request.headers.get('cookie')
+    let sessionToken = null
+
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.trim().split('=')
+        acc[key] = value
+        return acc
+      }, {} as Record<string, string>)
+
+      sessionToken = cookies['futsal.session-token']
+    }
+
+    if (!sessionToken) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       )
     }
 
+    // Find session in database
+    const sessionData = await prisma.session.findUnique({
+      where: { token: sessionToken },
+      include: {
+        user: true
+      }
+    })
+
+    if (!sessionData || sessionData.expiresAt < new Date()) {
+      return NextResponse.json(
+        { success: false, error: 'Non authentifié' },
+        { status: 401 }
+      )
+    }
+
+    const user = sessionData.user
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const skip = (page - 1) * limit
 
-    // Validation et parsing des filtres
-    const filters = filtersSchema.parse({
+    // Parsing des filtres (optionnels)
+    const filters = {
       sport: searchParams.get('sport'),
       createdBy: searchParams.get('createdBy'),
-      isPublic: searchParams.get('isPublic'),
-      recurringType: searchParams.get('recurringType')
-    })
+      isPublic: searchParams.get('isPublic') ? searchParams.get('isPublic') === 'true' : undefined,
+      recurringType: searchParams.get('recurringType') as 'weekly' | 'monthly' | undefined
+    }
 
     // Construire la clause where
     const whereClause: any = {}
@@ -192,6 +250,7 @@ export async function GET(request: NextRequest) {
             include: {
               participants: {
                 select: {
+                  userId: true,
                   status: true
                 }
               }
@@ -215,17 +274,29 @@ export async function GET(request: NextRequest) {
     ])
 
     // Enrichir les données avec les statistiques
-    const enrichedActivities = activities.map(activity => ({
-      ...activity,
-      upcomingSessionsCount: activity.sessions.length,
-      totalSessionsCount: activity._count.sessions,
-      nextSessionDate: activity.sessions[0]?.date || null,
-      sessions: activity.sessions.map(session => ({
-        ...session,
-        confirmedParticipants: session.participants.filter(p => p.status === 'confirmed').length,
-        totalParticipants: session.participants.length
-      }))
-    }))
+    const enrichedActivities = activities.map(activity => {
+      // Vérifier si l'utilisateur participe à au moins une session
+      const userParticipatesInSessions = activity.sessions.some(session =>
+        session.participants.some(participant =>
+          participant.userId === user.id && participant.status === 'confirmed'
+        )
+      )
+
+      return {
+        ...activity,
+        upcomingSessionsCount: activity.sessions.length,
+        totalSessionsCount: activity._count.sessions,
+        nextSessionDate: activity.sessions[0]?.date || null,
+        userStatus: {
+          isParticipant: userParticipatesInSessions
+        },
+        sessions: activity.sessions.map(session => ({
+          ...session,
+          confirmedParticipants: session.participants.filter(p => p.status === 'confirmed').length,
+          totalParticipants: session.participants.length
+        }))
+      }
+    })
 
     return NextResponse.json({
       success: true,
@@ -241,13 +312,6 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: 'Paramètres de requête invalides' },
-        { status: 400 }
-      )
-    }
-
     console.error('Erreur lors de la récupération des activités:', error)
     return NextResponse.json(
       { success: false, error: 'Erreur lors de la récupération des activités' },

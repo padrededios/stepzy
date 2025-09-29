@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/database/prisma'
 import { addWeeks } from 'date-fns'
 
@@ -8,13 +7,43 @@ import { addWeeks } from 'date-fns'
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers })
-    if (!session?.user) {
+    // Get session token from cookie
+    const cookieHeader = request.headers.get('cookie')
+    let sessionToken = null
+
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.trim().split('=')
+        acc[key] = value
+        return acc
+      }, {} as Record<string, string>)
+
+      sessionToken = cookies['futsal.session-token']
+    }
+
+    if (!sessionToken) {
       return NextResponse.json(
         { success: false, error: 'Non authentifié' },
         { status: 401 }
       )
     }
+
+    // Find session in database
+    const sessionData = await prisma.session.findUnique({
+      where: { token: sessionToken },
+      include: {
+        user: true
+      }
+    })
+
+    if (!sessionData || sessionData.expiresAt < new Date()) {
+      return NextResponse.json(
+        { success: false, error: 'Non authentifié' },
+        { status: 401 }
+      )
+    }
+
+    const user = sessionData.user
 
     const { searchParams } = new URL(request.url)
     const weeksAhead = parseInt(searchParams.get('weeksAhead') || '2')
@@ -26,7 +55,7 @@ export async function GET(request: NextRequest) {
     // Récupérer toutes les participations de l'utilisateur
     const participations = await prisma.activityParticipant.findMany({
       where: {
-        userId: session.user.id,
+        userId: user.id,
         session: includePast ? {} : {
           date: {
             gte: now
