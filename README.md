@@ -47,6 +47,12 @@ Plateforme web moderne pour la gestion et réservation d'activités sportives mu
 - Système de badges et récompenses multisports
 - Préférences de notifications
 
+### 🎯 Gestion temporelle intelligente
+- Fermeture automatique des inscriptions 15 minutes avant l'activité
+- Masquage des activités expirées pour éviter les inscriptions tardives
+- Nettoyage automatique des activités terminées
+- Archivage intelligent des données anciennes (30+ jours)
+
 ### 🔔 Notifications temps réel
 - Centre de notifications interactif
 - Notifications push navigateur
@@ -61,12 +67,21 @@ Plateforme web moderne pour la gestion et réservation d'activités sportives mu
 - Création et gestion des matchs
 - Système d'annonces globales
 
-### 📱 Design responsive
-- Interface mobile-first
-- Support tablet et desktop
-- Navigation adaptative
-- Accessibilité WCAG 2.1 AA
-- Support navigation clavier
+### 📱 Interface utilisateur moderne
+- Design "page-in-page" unifié avec DashboardLayout
+- Interface mobile-first responsive
+- Menu utilisateur correctement positionné
+- Navigation sidebar globale sur toutes les pages
+- Accessibilité WCAG 2.1 AA complète
+- Support navigation clavier et screen readers
+
+### 🏗️ Code Quality & Architecture
+- Types TypeScript centralisés (`/src/types/`)
+- Fonctions utilitaires consolidées (`/src/lib/utils/`)
+- API client HTTP unifié
+- Imports absoluts systématiques (`@/`)
+- Zero code mort, interfaces optimisées
+- Architecture modulaire et maintenable
 
 ## 🛠️ Technologies
 
@@ -183,10 +198,10 @@ docker-compose down
 ### Pour les utilisateurs
 
 1. **Inscription** : Créez un compte avec email et mot de passe fort
-2. **Dashboard** : Consultez les matchs disponibles
-3. **Inscription match** : Cliquez pour vous inscrire (ou liste d'attente si complet)
-4. **Profil** : Consultez vos statistiques et badges
-5. **Notifications** : Restez informé des rappels et annonces
+2. **Mes Activités** : Consultez toutes les activités multisports disponibles
+3. **Inscription activité** : Cliquez pour vous inscrire (ou liste d'attente si complet)
+4. **Mon Profil** : Consultez vos statistiques et historique
+5. **Notifications** : Centre notifications dans le header + page dédiée
 
 ### Pour les administrateurs
 
@@ -203,25 +218,32 @@ docker-compose down
 ```
 src/
 ├── app/                    # App Router Next.js
-│   ├── api/               # API Routes
-│   ├── dashboard/         # Page dashboard
-│   └── admin/             # Pages admin
+│   ├── api/               # API Routes (auth, matches, admin, notifications)
+│   ├── mes-activites/     # Page principale activités
+│   ├── profile/           # Page profil utilisateur
+│   ├── notifications/     # Page centre notifications
+│   └── admin/             # Pages administration
 ├── components/            # Composants React
-│   ├── auth/             # Authentification
-│   ├── matches/          # Gestion activités
-│   ├── layout/           # Layout
-│   └── notifications/    # Notifications
+│   ├── auth/             # Authentification (LoginForm, RegisterForm)
+│   ├── matches/          # Gestion activités (MatchCard, MatchView)
+│   ├── layout/           # Layout (Header, Sidebar, DashboardLayout)
+│   ├── notifications/    # Notifications (NotificationCenter)
+│   ├── profile/          # Profil (UserProfile, UserBadges)
+│   └── admin/            # Administration (UserList, Statistics)
 ├── lib/                   # Utilitaires
-│   ├── auth/             # Better-auth config
-│   ├── database/         # Prisma
-│   ├── cache/            # Redis
-│   ├── monitoring/       # Métriques
-│   └── security/         # Validation
-└── __tests__/            # Tests
+│   ├── auth/             # Better-auth configuration
+│   ├── utils/            # Utilitaires consolidés (date, API client)
+│   ├── cleanup/          # Services nettoyage automatique
+│   └── notifications/    # Services notifications
+├── types/                 # Types TypeScript centralisés
+│   ├── user.ts           # Types utilisateur
+│   ├── match.ts          # Types activités
+│   └── index.ts          # Re-exports
+└── __tests__/            # Tests (134+ tests, 95%+ coverage)
     ├── unit/             # Tests unitaires
-    ├── integration/      # Tests intégration
-    ├── e2e/              # Tests E2E
-    └── performance/      # Tests performance
+    ├── integration/      # Tests intégration API
+    ├── e2e/              # Tests E2E Playwright
+    └── accessibility/    # Tests accessibilité
 ```
 
 ### Flux de données

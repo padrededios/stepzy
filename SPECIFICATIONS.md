@@ -78,25 +78,29 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - **Statistiques**: Vue globale des inscriptions
 
 ### Contraintes Métier
-- **Horaires**: Uniquement créneaux 12h-14h (midi-deux)
-- **Capacité**: Maximum 12 joueurs par match (6v6)
-- **Liste d'attente**: Illimitée, promotion FIFO
+- **Horaires**: Créneaux flexibles selon disponibilités
+- **Capacité**: Variable selon sport (6 pour badminton/ping-pong, 12 pour football, 16 pour volleyball/rugby)
+- **Liste d'attente**: Illimitée, promotion FIFO automatique
 - **Validation**: Un utilisateur = un slot par match maximum
+- **Fermeture inscriptions**: 15 minutes avant début d'activité
+- **Archivage**: Activités automatiquement masquées après leur fin
 
 ## 🖥️ Interface Utilisateur
 
 ### Layout & Navigation
-- **Header**: Logo, navigation, menu utilisateur avec avatar
-- **Sidebar**: Navigation contextuelle (masqué sur mobile)
-- **Footer**: Liens légaux et informations
-- **Responsive**: Mobile-first, adaptable desktop
+- **Header**: Logo Stepzy, navigation sports, notifications, menu utilisateur avec avatar
+- **Sidebar**: Navigation globale (Mes Activités, Mes Statistiques, Mon Profil, Administration pour admin)
+- **DashboardLayout**: Interface moderne "page-in-page" unifiée sur toutes les pages
+- **Menu utilisateur**: Dropdown correctement positionné sous l'avatar
+- **Responsive**: Mobile-first, adaptable desktop avec breakpoints optimisés
 
 ### Pages Principales
 
-#### Dashboard (/)
-- **Accueil**: Matchs semaine courante + suivante
-- **Statistiques**: Nombre de matchs confirmés/en attente
-- **Actions rapides**: Rejoindre/quitter directement
+#### Mes Activités (/mes-activites)
+- **Accueil**: Toutes les activités multisports disponibles
+- **Filtrage**: Par sport, statut, disponibilité
+- **Actions rapides**: Inscription/désinscription directe
+- **Gestion temporelle**: Masquage automatique activités expirées
 
 #### Vue Match Détaillée (/matches/[id])
 - **Layout terrain**: Style MPG avec positions 6v6
@@ -105,16 +109,31 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - **Actions**: Clics avatars pour se désinscrire
 
 #### Administration (/admin)
-- **Gestion utilisateurs**: CRUD complet, réinitialisation mots de passe
-- **Gestion matchs**: Création, modification, inscriptions forcées
-- **Statistiques globales**: Vue d'ensemble activité
+- **Gestion utilisateurs** (`/admin/users`): CRUD complet, réinitialisation mots de passe
+- **Statistiques** (`/admin/statistics`): Tableaux de bord temps réel avec graphiques
+- **Gestion activités** (`/admin/matches`): CRUD complet, inscriptions forcées
+- **Création activités** (`/admin/matches/create`): Interface multisports avec récurrence
+- **Annonces** (`/admin/announcements`): Système d'annonces avec notifications
+
+#### Notifications (/notifications)
+- **Centre notifications**: Page dédiée avec filtres (toutes/non lues)
+- **Historique complet**: Toutes les notifications avec pagination
+- **Actions**: Marquer comme lu individuellement ou globalement
+- **Intégration**: Liens directs vers activités concernées
+
+#### Profil Utilisateur (/profile)
+- **Informations personnelles**: Pseudo, email, avatar, statistiques
+- **Historique activités**: Matchs passés avec détails
+- **Préférences**: Notifications email/push, paramètres
 
 ### Composants Réutilisables
-- **MatchCard**: Affichage compact match avec actions
-- **Avatar**: Fallback automatique DiceBear
-- **LoadingStates**: Feedback visuel toutes actions
-- **ErrorHandling**: Messages d'erreur contextuels
-- **Notifications**: Toast pour confirmations/erreurs
+- **MatchCard**: Affichage compact activité avec actions multisports
+- **Avatar**: Fallback automatique DiceBear avec génération déterministe
+- **NotificationCenter**: Dropdown notifications dans header avec badge
+- **DashboardLayout**: Layout unifié avec sidebar et header
+- **ProtectedRoute**: HOC protection routes avec gestion rôles
+- **LoadingStates**: Feedback visuel pour toutes actions async
+- **ErrorHandling**: Messages d'erreur contextuels et user-friendly
 
 ## 🔐 Sécurité & Authentification
 
@@ -169,18 +188,38 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - **Admin**: Gestion complète utilisateurs/matchs
 - **Mobile**: Expérience native-like
 
-## 📅 Contraintes Temporelles
+## 🎮 Système de Gestion Avancé
 
-### Horaires Métier
-- **Créneaux**: Exclusivement 12h00-14h00
-- **Jours**: Lundi à Vendredi (jours ouvrés)
-- **Anticipation**: Réservation jusqu'à 2 semaines à l'avance
-- **Limite**: Annulation jusqu'à 2h avant le match
+### Gestion Temporelle Intelligente
+- **Fermeture inscriptions**: Automatique 15 minutes avant début activité
+- **Masquage activités**: Automatique après leur fin pour éviter inscriptions tardives
+- **Nettoyage automatique**: API `/api/cleanup` pour marquer activités terminées
+- **Archivage**: Suppression activités anciennes (30+ jours) pour performance
+
+### API de Maintenance
+- **Nettoyage manuel**: `/api/cleanup?secret=cleanup-secret` (GET)
+- **Nettoyage automatique**: `/api/cleanup` (POST) avec authentification
+- **Marquage terminé**: Activités passées automatiquement marquées 'completed'
+- **Suppression ancienne**: Nettoyage base données activités + inscriptions anciennes
+
+## 🏗️ Code Quality & Architecture
+
+### Structure TypeScript Optimisée
+- **Types centralisés**: `/src/types/` avec modules `user.ts`, `match.ts`, `index.ts`
+- **Utilitaires consolidés**: `/src/lib/utils/` avec fonctions réutilisables
+- **API client unifié**: `/src/lib/api/client.ts` pour requests HTTP consistantes
+- **Imports absolus**: Utilisation systématique `@/` pour meilleure maintenabilité
+
+### Qualité Code
+- **Zero code mort**: Suppression console.log et imports inutilisés
+- **Interfaces unifiées**: Elimination doublons (25+ interfaces User supprimées)
+- **Standards TypeScript**: Configuration strict, pas de `any`, types explicites
+- **Architecture modulaire**: Séparation claire responsabilités
 
 ### Sessions Utilisateur
-- **Durée**: 7 jours par défaut
-- **Renouvellement**: Automatique si activité
-- **Sécurité**: Invalidation si changement IP/navigateur suspect
+- **Durée**: 7 jours par défaut avec renouvellement automatique
+- **Sécurité**: Cookies httpOnly, protection CSRF, validation tokens
+- **Surveillance**: Détection activité suspecte, invalidation préventive
 
 ## 🔧 Configuration & Déploiement
 
