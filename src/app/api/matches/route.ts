@@ -14,9 +14,14 @@ export async function GET(request: NextRequest) {
 
       // Build where clause
       const where: any = {}
-      
+
       if (status && ['open', 'full', 'cancelled', 'completed'].includes(status)) {
         where.status = status
+      }
+
+      // Only show activities that haven't ended yet (current time < activity date)
+      where.date = {
+        gte: new Date()
       }
 
       const matches = await prisma.match.findMany({

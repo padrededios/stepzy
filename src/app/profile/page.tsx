@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ProtectedRoute } from '../../components/layout/ProtectedRoute'
+import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import UserProfile from '../../components/profile/UserProfile'
 
 export default function ProfilePage() {
@@ -28,11 +29,11 @@ export default function ProfilePage() {
   return (
     <ProtectedRoute>
       {(user) => (
-        <div className="min-h-screen bg-gray-50">
+        <DashboardLayout user={user}>
           {/* Success/Error Messages */}
           {message && (
             <div className={`fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg max-w-md ${
-              messageType === 'success' 
+              messageType === 'success'
                 ? 'bg-green-100 border border-green-400 text-green-700'
                 : 'bg-red-100 border border-red-400 text-red-700'
             }`}>
@@ -45,12 +46,12 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <UserProfile 
-            user={user} 
+          <UserProfile
+            user={user}
             onSuccess={handleSuccess}
             onError={handleError}
           />
-        </div>
+        </DashboardLayout>
       )}
     </ProtectedRoute>
   )

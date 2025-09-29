@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ProtectedRoute } from '../../../components/layout/ProtectedRoute'
+import { DashboardLayout } from '../../../components/layout/DashboardLayout'
 import AdminUserList from '../../../components/admin/AdminUserList'
 
 export default function AdminUsersPage() {
@@ -23,25 +24,23 @@ export default function AdminUsersPage() {
   return (
     <ProtectedRoute requireAdmin={true}>
       {(user) => (
-        <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
+        <DashboardLayout user={user}>
           {message && (
             <div className={`mb-6 p-4 rounded-lg ${
-              messageType === 'success' 
+              messageType === 'success'
                 ? 'bg-green-100 border border-green-400 text-green-700'
                 : 'bg-red-100 border border-red-400 text-red-700'
             }`}>
               {message}
             </div>
           )}
-          
+
           <AdminUserList
             currentUser={user}
             onSuccess={handleSuccess}
             onError={handleError}
           />
-        </div>
-        </div>
+        </DashboardLayout>
       )}
     </ProtectedRoute>
   )

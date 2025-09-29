@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ProtectedRoute } from '../../components/layout/ProtectedRoute'
+import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import Link from 'next/link'
 
 interface Notification {
@@ -151,7 +152,7 @@ export default function NotificationsPage() {
   return (
     <ProtectedRoute>
       {(user) => (
-        <div className="min-h-screen bg-gray-50">
+        <DashboardLayout user={user}>
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -294,7 +295,7 @@ export default function NotificationsPage() {
             </div>
           )}
         </div>
-        </div>
+        </DashboardLayout>
       )}
     </ProtectedRoute>
   )

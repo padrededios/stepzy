@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 
 interface Match {
   id: string
@@ -345,7 +346,11 @@ function AdminMatchesContent() {
 export default function AdminMatchesPage() {
   return (
     <ProtectedRoute requireAdmin={true}>
-      {(user) => <AdminMatchesContent />}
+      {(user) => (
+        <DashboardLayout user={user}>
+          <AdminMatchesContent />
+        </DashboardLayout>
+      )}
     </ProtectedRoute>
   )
 }

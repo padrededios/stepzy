@@ -36,6 +36,18 @@ export async function POST(
         )
       }
 
+      // Check if registrations are closed (15 minutes before match start)
+      const now = new Date()
+      const matchDate = new Date(match.date)
+      const minutesUntilMatch = (matchDate.getTime() - now.getTime()) / (1000 * 60)
+
+      if (minutesUntilMatch <= 15) {
+        return NextResponse.json(
+          { success: false, error: 'Les inscriptions sont fermées 15 minutes avant le début de l\'activité' },
+          { status: 400 }
+        )
+      }
+
       // Check if user is already in the match
       const existingPlayer = await prisma.matchPlayer.findFirst({
         where: {

@@ -6,27 +6,10 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { SPORTS_CONFIG, type SportType } from '@/config/sports'
 import { useActivities, type Activity } from '@/hooks/useActivities'
+import { formatDateTime } from '@/lib/utils/date'
+import { User } from '@/types'
 import Image from 'next/image'
 
-interface User {
-  id: string
-  pseudo: string
-  email: string
-  role: 'user' | 'root'
-}
-
-// Utility function to format dates
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date)
-}
 
 function MesActivitesContent({ user }: { user: User }) {
   const { getUserActivities, loading } = useActivities(user.id)
@@ -203,7 +186,7 @@ function ActivityCard({
             </div>
 
             <p className="text-sm text-gray-600 mt-1">
-              {formatDate(activity.date)}
+              {formatDateTime(activity.date)}
             </p>
 
             {activity.description && (

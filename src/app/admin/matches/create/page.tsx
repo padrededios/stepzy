@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ProtectedRoute } from '../../../../components/layout/ProtectedRoute'
+import { DashboardLayout } from '../../../../components/layout/DashboardLayout'
 import MatchCreationForm from '../../../../components/admin/MatchCreationForm'
 
 export default function AdminMatchCreatePage() {
@@ -23,8 +24,7 @@ export default function AdminMatchCreatePage() {
   return (
     <ProtectedRoute requireAdmin={true}>
       {(user) => (
-        <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
+        <DashboardLayout user={user}>
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
@@ -40,7 +40,7 @@ export default function AdminMatchCreatePage() {
           {/* Success/Error Messages */}
           {message && (
             <div className={`mb-6 p-4 rounded-lg ${
-              messageType === 'success' 
+              messageType === 'success'
                 ? 'bg-green-100 border border-green-400 text-green-700'
                 : 'bg-red-100 border border-red-400 text-red-700'
             }`}>
@@ -104,8 +104,7 @@ export default function AdminMatchCreatePage() {
             onSuccess={handleSuccess}
             onError={handleError}
           />
-        </div>
-        </div>
+        </DashboardLayout>
       )}
     </ProtectedRoute>
   )
