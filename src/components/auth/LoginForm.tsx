@@ -72,8 +72,8 @@ export function LoginForm() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Redirect to specified URL or dashboard
-        const destination = redirectTo || data.redirectTo || '/dashboard';
+        // Redirect to specified URL or activities page
+        const destination = redirectTo || data.redirectTo || '/mes-activites';
         router.replace(destination);
       } else {
         setErrors({
@@ -81,7 +81,7 @@ export function LoginForm() {
         });
       }
     } catch (error) {
-      console.error('Login error:', error);
+      // Login error handled with user feedback
       setErrors({
         general: 'Erreur de connexion. Veuillez réessayer.',
       });

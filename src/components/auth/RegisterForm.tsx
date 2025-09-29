@@ -127,14 +127,14 @@ export function RegisterForm() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        router.replace('/dashboard');
+        router.replace('/mes-activites');
       } else {
         setErrors({
           general: data.error || "Erreur lors de l'inscription",
         });
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      // Registration error handled with user feedback
       setErrors({
         general: 'Erreur de connexion. Veuillez réessayer.',
       });

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { initializePushNotifications, requestNotificationPermission } from '../../lib/notifications/push'
+import { initializePushNotifications, requestNotificationPermission } from '@/lib/notifications/push'
 
 interface Notification {
   id: string
@@ -66,7 +66,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
         }
       }
     } catch (error) {
-      console.error('Error fetching unread count:', error)
+      // Failed to fetch unread count - handled silently
     }
   }
 
@@ -89,7 +89,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
         }
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error)
+      // Failed to fetch notifications - handled silently
     } finally {
       setLoading(false)
     }
@@ -114,7 +114,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
         setUnreadCount(prev => Math.max(0, prev - 1))
       }
     } catch (error) {
-      console.error('Error marking notification as read:', error)
+      // Failed to mark notification as read - handled silently
     }
   }
 
@@ -133,7 +133,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
         setUnreadCount(0)
       }
     } catch (error) {
-      console.error('Error marking all as read:', error)
+      // Failed to mark all notifications as read - handled silently
     }
   }
 
@@ -172,7 +172,7 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
       const permission = await requestNotificationPermission()
       setPushEnabled(permission === 'granted')
     } catch (error) {
-      console.error('Error enabling push notifications:', error)
+      // Failed to enable push notifications - handled silently
     }
   }
 

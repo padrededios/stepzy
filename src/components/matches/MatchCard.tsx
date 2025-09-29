@@ -3,41 +3,13 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { SportType, getSportConfig } from '../../config/sports'
-
-interface User {
-  id: string
-  pseudo: string
-  avatar?: string | null
-}
-
-interface MatchPlayer {
-  id: string
-  user: User
-  status: 'confirmed' | 'waiting'
-  joinedAt: Date
-}
-
-interface Match {
-  id: string
-  date: Date
-  sport: SportType
-  maxPlayers: number
-  status: 'open' | 'full' | 'cancelled' | 'completed'
-  players: MatchPlayer[]
-  waitingList: MatchPlayer[]
-}
-
-interface CurrentUser {
-  id: string
-  email: string
-  pseudo: string
-  role: 'user' | 'root'
-}
+import { SportType, getSportConfig } from '@/config/sports'
+import { formatDate, formatTime } from '@/lib/utils/date'
+import { User, Match, MatchPlayer } from '@/types'
 
 interface MatchCardProps {
   match: Match
-  currentUser: CurrentUser
+  currentUser: User
   onUpdate?: () => void
 }
 
@@ -45,21 +17,6 @@ export function MatchCard({ match, currentUser, onUpdate }: MatchCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date)
-  }
-
-  const formatTime = (date: Date) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date)
-  }
 
   const currentUserPlayer = match.players.find(p => p.user.id === currentUser.id)
   const currentUserWaiting = match.waitingList.find(p => p.user.id === currentUser.id)
@@ -93,7 +50,7 @@ export function MatchCard({ match, currentUser, onUpdate }: MatchCardProps) {
 
       onUpdate?.()
     } catch (err) {
-      console.error('Join match error:', err)
+      // Join match error handled with user feedback
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'action')
     } finally {
       setIsLoading(false)
@@ -122,7 +79,7 @@ export function MatchCard({ match, currentUser, onUpdate }: MatchCardProps) {
 
       onUpdate?.()
     } catch (err) {
-      console.error('Leave match error:', err)
+      // Leave match error handled with user feedback
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'action')
     } finally {
       setIsLoading(false)
@@ -194,6 +151,20 @@ export function MatchCard({ match, currentUser, onUpdate }: MatchCardProps) {
   const getActionButton = () => {
     if (match.status === 'cancelled' || match.status === 'completed') {
       return null
+    }
+
+    // Check if registrations are closed (15 minutes before match start)
+    const now = new Date()
+    const matchDate = new Date(match.date)
+    const minutesUntilMatch = (matchDate.getTime() - now.getTime()) / (1000 * 60)
+    const registrationsClosed = minutesUntilMatch <= 15
+
+    if (registrationsClosed && !isUserInMatch) {
+      return (
+        <div className="w-full px-4 py-2 bg-gray-400 text-white text-sm font-medium rounded-md text-center">
+          Inscriptions fermées
+        </div>
+      )
     }
 
     if (currentUserPlayer) {

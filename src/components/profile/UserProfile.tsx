@@ -92,8 +92,7 @@ export default function UserProfile({ user, onSuccess, onError }: UserProfile) {
         }
       }
     } catch (error) {
-      console.error('Error fetching preferences:', error)
-      // Set default preferences on error
+      // Failed to fetch preferences - setting defaults
       setPreferences({
         emailNotifications: false,
         newMatches: false,
@@ -214,7 +213,7 @@ export default function UserProfile({ user, onSuccess, onError }: UserProfile) {
         body: JSON.stringify(newPreferences)
       })
     } catch (error) {
-      console.error('Error saving preferences:', error)
+      // Failed to save preferences - handled silently
     }
   }
 

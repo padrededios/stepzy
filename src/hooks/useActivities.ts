@@ -48,7 +48,7 @@ const fetchMatchesFromAPI = async (userId?: string): Promise<Activity[]> => {
       }
     })
   } catch (error) {
-    console.error('Error fetching matches:', error)
+    // Failed to fetch matches from API
     return []
   }
 }
@@ -103,7 +103,7 @@ export function useActivities(userId?: string) {
         throw new Error(result.error || 'Erreur lors de l\'inscription')
       }
     } catch (error) {
-      console.error('Error registering for activity:', error)
+      // Failed to register for activity
       return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de l\'inscription' }
     }
   }
@@ -131,7 +131,7 @@ export function useActivities(userId?: string) {
         throw new Error(result.error || 'Erreur lors de la désinscription')
       }
     } catch (error) {
-      console.error('Error unregistering from activity:', error)
+      // Failed to unregister from activity
       return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la désinscription' }
     }
   }

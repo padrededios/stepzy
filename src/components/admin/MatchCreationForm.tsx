@@ -12,7 +12,7 @@ import {
   getQuickPresets,
   type RecurringFrequency
 } from '../../lib/utils/time-constraints'
-import { SportType, getSportConfig, getAllSports } from '../../config/sports'
+import { SportType, getSportConfig, getAllSports } from '@/config/sports'
 import Image from 'next/image'
 
 interface MatchCreationFormProps {

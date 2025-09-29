@@ -2,14 +2,8 @@
 
 import { Header } from './Header'
 import { Footer } from './Footer'
+import { User } from '@/types'
 
-interface User {
-  id: string
-  email: string
-  pseudo: string
-  avatar?: string | null
-  role: 'user' | 'root'
-}
 
 interface DashboardLayoutProps {
   user: User

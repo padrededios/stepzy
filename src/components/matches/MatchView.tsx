@@ -2,39 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-
-interface User {
-  id: string
-  pseudo: string
-  avatar: string
-}
-
-interface MatchPlayer {
-  id: string
-  userId: string
-  matchId: string
-  status: 'confirmed' | 'waiting'
-  joinedAt: Date
-  user: User
-}
-
-interface Match {
-  id: string
-  date: Date
-  sport: 'football' | 'badminton' | 'volley' | 'pingpong' | 'rugby'
-  maxPlayers: number
-  status: 'open' | 'full' | 'cancelled' | 'completed'
-  players: MatchPlayer[]
-  waitingList: MatchPlayer[]
-}
+import { formatDate, formatTime } from '@/lib/utils/date'
+import { User, Match, MatchPlayer } from '@/types'
 
 interface MatchViewProps {
   match: Match
-  currentUser: {
-    id: string
-    pseudo: string
-    role: 'user' | 'root'
-  }
+  currentUser: User
   onMatchUpdate?: () => void
   onError?: (message: string) => void
 }
@@ -60,20 +33,6 @@ const MatchView: React.FC<MatchViewProps> = ({
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long'
-    }).format(date)
-  }
-
-  const formatTime = (date: Date) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date)
-  }
 
   const handlePlayerClick = (playerId: string, userId: string) => {
     if (userId === currentUser.id) {

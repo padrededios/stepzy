@@ -2,14 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-
-interface User {
-  id: string
-  email: string
-  pseudo: string
-  avatar?: string | null
-  role: 'user' | 'root'
-}
+import { User } from '@/types'
 
 interface ProtectedRouteProps {
   children: (user: User) => React.ReactNode
@@ -40,7 +33,7 @@ export function ProtectedRoute({ children, requireAdmin = false, fallback }: Pro
           // Check admin requirement
           if (requireAdmin && userData.role !== 'root') {
             setError('Accès administrateur requis')
-            router.replace('/dashboard')
+            router.replace('/mes-activites')
             return
           }
 
@@ -49,7 +42,7 @@ export function ProtectedRoute({ children, requireAdmin = false, fallback }: Pro
           throw new Error('Invalid response')
         }
       } catch (err) {
-        console.error('Auth check error:', err)
+        // Authentication check failed
         setError('Non authentifié')
         
         // Redirect to login with current path as redirect parameter

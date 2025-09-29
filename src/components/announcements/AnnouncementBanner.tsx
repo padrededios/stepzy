@@ -43,7 +43,7 @@ export default function AnnouncementBanner() {
         }
       }
     } catch (error) {
-      console.error('Error fetching announcements:', error)
+      // Error fetching announcements
     } finally {
       setLoading(false)
     }

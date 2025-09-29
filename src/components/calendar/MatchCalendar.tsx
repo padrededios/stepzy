@@ -2,26 +2,13 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-
-interface Match {
-  id: string
-  date: Date
-  maxPlayers: number
-  status: 'open' | 'full' | 'completed' | 'cancelled'
-  description?: string
-  _count?: {
-    matchPlayers: number
-  }
-}
+import { Match, User } from '@/types'
 
 interface MatchCalendarProps {
   matches?: Match[]
   onMatchClick?: (match: Match) => void
   onDateClick?: (date: Date) => void
-  currentUser?: {
-    id: string
-    role: 'user' | 'root'
-  }
+  currentUser?: User
 }
 
 const MatchCalendar: React.FC<MatchCalendarProps> = ({ 
