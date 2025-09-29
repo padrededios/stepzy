@@ -31,6 +31,10 @@ model User {
   notifications Notification[] @relation("NotificationRecipient")
   sentAnnouncements Announcement[]
 
+  // Nouvelles relations pour activités
+  createdActivities Activity[] @relation("ActivityCreator")
+  activityParticipations ActivityParticipant[]
+
   @@map("users")
 }
 
@@ -209,4 +213,87 @@ enum Priority {
   urgent
 
   @@map("priority")
+}
+
+// Nouveaux modèles pour activités récurrentes
+
+// Modèle Activity (activité parente)
+model Activity {
+  id          String   @id @default(cuid())
+  name        String   // "Foot entre collègues"
+  description String?
+  sport       SportType
+  maxPlayers  Int
+  createdBy   String   // Le créateur de l'activité
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Récurrence
+  recurringDays    String[]  // ["monday", "wednesday"]
+  recurringType    RecurringType // weekly, monthly
+
+  // Relations
+  creator   User @relation("ActivityCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  sessions  ActivitySession[]
+
+  @@map("activities")
+}
+
+// Modèle ActivitySession (session individuelle d'une activité)
+model ActivitySession {
+  id          String   @id @default(cuid())
+  activityId  String
+  date        DateTime
+  status      SessionStatus @default(active)
+  maxPlayers  Int      // Peut être différent de l'activité parente
+  isCancelled Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  activity     Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  participants ActivityParticipant[]
+
+  @@map("activity_sessions")
+}
+
+// Modèle ActivityParticipant (participation à une session)
+model ActivityParticipant {
+  id        String @id @default(cuid())
+  sessionId String
+  userId    String
+  status    ParticipantStatus @default(interested)
+  joinedAt  DateTime @default(now())
+
+  // Relations
+  session ActivitySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@map("activity_participants")
+}
+
+// Nouveaux enums pour les activités
+enum RecurringType {
+  weekly
+  monthly
+
+  @@map("recurring_type")
+}
+
+enum SessionStatus {
+  active
+  cancelled
+  completed
+
+  @@map("session_status")
+}
+
+enum ParticipantStatus {
+  interested  // L'utilisateur a cliqué "rejoindre"
+  confirmed   // Confirmé pour cette session
+  waiting     // Liste d'attente
+
+  @@map("participant_status")
 }

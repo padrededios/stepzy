@@ -5,6 +5,7 @@
 // Re-export all types from specific modules
 export * from './user';
 export * from './match';
+export * from './activity';
 
 // Common API types
 export interface ApiResponse<T = unknown> {

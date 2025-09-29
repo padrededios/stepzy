@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { User } from '@/types'
 
 interface SidebarProps {
@@ -14,11 +14,38 @@ interface SidebarProps {
 
 export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
+  const [hasCreatedActivities, setHasCreatedActivities] = useState(false)
+  const [loadingActivities, setLoadingActivities] = useState(true)
 
   // Close sidebar when route changes
   useEffect(() => {
     onClose()
   }, [pathname, onClose])
+
+  // Check if user has created activities
+  useEffect(() => {
+    const checkCreatedActivities = async () => {
+      if (!user?.id) {
+        setLoadingActivities(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/activities/my-created')
+        const data = await response.json()
+
+        if (data.success) {
+          setHasCreatedActivities(data.data.totalCount > 0)
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification des activités créées:', error)
+      } finally {
+        setLoadingActivities(false)
+      }
+    }
+
+    checkCreatedActivities()
+  }, [user?.id])
 
   // Prevent body scroll when sidebar is open
   useEffect(() => {
@@ -48,6 +75,17 @@ export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       )
+    },
+    {
+      name: 'Gestion',
+      href: '/my-activities/manage',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+      requiresCreatedActivities: true
     },
     {
       name: 'Mes Statistiques',
@@ -164,25 +202,33 @@ export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
                 Navigation principale
               </h3>
               <div className="space-y-1">
-                {navigationItems.map((item) => {
-                  const active = isActive(item.href)
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                        active
-                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                          : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className={`mr-3 ${active ? 'text-blue-700' : 'text-gray-400'}`}>
-                        {item.icon}
-                      </span>
-                      {item.name}
-                    </Link>
-                  )
-                })}
+                {navigationItems
+                  .filter(item => {
+                    // Filtrer l'onglet "Gestion" s'il n'y a pas d'activités créées
+                    if (item.requiresCreatedActivities && !hasCreatedActivities) {
+                      return false
+                    }
+                    return true
+                  })
+                  .map((item) => {
+                    const active = isActive(item.href)
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                          active
+                            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className={`mr-3 ${active ? 'text-blue-700' : 'text-gray-400'}`}>
+                          {item.icon}
+                        </span>
+                        {item.name}
+                      </Link>
+                    )
+                  })}
               </div>
             </div>
 

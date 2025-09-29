@@ -287,6 +287,56 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 
 ---
 
+## 🏅 Phase 12 : Activités Récurrentes Utilisateur (v3.0) ✅
+
+### 12.1 Architecture de Base de Données ✅
+- ✅ Nouveau modèle Activity (activité parente) avec récurrence
+- ✅ Modèle ActivitySession (sessions individuelles d'une activité)
+- ✅ Modèle ActivityParticipant (participation aux sessions)
+- ✅ Enums RecurringType, SessionStatus, ParticipantStatus
+- ✅ Relations complètes avec User et gestion des cascades
+
+### 12.2 Services Backend ✅
+- ✅ ActivitySessionService pour génération automatique des sessions
+- ✅ Support récurrence hebdomadaire et mensuelle
+- ✅ Génération sessions 2 semaines à l'avance (fenêtre glissante)
+- ✅ ActivityParticipationService pour inscriptions/désinscriptions
+- ✅ Gestion automatique liste d'attente avec promotion
+- ✅ Nettoyage automatique sessions expirées
+
+### 12.3 APIs Complètes ✅
+- ✅ POST /api/activities - Création d'activité (tout utilisateur)
+- ✅ GET /api/activities/my-created - Activités créées par l'utilisateur
+- ✅ GET /api/activities/my-participations - Participations utilisateur
+- ✅ GET /api/activities/upcoming-sessions - Sessions disponibles (2 semaines)
+- ✅ POST/DELETE /api/activities/sessions/[sessionId]/join - Rejoindre/quitter session
+- ✅ GET/PUT/DELETE /api/activities/[activityId]/sessions/[sessionId] - Gestion sessions créateur
+- ✅ POST /api/activities/generate-sessions - Cron job génération automatique
+
+### 12.4 Types TypeScript ✅
+- ✅ Types Activity, ActivitySession, ActivityParticipant complets
+- ✅ Types pour formulaires (CreateActivityData, UpdateSessionData)
+- ✅ Types pour vues enrichies (ActivityWithStats, SessionWithParticipants)
+- ✅ Configuration jours semaine et labels français
+- ✅ Integration complète avec types existants
+
+### 12.5 Tests Complets ✅
+- ✅ Tests unitaires ActivitySessionService (génération récurrence)
+- ✅ Tests unitaires ActivityParticipationService (inscriptions/liste d'attente)
+- ✅ Tests d'intégration APIs activités (création, récupération, filtres)
+- ✅ Tests d'intégration APIs participation (rejoindre/quitter sessions)
+- ✅ Couverture complète logique métier et cas d'erreur
+
+### 12.6 Fonctionnalités Clés ✅
+- ✅ **Démocratisation** : Tout utilisateur peut créer des activités récurrentes
+- ✅ **Récurrence intelligente** : Support hebdomadaire/mensuelle avec jours personnalisables
+- ✅ **Gestion fine** : Créateurs peuvent modifier/annuler sessions individuelles
+- ✅ **Vue 2 semaines** : Sessions générées automatiquement en continu
+- ✅ **Système d'intérêt** : Statuts interested/confirmed/waiting avec promotion automatique
+- ✅ **Notifications** : Infrastructure prête pour notifications promotions/annulations
+
+---
+
 ## 📊 Métriques de Succès
 
 - ✅ Tous les tests passent (unitaires, intégration, E2E)
