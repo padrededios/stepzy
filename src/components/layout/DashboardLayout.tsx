@@ -1,5 +1,7 @@
 'use client'
 
+import { useState, useEffect, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import { Header } from './Header'
 import { Footer } from './Footer'
 import { User } from '@/types'
@@ -11,23 +13,47 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ user, children }: DashboardLayoutProps) {
+  const pathname = usePathname()
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const mainRef = useRef<HTMLElement>(null)
+
+  // Transition fluide lors du changement de page + reset scroll
+  useEffect(() => {
+    setIsTransitioning(true)
+
+    // Reset scroll to top quand on change de page
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    const timer = setTimeout(() => setIsTransitioning(false), 300)
+    return () => clearTimeout(timer)
+  }, [pathname])
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col p-4 lg:p-6">
+    <div className="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col p-4 lg:p-6">
       {/* Container principal avec effet de page dans une page */}
-      <div className="flex-1 max-w-7xl mx-auto w-full bg-white rounded-2xl shadow-2xl shadow-blue-900/10 border border-gray-100/50 overflow-hidden flex flex-col animate-in fade-in-50 slide-in-from-bottom-4 duration-700">
-        {/* Header */}
+      <div className="flex-1 max-w-7xl mx-auto w-full bg-white rounded-2xl shadow-2xl shadow-blue-900/10 border border-gray-100/50 overflow-hidden flex flex-col">
+        {/* Header fixe */}
         <div className="flex-shrink-0">
           <Header user={user} />
         </div>
 
-        {/* Main Content avec padding et scrolling */}
-        <main className="flex-1 overflow-auto">
-          <div className="p-4 lg:p-6 xl:p-8">
+        {/* Main Content avec scrolling et transition fluide */}
+        <main
+          ref={mainRef}
+          className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth"
+        >
+          <div
+            className={`p-4 lg:p-6 xl:p-8 transition-opacity duration-300 ${
+              isTransitioning ? 'opacity-0' : 'opacity-100'
+            }`}
+          >
             {children}
           </div>
         </main>
 
-        {/* Footer */}
+        {/* Footer fixe */}
         <div className="flex-shrink-0 border-t border-gray-100">
           <Footer />
         </div>

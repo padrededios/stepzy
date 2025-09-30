@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { SPORTS_CONFIG, type SportType } from '@/config/sports'
@@ -136,12 +137,12 @@ function MesActivitesContent({ user }: { user: User }) {
                 Retrouvez toutes vos activités passées et à venir
               </p>
             </div>
-            <button
-              onClick={() => window.location.href = '/create-activity'}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+            <Link
+              href="/create-activity"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium inline-block"
             >
               Créer une activité
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -430,12 +431,14 @@ function SessionCard({
   const sportConfig = SPORTS_CONFIG[session.activity.sport]
   const canJoin = session.userStatus?.canJoin && !session.userStatus?.isParticipant
 
+  const router = useRouter()
+
   const handleCardClick = (e: React.MouseEvent) => {
     // Empêcher la navigation si on clique sur un bouton
     if ((e.target as HTMLElement).closest('button')) {
       return
     }
-    window.location.href = `/matches/${session.id}`
+    router.push(`/matches/${session.id}`)
   }
 
   return (
