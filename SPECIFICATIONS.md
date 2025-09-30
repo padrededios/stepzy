@@ -124,18 +124,28 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 
 ### Layout & Navigation
 - **Header**: Logo Stepzy, navigation sports, notifications, menu utilisateur avec avatar
-- **Sidebar**: Navigation globale (Mes Activités, Mes Statistiques, Mon Profil, Administration pour admin)
-- **DashboardLayout**: Interface moderne "page-in-page" unifiée sur toutes les pages
+- **Sidebar**: Navigation globale (Mes Activités, S'inscrire, Mes Statistiques, Mon Profil, Administration pour admin)
+- **DashboardLayout**: Interface moderne "page-in-page" unifiée avec layout persistant
+- **Layout persistant**: Utilisation de Next.js Layout Groups `(dashboard)` pour éviter les re-renders du header/footer
+- **Context API**: Hook `useCurrentUser()` pour accès utilisateur sans props drilling
 - **Menu utilisateur**: Dropdown correctement positionné sous l'avatar
 - **Responsive**: Mobile-first, adaptable desktop avec breakpoints optimisés
 
 ### Pages Principales
 
 #### Mes Activités (/mes-activites)
-- **Accueil**: Toutes les activités multisports disponibles
+- **Onglets**: Mes participations, Activités disponibles, Historique
+- **Système récurrent**: Affichage des activités récurrentes avec leurs sessions
 - **Filtrage**: Par sport, statut, disponibilité
-- **Actions rapides**: Inscription/désinscription directe
+- **Actions rapides**: Inscription/désinscription aux sessions avec notifications toast
 - **Gestion temporelle**: Masquage automatique activités expirées
+
+#### S'inscrire (/s-inscrire)
+- **Catalogue activités**: Toutes les activités récurrentes disponibles
+- **Filtres**: Par sport et tri (nom, sport)
+- **Cartes activités**: Design moderne avec icônes sport et informations récurrence
+- **Actions**: Inscription/désinscription aux activités avec notifications toast
+- **Gestion permissions**: Bouton "Gérer" pour les créateurs d'activités
 
 #### Vue Match Détaillée (/matches/[id])
 - **Layout terrain**: Style MPG avec positions 6v6
@@ -165,10 +175,17 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - **MatchCard**: Affichage compact activité avec actions multisports
 - **Avatar**: Fallback automatique DiceBear avec génération déterministe
 - **NotificationCenter**: Dropdown notifications dans header avec badge
-- **DashboardLayout**: Layout unifié avec sidebar et header
-- **ProtectedRoute**: HOC protection routes avec gestion rôles
+- **Toast**: Système de notifications modernes (success/error/info) avec design élégant
+- **DashboardLayout**: Layout unifié avec sidebar et header, fourni via Context API
+- **ProtectedRoute**: HOC protection routes avec gestion rôles et pattern render prop
 - **LoadingStates**: Feedback visuel pour toutes actions async
 - **ErrorHandling**: Messages d'erreur contextuels et user-friendly
+
+### Système de Notifications
+- **Toast modernes**: Notifications en haut à droite avec dégradés de couleurs
+- **Types**: Success (vert/teal), Error (rouge/rose), Info (bleu)
+- **Design**: Icônes circulaires, animations slide-in, auto-fermeture 3s
+- **Usage**: Retours visuels pour inscriptions, désinscriptions, erreurs
 
 ## 🔐 Sécurité & Authentification
 

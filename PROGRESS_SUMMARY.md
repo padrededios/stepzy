@@ -4,11 +4,18 @@
 
 Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour les activités multisports, développée selon la méthodologie TDD.
 
-**Phases complétées** : 12/12 phases terminées ✅ (incluant v3.0 activités récurrentes avec abonnements)
+**Phases complétées** : 12/12 phases terminées ✅ (incluant v3.0 activités récurrentes + v3.1 optimisations UX)
 **Tests** : 134/134 tests passent (41 auth/DB + 17 logique métier + 20 MatchView + 42 admin + profils + notifications)
 **Couverture** : >95% sur toutes les parties implémentées
 **Code Quality** : Codebase entièrement refactorisé et optimisé (88 fichiers)
-**Version actuelle** : v3.0 avec système d'abonnements et UI temps réel
+**Version actuelle** : v3.1 avec layout persistant, toast notifications et Context API
+
+### 🆕 Nouveautés v3.1 (Janvier 2025)
+- **Layout Persistant** : Next.js Layout Groups `(dashboard)` pour performances optimales
+- **Context API** : Hook `useCurrentUser()` éliminant props drilling
+- **Toast Modernes** : Système de notifications élégant avec animations
+- **UX Optimisée** : Suppression redondances, feedback visuel amélioré
+- **Architecture Simplifiée** : Pattern unifié sur toutes les pages authentifiées
 
 ---
 

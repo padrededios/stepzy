@@ -31,12 +31,14 @@ Plateforme web moderne pour la gestion et réservation d'activités sportives mu
 - Rate limiting anti-brute force
 - Protection XSS et injection SQL
 
-### 🏅 Gestion des activités multisports
-- Création d'activités par les administrateurs (Football, Badminton, Volleyball, Ping-Pong, Rugby)
+### 🏅 Gestion des activités multisports récurrentes
+- Création d'activités récurrentes par les utilisateurs (Football, Badminton, Volleyball, Ping-Pong, Rugby)
+- Système de récurrence hebdomadaire/mensuelle
+- Génération automatique des sessions à venir
+- Inscription/désinscription aux activités et sessions
 - Sélection visuelle du sport avec icônes dédiées
 - Adaptation automatique du nombre de joueurs par sport
-- Inscription/désinscription des participants
-- Système de liste d'attente automatique
+- Système de liste d'attente automatique par session
 - Promotion FIFO depuis la liste d'attente
 - Configuration spécifique par sport (min/max joueurs)
 
@@ -53,8 +55,10 @@ Plateforme web moderne pour la gestion et réservation d'activités sportives mu
 - Nettoyage automatique des activités terminées
 - Archivage intelligent des données anciennes (30+ jours)
 
-### 🔔 Notifications temps réel
-- Centre de notifications interactif
+### 🔔 Système de notifications moderne
+- **Toast notifications** : Design moderne avec dégradés de couleurs
+- Notifications success/error/info avec animations élégantes
+- Centre de notifications interactif dans header
 - Notifications push navigateur
 - Rappels automatiques (24h et 2h avant)
 - Annonces administrateur avec priorités
@@ -68,10 +72,13 @@ Plateforme web moderne pour la gestion et réservation d'activités sportives mu
 - Système d'annonces globales
 
 ### 📱 Interface utilisateur moderne
-- Design "page-in-page" unifié avec DashboardLayout
+- Design "page-in-page" unifié avec DashboardLayout persistant
+- Layout Groups Next.js `(dashboard)` pour éviter re-renders
+- Hook `useCurrentUser()` avec Context API
 - Interface mobile-first responsive
 - Menu utilisateur correctement positionné
 - Navigation sidebar globale sur toutes les pages
+- Toast notifications modernes avec animations
 - Accessibilité WCAG 2.1 AA complète
 - Support navigation clavier et screen readers
 
@@ -198,10 +205,12 @@ docker-compose down
 ### Pour les utilisateurs
 
 1. **Inscription** : Créez un compte avec email et mot de passe fort
-2. **Mes Activités** : Consultez toutes les activités multisports disponibles
-3. **Inscription activité** : Cliquez pour vous inscrire (ou liste d'attente si complet)
-4. **Mon Profil** : Consultez vos statistiques et historique
-5. **Notifications** : Centre notifications dans le header + page dédiée
+2. **S'inscrire** : Consultez toutes les activités récurrentes disponibles
+3. **Inscription activité** : Inscrivez-vous aux activités et leurs sessions
+4. **Mes Activités** : Gérez vos participations avec onglets (participations, disponibles, historique)
+5. **Créer activité** : Créez vos propres activités récurrentes
+6. **Mon Profil** : Consultez vos statistiques et historique
+7. **Notifications** : Toast modernes + centre notifications dans le header
 
 ### Pour les administrateurs
 
@@ -218,26 +227,36 @@ docker-compose down
 ```
 src/
 ├── app/                    # App Router Next.js
-│   ├── api/               # API Routes (auth, matches, admin, notifications)
-│   ├── mes-activites/     # Page principale activités
-│   ├── profile/           # Page profil utilisateur
-│   ├── notifications/     # Page centre notifications
-│   └── admin/             # Pages administration
+│   ├── (dashboard)/       # Layout Group pour pages authentifiées
+│   │   ├── layout.tsx    # Layout persistant avec ProtectedRoute
+│   │   ├── mes-activites/ # Page participations
+│   │   ├── s-inscrire/   # Page catalogue activités
+│   │   ├── create-activity/ # Création activités récurrentes
+│   │   ├── profile/      # Page profil utilisateur
+│   │   ├── notifications/ # Page centre notifications
+│   │   └── admin/        # Pages administration
+│   └── api/              # API Routes (auth, activities, sessions, admin)
 ├── components/            # Composants React
 │   ├── auth/             # Authentification (LoginForm, RegisterForm)
 │   ├── matches/          # Gestion activités (MatchCard, MatchView)
-│   ├── layout/           # Layout (Header, Sidebar, DashboardLayout)
+│   ├── layout/           # Layout (Header, Sidebar, DashboardLayout, ProtectedRoute)
 │   ├── notifications/    # Notifications (NotificationCenter)
 │   ├── profile/          # Profil (UserProfile, UserBadges)
-│   └── admin/            # Administration (UserList, Statistics)
+│   ├── admin/            # Administration (UserList, Statistics)
+│   └── ui/               # UI primitives (Toast)
+├── hooks/                 # Custom React Hooks
+│   ├── useCurrentUser.ts # Hook Context pour utilisateur
+│   ├── useActivities.ts  # Hook gestion activités
+│   └── useRecurringActivities.ts # Hook activités récurrentes
 ├── lib/                   # Utilitaires
 │   ├── auth/             # Better-auth configuration
 │   ├── utils/            # Utilitaires consolidés (date, API client)
-│   ├── cleanup/          # Services nettoyage automatique
+│   ├── services/         # Services métier (activity-session, cleanup)
 │   └── notifications/    # Services notifications
 ├── types/                 # Types TypeScript centralisés
 │   ├── user.ts           # Types utilisateur
-│   ├── match.ts          # Types activités
+│   ├── match.ts          # Types activités (legacy)
+│   ├── activity.ts       # Types activités récurrentes
 │   └── index.ts          # Re-exports
 └── __tests__/            # Tests (134+ tests, 95%+ coverage)
     ├── unit/             # Tests unitaires

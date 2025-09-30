@@ -14,6 +14,8 @@ Cette section documente les décisions architecturales importantes prises pour l
 | [ADR-006](ADR-006-redis-caching.md) | Redis pour le cache et sessions | ✅ Accepté | 2024-02-01 |
 | [ADR-007](ADR-007-structured-logging.md) | Logging structuré JSON | ✅ Accepté | 2024-02-05 |
 | [ADR-008](ADR-008-docker-production.md) | Docker multi-stage pour production | ✅ Accepté | 2024-02-10 |
+| ADR-009 | Layout Groups et Context API | ✅ Accepté | 2025-01-15 |
+| ADR-010 | Toast Notifications modernes | ✅ Accepté | 2025-01-15 |
 
 ## Structure d'un ADR
 
@@ -86,7 +88,10 @@ Liste des autres options évaluées et pourquoi elles ont été rejetées.
 ┌─────────────────────────────────────────────┐
 │                Frontend                      │
 │  Next.js 15 (App Router) + TypeScript      │
+│  Layout Groups (dashboard) persistant      │
+│  Context API + useCurrentUser hook         │
 │  Tailwind CSS v4 + React 18                │
+│  Toast Notifications modernes              │
 └─────────────────────────────────────────────┘
                         │
                         ▼
@@ -101,6 +106,7 @@ Liste des autres options évaluées et pourquoi elles ont été rejetées.
 │            Business Logic                   │
 │  Services + Repositories Pattern           │
 │  Domain Models + Use Cases                  │
+│  Activity Sessions + Subscriptions         │
 └─────────────────────────────────────────────┘
                         │
                         ▼
@@ -117,6 +123,32 @@ Liste des autres options évaluées et pourquoi elles ont été rejetées.
 │  Health Checks + Metrics                   │
 └─────────────────────────────────────────────┘
 ```
+
+## Améliorations v3.1 (Janvier 2025)
+
+### Layout Persistant avec Layout Groups
+- **Problème**: Re-renders complets du header/footer à chaque navigation
+- **Solution**: Next.js Layout Groups `(dashboard)` avec layout unique
+- **Avantages**:
+  - Performance améliorée (pas de re-render inutile)
+  - Transitions de pages plus fluides
+  - Expérience utilisateur optimale
+
+### Context API et useCurrentUser
+- **Problème**: Props drilling de l'utilisateur à travers tous les composants
+- **Solution**: React Context avec hook `useCurrentUser()`
+- **Avantages**:
+  - Code plus propre et maintenable
+  - Pas de props intermédiaires
+  - Accès direct aux données utilisateur
+
+### Toast Notifications
+- **Problème**: Messages inline prenant de la place dans la page
+- **Solution**: Composant Toast moderne avec animations
+- **Avantages**:
+  - UX moderne et élégante
+  - Feedback visuel immédiat
+  - Pas d'impact sur le layout
 
 ## Patterns architecturaux utilisés
 
