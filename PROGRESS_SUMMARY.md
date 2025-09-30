@@ -11,11 +11,54 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour les activit�
 **Version actuelle** : v3.1 avec layout persistant, toast notifications et Context API
 
 ### 🆕 Nouveautés v3.1 (Janvier 2025)
-- **Layout Persistant** : Next.js Layout Groups `(dashboard)` pour performances optimales
-- **Context API** : Hook `useCurrentUser()` éliminant props drilling
-- **Toast Modernes** : Système de notifications élégant avec animations
-- **UX Optimisée** : Suppression redondances, feedback visuel amélioré
-- **Architecture Simplifiée** : Pattern unifié sur toutes les pages authentifiées
+
+#### Architecture Persistante
+- **Layout Group** : Création de `src/app/(dashboard)/layout.tsx` avec ProtectedRoute et DashboardLayout
+- **Hook Context** : `src/hooks/useCurrentUser.ts` avec CurrentUserContext pour accès utilisateur
+- **Pattern unifié** : Toutes les pages authentifiées utilisent `useCurrentUser()` sans props
+- **Fix re-renders** : Header/footer ne disparaissent plus pendant navigation
+
+#### Structure des Fichiers
+```
+src/app/(dashboard)/
+├── layout.tsx              # Layout persistant avec ProtectedRoute
+├── mes-activites/page.tsx  # Onglets participations
+├── s-inscrire/page.tsx     # Catalogue activités
+├── create-activity/page.tsx # Création activités récurrentes
+├── mes-statistiques/page.tsx # Stats utilisateur
+├── profile/page.tsx        # Profil utilisateur
+├── notifications/page.tsx  # Centre notifications
+├── matches/[id]/page.tsx   # Détail match
+├── my-activities/manage/   # Gestion activités
+└── admin/                  # Pages administration
+    ├── users/page.tsx
+    ├── statistics/page.tsx
+    ├── matches/page.tsx
+    ├── announcements/page.tsx
+    └── matches/create/page.tsx
+```
+
+#### Composants UI
+- **Toast** : `src/components/ui/Toast.tsx` avec design moderne
+  - Types: success (teal/green), error (rose/red), info (blue)
+  - Animations: slide-in-right avec auto-close 3s
+  - Position: fixed top-right, z-50
+- **Animations CSS** : Keyframes dans `src/app/globals.css`
+
+#### Corrections Techniques
+- **Fetch syntax** : Ajout accolades fermantes manquantes dans admin/matches/page.tsx
+- **Import paths** : Conversion vers @/ aliases pour tous les admin components
+- **Props drilling** : Éliminé avec Context API
+- **Badge redondant** : Supprimé badge "Inscrit" de s-inscrire/page.tsx
+
+#### Commits Git (7 nouveaux)
+1. `06d89a4` - feat: implement persistent layout with Next.js Layout Groups
+2. `4a1d315` - feat: add modern toast notification system
+3. `eb5c261` - refactor: reorganize all pages under (dashboard) layout group
+4. `29b5bd0` - chore: remove old page structure
+5. `21a0b61` - docs: update documentation for v3.1 architecture improvements
+
+**État Git** : Branche `manage_sports` en avance de 7 commits, working directory propre
 
 ---
 
