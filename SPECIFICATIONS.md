@@ -49,6 +49,41 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - `status` (enum: 'confirmed' | 'waiting')
 - `joinedAt` (DateTime)
 
+#### Activity (Activités Récurrentes)
+- `id` (string, PK)
+- `name` (string, nom de l'activité)
+- `description` (string, optionnel)
+- `sport` (enum: SportType)
+- `maxPlayers` (int, nombre max de joueurs par session)
+- `createdBy` (string, FK User)
+- `isPublic` (boolean, visibilité)
+- `recurringDays` (string[], jours de récurrence)
+- `recurringType` (enum: 'weekly' | 'monthly')
+- `createdAt`, `updatedAt`
+
+#### ActivitySession
+- `id` (string, PK)
+- `activityId` (string, FK Activity)
+- `date` (DateTime, date/heure de la session)
+- `maxPlayers` (int, nombre max de joueurs)
+- `status` (enum: 'active' | 'cancelled' | 'completed')
+- `isCancelled` (boolean)
+- `createdAt`, `updatedAt`
+
+#### ActivityParticipant
+- `id` (string, PK)
+- `sessionId` (string, FK ActivitySession)
+- `userId` (string, FK User)
+- `status` (enum: 'interested' | 'confirmed' | 'waiting')
+- `joinedAt` (DateTime)
+
+#### ActivitySubscription
+- `id` (string, PK)
+- `activityId` (string, FK Activity)
+- `userId` (string, FK User)
+- `subscribedAt` (DateTime)
+- Contrainte unique: (activityId, userId)
+
 #### Session (Better-auth)
 - `id`, `userId`, `token`, `expiresAt`, `ipAddress`, `userAgent`, etc.
 

@@ -4,10 +4,11 @@
 
 Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour les activités multisports, développée selon la méthodologie TDD.
 
-**Phases complétées** : 11/11 phases terminées ✅ (incluant évolution multisports v2.0 + code quality)
+**Phases complétées** : 12/12 phases terminées ✅ (incluant v3.0 activités récurrentes avec abonnements)
 **Tests** : 134/134 tests passent (41 auth/DB + 17 logique métier + 20 MatchView + 42 admin + profils + notifications)
 **Couverture** : >95% sur toutes les parties implémentées
 **Code Quality** : Codebase entièrement refactorisé et optimisé (88 fichiers)
+**Version actuelle** : v3.0 avec système d'abonnements et UI temps réel
 
 ---
 
@@ -114,8 +115,12 @@ Dev: Docker PostgreSQL + Redis
 ### Structure des Données
 ```prisma
 User (id, email, pseudo, avatar, role, timestamps)
-Match (id, date, maxPlayers, status, timestamps)
+Match (id, date, sport, maxPlayers, status, timestamps)
 MatchPlayer (id, userId, matchId, status, joinedAt)
+Activity (id, name, description, sport, maxPlayers, createdBy, recurringDays, recurringType, timestamps)
+ActivitySession (id, activityId, date, maxPlayers, status, isCancelled, timestamps)
+ActivityParticipant (id, sessionId, userId, status, joinedAt)
+ActivitySubscription (id, activityId, userId, subscribedAt) [Unique: activityId+userId]
 Notification (id, userId, type, title, message, read, matchId, timestamps)
 Announcement (id, title, content, authorId, priority, active, timestamps)
 + Better-auth tables (Session, Account, Verification)
@@ -416,3 +421,15 @@ export async function handler(request: NextRequest) {
 **Phase 10 Terminée** ✅ : Documentation complète et professionnelle avec guides utilisateur/admin, FAQ, troubleshooting, architecture records, et support technique opérationnel.
 
 **🏆 PROJET COMPLET** : SaaS de réservation futsal entièrement développé en méthodologie TDD avec 134 tests, 95%+ couverture, architecture scalable, monitoring complet, et documentation exhaustive.
+### Phase 12 : Activités Récurrentes v3.0 (Extension) ✅
+- **Système d'abonnements persistants** : Table ActivitySubscription avec contrainte unique
+- **Migration base de données** : 20250930115816_add_activity_subscriptions
+- **API subscribe/unsubscribe** : POST/DELETE `/api/activities/[activityId]/subscribe`
+- **Fix Next.js 15** : Gestion correcte params dynamiques (Promise<{ id: string }>)
+- **UI temps réel** : Mise à jour automatique boutons après inscription/désinscription
+- **Filtrage intelligent** : Sessions restent visibles après inscription avec état dynamique
+- **Hook refactorisé** : useActivities utilise API centralisée sans état local
+- **Service optimisé** : getAvailableSessions ne filtre plus les sessions de l'utilisateur
+- **Gestion statuts** : Tracking précis isParticipant et isSubscribed depuis BDD
+- **UX améliorée** : Feedback immédiat et cohérent sur toutes les actions
+

@@ -293,8 +293,10 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - ✅ Nouveau modèle Activity (activité parente) avec récurrence
 - ✅ Modèle ActivitySession (sessions individuelles d'une activité)
 - ✅ Modèle ActivityParticipant (participation aux sessions)
+- ✅ Modèle ActivitySubscription (abonnements persistants aux activités)
 - ✅ Enums RecurringType, SessionStatus, ParticipantStatus
 - ✅ Relations complètes avec User et gestion des cascades
+- ✅ Migration 20250930115816 pour table activity_subscriptions
 
 ### 12.2 Services Backend ✅
 - ✅ ActivitySessionService pour génération automatique des sessions
@@ -303,15 +305,19 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - ✅ ActivityParticipationService pour inscriptions/désinscriptions
 - ✅ Gestion automatique liste d'attente avec promotion
 - ✅ Nettoyage automatique sessions expirées
+- ✅ Filtrage intelligent sessions (visible même après inscription)
 
 ### 12.3 APIs Complètes ✅
 - ✅ POST /api/activities - Création d'activité (tout utilisateur)
+- ✅ GET /api/activities - Liste avec statut subscription utilisateur
 - ✅ GET /api/activities/my-created - Activités créées par l'utilisateur
 - ✅ GET /api/activities/my-participations - Participations utilisateur
 - ✅ GET /api/activities/upcoming-sessions - Sessions disponibles (2 semaines)
+- ✅ POST/DELETE /api/activities/[activityId]/subscribe - S'abonner/désabonner activité
 - ✅ POST/DELETE /api/activities/sessions/[sessionId]/join - Rejoindre/quitter session
 - ✅ GET/PUT/DELETE /api/activities/[activityId]/sessions/[sessionId] - Gestion sessions créateur
 - ✅ POST /api/activities/generate-sessions - Cron job génération automatique
+- ✅ Fix params dynamiques Next.js 15 (Promise<{ id: string }>)
 
 ### 12.4 Types TypeScript ✅
 - ✅ Types Activity, ActivitySession, ActivityParticipant complets
@@ -334,6 +340,9 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - ✅ **Vue 2 semaines** : Sessions générées automatiquement en continu
 - ✅ **Système d'intérêt** : Statuts interested/confirmed/waiting avec promotion automatique
 - ✅ **Notifications** : Infrastructure prête pour notifications promotions/annulations
+- ✅ **Abonnements persistants** : Système d'inscription aux activités avec tracking BDD
+- ✅ **UI temps réel** : Mise à jour immédiate boutons inscription/désinscription
+- ✅ **Gestion sessions** : Sessions restent visibles après inscription avec bouton état dynamique
 
 ---
 
