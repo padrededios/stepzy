@@ -34,6 +34,7 @@ model User {
   // Nouvelles relations pour activités
   createdActivities Activity[] @relation("ActivityCreator")
   activityParticipations ActivityParticipant[]
+  activitySubscriptions ActivitySubscription[]
 
   @@map("users")
 }
@@ -236,6 +237,7 @@ model Activity {
   // Relations
   creator   User @relation("ActivityCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   sessions  ActivitySession[]
+  subscriptions ActivitySubscription[]
 
   @@map("activities")
 }
@@ -272,6 +274,21 @@ model ActivityParticipant {
 
   @@unique([sessionId, userId])
   @@map("activity_participants")
+}
+
+// Modèle ActivitySubscription (abonnement à une activité)
+model ActivitySubscription {
+  id          String   @id @default(cuid())
+  activityId  String
+  userId      String
+  subscribedAt DateTime @default(now())
+
+  // Relations
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([activityId, userId])
+  @@map("activity_subscriptions")
 }
 
 // Nouveaux enums pour les activités

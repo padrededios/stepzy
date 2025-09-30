@@ -266,10 +266,12 @@ export class ActivitySessionService {
 
   /**
    * Récupère toutes les sessions disponibles (avec places libres)
+   * Si userId est fourni, ne retourne que les sessions des activités auxquelles l'utilisateur est abonné
    */
   static async getAvailableSessions(
     weeksAhead: number = 2,
-    sportFilter?: string
+    sportFilter?: string,
+    userId?: string
   ): Promise<ActivitySession[]> {
     const now = new Date()
     const endDate = addWeeks(now, weeksAhead)
@@ -286,6 +288,29 @@ export class ActivitySessionService {
     if (sportFilter) {
       whereClause.activity = {
         sport: sportFilter
+      }
+    }
+
+    // Si userId est fourni, récupérer uniquement les activités auxquelles l'utilisateur est abonné
+    if (userId) {
+      // Trouver les IDs des activités auxquelles l'utilisateur est abonné
+      const userSubscriptions = await prisma.activitySubscription.findMany({
+        where: {
+          userId
+        },
+        select: {
+          activityId: true
+        }
+      })
+
+      const subscribedActivityIds = userSubscriptions.map(sub => sub.activityId)
+
+      if (subscribedActivityIds.length === 0) {
+        return []
+      }
+
+      whereClause.activityId = {
+        in: subscribedActivityIds
       }
     }
 
@@ -308,11 +333,9 @@ export class ActivitySessionService {
       }
     })
 
-    // Filtrer les sessions qui ont encore des places
-    return sessions.filter(session => {
-      const confirmedCount = session.participants.filter(p => p.status === 'confirmed').length
-      return confirmedCount < session.maxPlayers
-    }) as ActivitySession[]
+    // Retourner toutes les sessions (l'état du bouton sera géré côté client)
+    // Ne plus filtrer les sessions où l'utilisateur est déjà inscrit
+    return sessions as ActivitySession[]
   }
 
   /**

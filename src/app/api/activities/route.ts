@@ -273,6 +273,18 @@ export async function GET(request: NextRequest) {
       })
     ])
 
+    // Récupérer les abonnements de l'utilisateur
+    const userSubscriptions = await prisma.activitySubscription.findMany({
+      where: {
+        userId: user.id
+      },
+      select: {
+        activityId: true
+      }
+    })
+
+    const subscribedActivityIds = new Set(userSubscriptions.map(sub => sub.activityId))
+
     // Enrichir les données avec les statistiques
     const enrichedActivities = activities.map(activity => {
       // Vérifier si l'utilisateur participe à au moins une session
@@ -282,13 +294,17 @@ export async function GET(request: NextRequest) {
         )
       )
 
+      // Vérifier si l'utilisateur est abonné à l'activité
+      const isSubscribed = subscribedActivityIds.has(activity.id)
+
       return {
         ...activity,
         upcomingSessionsCount: activity.sessions.length,
         totalSessionsCount: activity._count.sessions,
         nextSessionDate: activity.sessions[0]?.date || null,
         userStatus: {
-          isParticipant: userParticipatesInSessions
+          isParticipant: userParticipatesInSessions || isSubscribed,
+          isSubscribed: isSubscribed
         },
         sessions: activity.sessions.map(session => ({
           ...session,

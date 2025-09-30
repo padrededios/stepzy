@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
     let sessions
     if (availableOnly) {
       // Récupérer uniquement les sessions avec des places disponibles
-      sessions = await ActivitySessionService.getAvailableSessions(weeksAhead, sportFilter)
+      // Exclure les activités créées par l'utilisateur (sauf s'il est participant)
+      sessions = await ActivitySessionService.getAvailableSessions(weeksAhead, sportFilter, user.id)
     } else {
       // Récupérer toutes les sessions à venir
       const { prisma } = await import('@/lib/database/prisma')

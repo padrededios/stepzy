@@ -136,7 +136,7 @@ export function useActivities(userId?: string) {
     if (!userId) return
 
     try {
-      const response = await fetch(`/api/matches/${activityId}/join`, {
+      const response = await fetch(`/api/activities/${activityId}/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +164,7 @@ export function useActivities(userId?: string) {
     if (!userId) return
 
     try {
-      const response = await fetch(`/api/matches/${activityId}/leave`, {
+      const response = await fetch(`/api/activities/${activityId}/subscribe`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

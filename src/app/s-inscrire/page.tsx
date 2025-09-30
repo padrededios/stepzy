@@ -25,6 +25,8 @@ function SInscrireContent({ user }: { user: User }) {
 
   const [selectedSport, setSelectedSport] = useState<SportType | 'all'>('all')
   const [sortBy, setSortBy] = useState<'name' | 'sport'>('name')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const activities = getAvailableActivities()
 
@@ -35,18 +37,44 @@ function SInscrireContent({ user }: { user: User }) {
   }
 
   const handleJoinActivity = async (activityId: string) => {
-    // Pour l'instant, rediriger vers les sessions disponibles
-    // En attendant l'implémentation d'une page dédiée
-    window.location.href = '/mes-activites?tab=available'
+    setActionLoading(activityId)
+    setMessage(null)
+
+    try {
+      const result = await registerForActivity(activityId)
+
+      if (result?.success) {
+        setMessage({ type: 'success', text: 'Inscription réussie' })
+      } else {
+        setMessage({ type: 'error', text: result?.error || 'Erreur lors de l\'inscription' })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Erreur de connexion' })
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   const handleLeaveActivity = async (activityId: string) => {
-    // Désinscription de toutes les sessions de l'activité
-    // TODO: Implémenter une API pour se désinscrire de toutes les sessions d'une activité
-    if (confirm('Êtes-vous sûr de vouloir vous désinscrire de toutes les sessions de cette activité ?')) {
-      alert('Désinscription de toutes les sessions à implémenter')
-      // Recharger la page pour voir les changements
-      window.location.reload()
+    if (!confirm('Êtes-vous sûr de vouloir vous désinscrire de cette activité et de toutes ses sessions futures ?')) {
+      return
+    }
+
+    setActionLoading(activityId)
+    setMessage(null)
+
+    try {
+      const result = await unregisterFromActivity(activityId)
+
+      if (result?.success) {
+        setMessage({ type: 'success', text: 'Désinscription réussie' })
+      } else {
+        setMessage({ type: 'error', text: result?.error || 'Erreur lors de la désinscription' })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Erreur de connexion' })
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -80,6 +108,17 @@ function SInscrireContent({ user }: { user: User }) {
             Découvrez toutes les activités sportives disponibles et inscrivez-vous
           </p>
         </div>
+
+        {/* Messages */}
+        {message && (
+          <div className={`mb-6 p-4 rounded-md border ${
+            message.type === 'success'
+              ? 'bg-green-50 border-green-200 text-green-700'
+              : 'bg-red-50 border-red-200 text-red-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -129,6 +168,8 @@ function SInscrireContent({ user }: { user: User }) {
                 onJoin={handleJoinActivity}
                 onLeave={handleLeaveActivity}
                 onManage={handleManageActivity}
+                isSubscribed={activity.isParticipant}
+                loading={actionLoading === activity.id}
               />
             ))}
           </div>
@@ -162,14 +203,19 @@ function ActivityCard({
   activity,
   onJoin,
   onLeave,
-  onManage
+  onManage,
+  isSubscribed,
+  loading
 }: {
   activity: Activity
   onJoin: (id: string) => void
   onLeave: (id: string) => void
   onManage: (id: string) => void
+  isSubscribed: boolean
+  loading: boolean
 }) {
   const sportConfig = SPORTS_CONFIG[activity.sport]
+  const userIsSubscribed = isSubscribed || activity.isParticipant
 
   // Formater les jours de récurrence
   const formatRecurringDays = (days: string[], type: string) => {
@@ -191,14 +237,15 @@ function ActivityCard({
     const buttons = []
 
     // Bouton principal : S'inscrire ou voir les sessions
-    if (activity.isParticipant) {
+    if (userIsSubscribed) {
       buttons.push(
         <button
           key="unsubscribe"
           onClick={() => onLeave(activity.id)}
-          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+          disabled={loading}
+          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Se désinscrire
+          {loading ? 'Désinscription...' : 'Se désinscrire'}
         </button>
       )
     } else {
@@ -206,9 +253,10 @@ function ActivityCard({
         <button
           key="subscribe"
           onClick={() => onJoin(activity.id)}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+          disabled={loading}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          S'inscrire
+          {loading ? 'Inscription...' : 'S\'inscrire'}
         </button>
       )
     }
@@ -219,7 +267,8 @@ function ActivityCard({
         <button
           key="manage"
           onClick={() => onManage(activity.id)}
-          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+          disabled={loading}
+          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Gérer
         </button>
@@ -255,7 +304,7 @@ function ActivityCard({
             </div>
           </div>
 
-          {activity.isParticipant && (
+          {userIsSubscribed && (
             <span className="bg-white bg-opacity-20 text-white px-2 py-1 rounded-full text-xs font-medium">
               Inscrit
             </span>
