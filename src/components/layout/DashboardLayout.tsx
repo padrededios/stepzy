@@ -45,6 +45,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
           className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth"
         >
           <div
+            key={pathname}
             className={`p-4 lg:p-6 xl:p-8 transition-opacity duration-300 ${
               isTransitioning ? 'opacity-0' : 'opacity-100'
             }`}
