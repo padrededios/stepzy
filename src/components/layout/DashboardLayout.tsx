@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { Header } from './Header'
 import { Footer } from './Footer'
+import { CurrentUserContext } from '@/hooks/useCurrentUser'
 import { User } from '@/types'
 
 
@@ -31,6 +32,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
   }, [pathname])
 
   return (
+    <CurrentUserContext.Provider value={user}>
     <div className="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col p-4 lg:p-6">
       {/* Container principal avec effet de page dans une page */}
       <div className="flex-1 max-w-7xl mx-auto w-full bg-white rounded-2xl shadow-2xl shadow-blue-900/10 border border-gray-100/50 overflow-hidden flex flex-col">
@@ -69,5 +71,6 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
         <div className="absolute bottom-1/4 left-1/4 w-56 h-56 bg-yellow-300/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1.5s' }}></div>
       </div>
     </div>
+    </CurrentUserContext.Provider>
   )
 }
