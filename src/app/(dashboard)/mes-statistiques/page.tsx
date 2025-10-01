@@ -124,14 +124,6 @@ export default function MesStatistiquesPage() {
 
   return (
     <div className="space-y-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Mes statistiques</h1>
-          <p className="mt-2 text-gray-600">
-            Suivez vos performances et votre progression sportive
-          </p>
-        </div>
-
         {/* Overview Cards */}
         <div className="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard

@@ -92,14 +92,6 @@ export default function SInscrirePage() {
 
   return (
       <div className="space-y-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">S'inscrire à une activité</h1>
-          <p className="mt-2 text-gray-600">
-            Découvrez toutes les activités sportives disponibles et inscrivez-vous
-          </p>
-        </div>
-
         {/* Toast Notification */}
         {message && (
           <Toast
