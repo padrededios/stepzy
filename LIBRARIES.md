@@ -155,6 +155,25 @@ Ce document liste toutes les librairies utilisées dans le projet avec leurs fon
 - `logout()` - Fonction pour déconnecter l'utilisateur courant
 - `refreshUser()` - Fonction pour rafraîchir les données utilisateur
 
+### Hook useCurrentUser personnalisé:
+**Fichier**: `src/hooks/useCurrentUser.ts`
+- Accès utilisateur via Context API sans props drilling
+- `user` - Utilisateur authentifié depuis le contexte
+- Simplifie l'architecture en évitant la transmission de props
+
+### Hook useRecurringActivities personnalisé:
+**Fichier**: `src/hooks/useRecurringActivities.ts`
+- `createdActivities` - Activités créées par l'utilisateur
+- `participationActivities` - Activités auxquelles l'utilisateur participe (upcoming/past)
+- `availableSessions` - Sessions disponibles pour inscription
+- `joinSession(sessionId)` - Rejoindre une session avec mise à jour optimiste
+- `leaveSession(sessionId)` - Quitter une session avec mise à jour optimiste
+- `fetchCreatedActivities()` - Recharger les activités créées
+- `fetchParticipations()` - Recharger les participations
+- `fetchAvailableSessions()` - Recharger les sessions disponibles
+- **Optimisation**: Mise à jour locale des états au lieu de rechargement complet
+- **Performance**: Aucune requête API pour rafraîchir l'UI après join/leave
+
 ---
 
 ## 📦 Next.js v15 - Framework React

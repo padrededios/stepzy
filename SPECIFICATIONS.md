@@ -134,11 +134,15 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 ### Pages Principales
 
 #### Mes Activités (/mes-activites)
-- **Onglets**: Mes participations, Activités disponibles, Historique
+- **Onglets**: Mes participations, Sessions disponibles, Historique, Créer une activité
 - **Système récurrent**: Affichage des activités récurrentes avec leurs sessions
 - **Filtrage**: Par sport, statut, disponibilité
 - **Actions rapides**: Inscription/désinscription aux sessions avec notifications toast
 - **Gestion temporelle**: Masquage automatique activités expirées
+- **Mise à jour optimiste**: Rafraîchissement instantané des boutons sans rechargement page
+- **Formulaire intégré**: Création d'activité directement dans l'onglet, sans redirection
+- **Interface épurée**: Pas de header redondant, navigation fluide entre onglets
+- **États vides**: Messages d'aide contextuel quand aucune participation
 
 #### S'inscrire (/s-inscrire)
 - **Catalogue activités**: Toutes les activités récurrentes disponibles
@@ -146,6 +150,7 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - **Cartes activités**: Design moderne avec icônes sport et informations récurrence
 - **Actions**: Inscription/désinscription aux activités avec notifications toast
 - **Gestion permissions**: Bouton "Gérer" pour les créateurs d'activités
+- **Interface épurée**: Pas de header redondant, navigation directe vers les filtres
 
 #### Vue Match Détaillée (/matches/[id])
 - **Layout terrain**: Style MPG avec positions 6v6
@@ -170,6 +175,13 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - **Informations personnelles**: Pseudo, email, avatar, statistiques
 - **Historique activités**: Matchs passés avec détails
 - **Préférences**: Notifications email/push, paramètres
+
+#### Mes Statistiques (/mes-statistiques)
+- **Vue d'ensemble**: Cartes statistiques (activités totales, taux participation, heures jouées, série)
+- **Répartition par sport**: Détails participations et performances par sport
+- **Activité mensuelle**: Graphiques d'évolution dans le temps
+- **Badges et réalisations**: Système de progression et accomplissements
+- **Interface épurée**: Pas de header redondant, navigation directe vers les statistiques
 
 ### Composants Réutilisables
 - **MatchCard**: Affichage compact activité avec actions multisports

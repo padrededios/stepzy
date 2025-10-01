@@ -51,14 +51,24 @@ src/app/(dashboard)/
 - **Props drilling** : Éliminé avec Context API
 - **Badge redondant** : Supprimé badge "Inscrit" de s-inscrire/page.tsx
 
-#### Commits Git (7 nouveaux)
+#### Optimisations UX v3.2 (Janvier 2025)
+- **Mise à jour optimiste** : Rafraîchissement local au lieu de rechargement complet des sessions
+- **Navigation améliorée** : Formulaire création intégré comme onglet dans Mes activités
+- **Interface épurée** : Suppression des headers redondants (Mes activités, Mes statistiques, S'inscrire)
+- **Positionnement intelligent** : Onglet "Créer une activité" à droite avec icône +
+- **États vides** : Messages d'aide pour sections sans contenu
+
+#### Commits Git (9 nouveaux)
 1. `06d89a4` - feat: implement persistent layout with Next.js Layout Groups
 2. `4a1d315` - feat: add modern toast notification system
 3. `eb5c261` - refactor: reorganize all pages under (dashboard) layout group
 4. `29b5bd0` - chore: remove old page structure
 5. `21a0b61` - docs: update documentation for v3.1 architecture improvements
+6. `52a915f` - docs: add detailed v3.1 section to PROGRESS_SUMMARY
+7. `c2c87e4` - perf: optimize session join/leave with optimistic UI updates
+8. `ee74c56` - refactor: improve navigation and remove redundant page headers
 
-**État Git** : Branche `manage_sports` en avance de 7 commits, working directory propre
+**État Git** : Branche `manage_sports` en avance de 9 commits, working directory propre
 
 ---
 

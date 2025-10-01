@@ -3,9 +3,16 @@
 ## 📋 Vue d'ensemble
 Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservation d'activités sportives multiples, développée en TDD.
 
-## 🎉 Version Actuelle : 2.1.0 (Janvier 2025)
+## 🎉 Version Actuelle : 3.2.0 (Janvier 2025)
 
-### ✅ Améliorations Récentes
+### ✅ Améliorations Récentes v3.2
+- **Optimisation Performance** : Mise à jour optimiste des états au lieu de rechargement complet des données
+- **Navigation Améliorée** : Formulaire de création intégré comme onglet dans "Mes activités"
+- **Interface Épurée** : Suppression des headers redondants sur toutes les pages
+- **Positionnement Intelligent** : Onglet "Créer une activité" positionné à droite avec icône
+- **États Vides Améliorés** : Messages contextuels pour sections sans contenu
+
+### ✅ Améliorations v3.1
 - **Layout Persistant** : Implémentation de Next.js Layout Groups `(dashboard)` pour éviter les re-renders
 - **Context API** : Hook `useCurrentUser()` pour accès utilisateur sans props drilling
 - **Toast Notifications** : Système moderne avec design élégant (dégradés, animations)
