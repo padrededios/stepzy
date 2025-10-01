@@ -142,11 +142,70 @@ export function useRecurringActivities(userId?: string): UseRecurringActivitiesR
       const data = await response.json()
 
       if (data.success) {
-        // Rafraîchir les données
-        await Promise.all([
-          fetchParticipations(),
-          fetchAvailableSessions()
-        ])
+        // Mise à jour optimiste de l'état local pour les sessions disponibles
+        setAvailableSessions(prev => prev.map(session => {
+          if (session.id === sessionId) {
+            return {
+              ...session,
+              userStatus: {
+                ...session.userStatus,
+                isParticipant: true,
+                canJoin: false
+              },
+              stats: {
+                ...session.stats,
+                confirmedCount: session.stats.confirmedCount + 1,
+                availableSpots: Math.max(0, session.stats.availableSpots - 1)
+              }
+            }
+          }
+          return session
+        }))
+
+        // Mise à jour optimiste des participations
+        setParticipationActivities(prev => {
+          const session = availableSessions.find(s => s.id === sessionId)
+          if (!session) return prev
+
+          // Chercher si l'activité existe déjà dans upcoming
+          const existingActivityIndex = prev.upcoming.findIndex(a => a.id === session.activity.id)
+
+          if (existingActivityIndex >= 0) {
+            // L'activité existe, ajouter la session
+            const updatedUpcoming = [...prev.upcoming]
+            updatedUpcoming[existingActivityIndex] = {
+              ...updatedUpcoming[existingActivityIndex],
+              sessions: [
+                ...updatedUpcoming[existingActivityIndex].sessions,
+                {
+                  id: session.id,
+                  date: session.date,
+                  maxPlayers: session.maxPlayers,
+                  confirmedParticipants: session.stats.confirmedCount + 1,
+                  userParticipation: { status: 'confirmed' }
+                }
+              ]
+            }
+            return { ...prev, upcoming: updatedUpcoming }
+          } else {
+            // L'activité n'existe pas, la créer
+            const newActivity: Activity = {
+              id: session.activity.id,
+              name: session.activity.name,
+              sport: session.activity.sport,
+              description: session.activity.description,
+              creator: session.activity.creator,
+              sessions: [{
+                id: session.id,
+                date: session.date,
+                maxPlayers: session.maxPlayers,
+                confirmedParticipants: session.stats.confirmedCount + 1,
+                userParticipation: { status: 'confirmed' }
+              }]
+            }
+            return { ...prev, upcoming: [...prev.upcoming, newActivity] }
+          }
+        })
 
         return {
           success: true,
@@ -164,7 +223,7 @@ export function useRecurringActivities(userId?: string): UseRecurringActivitiesR
         message: 'Erreur de connexion'
       }
     }
-  }, [fetchParticipations, fetchAvailableSessions])
+  }, [])
 
   /**
    * Quitter une session
@@ -177,11 +236,44 @@ export function useRecurringActivities(userId?: string): UseRecurringActivitiesR
       const data = await response.json()
 
       if (data.success) {
-        // Rafraîchir les données
-        await Promise.all([
-          fetchParticipations(),
-          fetchAvailableSessions()
-        ])
+        // Mise à jour optimiste de l'état local pour les sessions disponibles
+        setAvailableSessions(prev => prev.map(session => {
+          if (session.id === sessionId) {
+            return {
+              ...session,
+              userStatus: {
+                ...session.userStatus,
+                isParticipant: false,
+                canJoin: true
+              },
+              stats: {
+                ...session.stats,
+                confirmedCount: Math.max(0, session.stats.confirmedCount - 1),
+                availableSpots: session.stats.availableSpots + 1
+              }
+            }
+          }
+          return session
+        }))
+
+        // Mise à jour optimiste des participations
+        setParticipationActivities(prev => {
+          const updatedUpcoming = prev.upcoming.map(activity => {
+            // Filtrer la session de cette activité
+            const filteredSessions = activity.sessions.filter(s => s.id !== sessionId)
+
+            if (filteredSessions.length !== activity.sessions.length) {
+              // La session a été trouvée et retirée
+              return {
+                ...activity,
+                sessions: filteredSessions
+              }
+            }
+            return activity
+          }).filter(activity => activity.sessions.length > 0) // Retirer l'activité si elle n'a plus de sessions
+
+          return { ...prev, upcoming: updatedUpcoming }
+        })
 
         return {
           success: true,
@@ -199,7 +291,7 @@ export function useRecurringActivities(userId?: string): UseRecurringActivitiesR
         message: 'Erreur de connexion'
       }
     }
-  }, [fetchParticipations, fetchAvailableSessions])
+  }, [])
 
   // Charger les données au montage du composant
   useEffect(() => {
