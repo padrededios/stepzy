@@ -16,6 +16,7 @@ export interface Activity {
   name: string
   description?: string
   sport: SportType
+  minPlayers: number
   maxPlayers: number
   createdBy: string
   isPublic: boolean
@@ -68,6 +69,7 @@ export interface CreateActivityData {
   name: string
   description?: string
   sport: SportType
+  minPlayers: number
   maxPlayers: number
   recurringDays: DayOfWeek[]
   recurringType: RecurringType
@@ -76,6 +78,7 @@ export interface CreateActivityData {
 export interface UpdateActivityData {
   name?: string
   description?: string
+  minPlayers?: number
   maxPlayers?: number
   recurringDays?: DayOfWeek[]
   recurringType?: RecurringType

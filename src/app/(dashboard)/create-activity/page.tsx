@@ -6,18 +6,19 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { SPORTS_CONFIG, getAllSports } from '@/config/sports'
 import { CreateActivityData, DayOfWeek, RecurringType, DAY_LABELS, RECURRING_TYPE_LABELS } from '@/types/activity'
 import Image from 'next/image'
+import { Toast } from '@/components/ui/Toast'
 
 export default function CreateActivityPage() {
   const user = useCurrentUser()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const [formData, setFormData] = useState<CreateActivityData>({
     name: '',
     description: '',
     sport: 'football',
+    minPlayers: 2,
     maxPlayers: 12,
     recurringDays: [],
     recurringType: 'weekly'
@@ -26,21 +27,10 @@ export default function CreateActivityPage() {
   const availableDays: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
   const handleInputChange = (field: keyof CreateActivityData, value: any) => {
-    setFormData(prev => {
-      const newData = { ...prev, [field]: value }
-
-      // Auto-adjust maxPlayers based on selected sport
-      if (field === 'sport') {
-        const sportConfig = SPORTS_CONFIG[value]
-        newData.maxPlayers = sportConfig.maxPlayers
-      }
-
-      return newData
-    })
+    setFormData(prev => ({ ...prev, [field]: value }))
 
     // Clear messages on input change
-    setError(null)
-    setSuccess(null)
+    setMessage(null)
   }
 
   const handleDayToggle = (day: DayOfWeek) => {
@@ -54,23 +44,32 @@ export default function CreateActivityPage() {
 
   const validateForm = (): boolean => {
     if (!formData.name.trim()) {
-      setError('Le nom de l\'activité est obligatoire')
+      setMessage({ type: 'error', text: 'Le nom de l\'activité est obligatoire' })
       return false
     }
 
     if (formData.name.length < 3) {
-      setError('Le nom doit faire au moins 3 caractères')
+      setMessage({ type: 'error', text: 'Le nom doit faire au moins 3 caractères' })
       return false
     }
 
     if (formData.recurringDays.length === 0) {
-      setError('Vous devez sélectionner au moins un jour de la semaine')
+      setMessage({ type: 'error', text: 'Vous devez sélectionner au moins un jour de la semaine' })
       return false
     }
 
-    const sportConfig = SPORTS_CONFIG[formData.sport]
-    if (formData.maxPlayers < sportConfig.minPlayers || formData.maxPlayers > sportConfig.maxPlayers) {
-      setError(`Le nombre de joueurs doit être entre ${sportConfig.minPlayers} et ${sportConfig.maxPlayers} pour ${sportConfig.name}`)
+    if (formData.minPlayers < 2) {
+      setMessage({ type: 'error', text: 'Le nombre minimum de joueurs doit être au moins 2' })
+      return false
+    }
+
+    if (formData.maxPlayers > 100) {
+      setMessage({ type: 'error', text: 'Le nombre maximum de joueurs ne peut pas dépasser 100' })
+      return false
+    }
+
+    if (formData.minPlayers > formData.maxPlayers) {
+      setMessage({ type: 'error', text: 'Le nombre minimum de joueurs ne peut pas être supérieur au nombre maximum' })
       return false
     }
 
@@ -83,8 +82,7 @@ export default function CreateActivityPage() {
     if (!validateForm()) return
 
     setLoading(true)
-    setError(null)
-    setSuccess(null)
+    setMessage(null)
 
     try {
       const response = await fetch('/api/activities', {
@@ -96,26 +94,17 @@ export default function CreateActivityPage() {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        setSuccess(data.message)
-        // Réinitialiser le formulaire
-        setFormData({
-          name: '',
-          description: '',
-          sport: 'football',
-          maxPlayers: 12,
-          recurringDays: [],
-          recurringType: 'weekly'
-        })
+        setMessage({ type: 'success', text: data.message || 'Activité créée avec succès' })
 
-        // Rediriger vers mes activités après 2 secondes
+        // Rediriger vers la page s'inscrire après 2 secondes
         setTimeout(() => {
-          router.push('/mes-activites')
+          router.push('/s-inscrire')
         }, 2000)
       } else {
-        setError(data.error || 'Erreur lors de la création de l\'activité')
+        setMessage({ type: 'error', text: data.error || 'Erreur lors de la création de l\'activité' })
       }
     } catch (error) {
-      setError('Erreur de connexion. Veuillez réessayer.')
+      setMessage({ type: 'error', text: 'Erreur de connexion. Veuillez réessayer.' })
     } finally {
       setLoading(false)
     }
@@ -123,6 +112,15 @@ export default function CreateActivityPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
+        {/* Toast Notification */}
+        {message && (
+          <Toast
+            message={message.text}
+            type={message.type}
+            onClose={() => setMessage(null)}
+          />
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Créer une nouvelle activité</h1>
@@ -130,20 +128,6 @@ export default function CreateActivityPage() {
             Créez une activité récurrente que les autres utilisateurs pourront rejoindre
           </p>
         </div>
-
-        {/* Messages */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-600">{success}</p>
-            <p className="text-xs text-green-500 mt-1">Redirection vers mes activités...</p>
-          </div>
-        )}
 
         {/* Formulaire */}
         <div className="bg-white rounded-lg shadow border p-6">
@@ -213,32 +197,52 @@ export default function CreateActivityPage() {
                       />
                     </div>
                     <span className="text-xs font-medium text-center">{sport.name}</span>
-                    <span className="text-xs text-gray-900 font-semibold text-center">
-                      {sport.minPlayers}-{sport.maxPlayers} joueurs
-                    </span>
                   </label>
                 ))}
               </div>
             </div>
 
             {/* Nombre de joueurs */}
-            <div>
-              <label htmlFor="maxPlayers" className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre maximum de joueurs *
-              </label>
-              <input
-                type="number"
-                id="maxPlayers"
-                value={formData.maxPlayers}
-                onChange={(e) => handleInputChange('maxPlayers', parseInt(e.target.value) || 0)}
-                min={SPORTS_CONFIG[formData.sport].minPlayers}
-                max={SPORTS_CONFIG[formData.sport].maxPlayers}
-                disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                Pour {SPORTS_CONFIG[formData.sport].name}: {SPORTS_CONFIG[formData.sport].minPlayers} à {SPORTS_CONFIG[formData.sport].maxPlayers} joueurs
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Nombre minimum de joueurs */}
+              <div>
+                <label htmlFor="minPlayers" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre minimum de joueurs *
+                </label>
+                <input
+                  type="number"
+                  id="minPlayers"
+                  value={formData.minPlayers}
+                  onChange={(e) => handleInputChange('minPlayers', parseInt(e.target.value) || 2)}
+                  min={2}
+                  max={100}
+                  disabled={loading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Minimum : 2 joueurs
+                </p>
+              </div>
+
+              {/* Nombre maximum de joueurs */}
+              <div>
+                <label htmlFor="maxPlayers" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre maximum de joueurs *
+                </label>
+                <input
+                  type="number"
+                  id="maxPlayers"
+                  value={formData.maxPlayers}
+                  onChange={(e) => handleInputChange('maxPlayers', parseInt(e.target.value) || 2)}
+                  min={2}
+                  max={100}
+                  disabled={loading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Maximum : 100 joueurs
+                </p>
+              </div>
             </div>
 
             {/* Type de récurrence */}

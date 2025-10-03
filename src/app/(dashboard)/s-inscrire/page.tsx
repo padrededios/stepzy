@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { SPORTS_CONFIG, type SportType } from '@/config/sports'
 import { useActivities, type Activity } from '@/hooks/useActivities'
@@ -140,22 +141,27 @@ export default function SInscrirePage() {
         </div>
 
         {/* Activities Grid */}
-        {filteredAndSortedActivities.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-            {filteredAndSortedActivities.map((activity) => (
-              <ActivityCard
-                key={activity.id}
-                activity={activity}
-                onJoin={handleJoinActivity}
-                onLeave={handleLeaveActivity}
-                onManage={handleManageActivity}
-                isSubscribed={activity.isParticipant}
-                loading={actionLoading === activity.id}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+          {/* Activities */}
+          {filteredAndSortedActivities.map((activity) => (
+            <ActivityCard
+              key={activity.id}
+              activity={activity}
+              onJoin={handleJoinActivity}
+              onLeave={handleLeaveActivity}
+              onManage={handleManageActivity}
+              isSubscribed={activity.isParticipant}
+              loading={actionLoading === activity.id}
+            />
+          ))}
+
+          {/* Create Activity Card */}
+          <CreateActivityCard />
+        </div>
+
+        {/* Empty state */}
+        {filteredAndSortedActivities.length === 0 && (
+          <div className="text-center py-12 col-span-full">
             <div className="mx-auto h-12 w-12 text-gray-400">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -168,6 +174,67 @@ export default function SInscrirePage() {
           </div>
         )}
       </div>
+  )
+}
+
+function CreateActivityCard() {
+  const router = useRouter()
+
+  const handleClick = () => {
+    router.push('/create-activity')
+  }
+
+  return (
+    <div
+      className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+      onClick={handleClick}
+    >
+      {/* Header with gradient */}
+      <div className="px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600">
+        <div className="flex items-center space-x-3">
+          <div className="relative w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white">Créer une activité</h3>
+            <p className="text-sm text-white opacity-90">
+              Nouvelle activité récurrente
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-6 py-4">
+        <p className="text-gray-600 text-sm mb-4">
+          Créez une nouvelle activité sportive récurrente et invitez d'autres joueurs à vous rejoindre.
+        </p>
+
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>Définissez les jours et horaires</span>
+          </div>
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>Choisissez le sport et le nombre de joueurs</span>
+          </div>
+        </div>
+
+        {/* Action button */}
+        <button
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors"
+        >
+          Créer une activité
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -255,7 +322,7 @@ function ActivityCard({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:scale-105">
       {/* Header with sport info */}
       <div className={`px-6 py-4 ${sportConfig.color}`}>
         <div className="flex items-center space-x-3">

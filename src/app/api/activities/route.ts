@@ -9,9 +9,13 @@ const createActivitySchema = z.object({
   name: z.string().min(3, 'Le nom doit faire au moins 3 caractères'),
   description: z.string().optional(),
   sport: z.enum(['football', 'badminton', 'volley', 'pingpong', 'rugby']),
-  maxPlayers: z.number().min(2).max(20),
+  minPlayers: z.number().min(2, 'Le nombre minimum de joueurs doit être au moins 2'),
+  maxPlayers: z.number().min(2).max(100, 'Le nombre maximum de joueurs ne peut pas dépasser 100'),
   recurringDays: z.array(z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])),
   recurringType: z.enum(['weekly', 'monthly'])
+}).refine(data => data.minPlayers <= data.maxPlayers, {
+  message: 'Le nombre minimum de joueurs ne peut pas être supérieur au nombre maximum',
+  path: ['minPlayers']
 })
 
 // Schema de validation pour les filtres
@@ -84,6 +88,7 @@ export async function POST(request: NextRequest) {
         name: validatedData.name,
         description: validatedData.description,
         sport: validatedData.sport,
+        minPlayers: validatedData.minPlayers,
         maxPlayers: validatedData.maxPlayers,
         createdBy: user.id,
         recurringDays: validatedData.recurringDays,

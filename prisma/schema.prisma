@@ -224,6 +224,7 @@ model Activity {
   name        String   // "Foot entre collègues"
   description String?
   sport       SportType
+  minPlayers  Int      @default(2) // Nombre minimum de joueurs pour confirmer une session
   maxPlayers  Int
   createdBy   String   // Le créateur de l'activité
   isPublic    Boolean  @default(true)
