@@ -164,7 +164,7 @@ export async function DELETE(
       )
     }
 
-    // Supprimer l'abonnement
+    // Vérifier si un abonnement existe
     const existingSubscription = await prisma.activitySubscription.findUnique({
       where: {
         activityId_userId: {
@@ -174,23 +174,19 @@ export async function DELETE(
       }
     })
 
-    if (!existingSubscription) {
-      return NextResponse.json(
-        { success: false, error: 'Vous n\'êtes pas inscrit à cette activité' },
-        { status: 400 }
-      )
+    // Supprimer l'abonnement s'il existe
+    if (existingSubscription) {
+      await prisma.activitySubscription.delete({
+        where: {
+          activityId_userId: {
+            activityId,
+            userId: user.id
+          }
+        }
+      })
     }
 
-    await prisma.activitySubscription.delete({
-      where: {
-        activityId_userId: {
-          activityId,
-          userId: user.id
-        }
-      }
-    })
-
-    // Optionnellement, supprimer aussi toutes les participations futures
+    // Supprimer toutes les participations futures aux sessions de cette activité
     const now = new Date()
     const deletedParticipations = await prisma.activityParticipant.deleteMany({
       where: {
@@ -204,13 +200,32 @@ export async function DELETE(
       }
     })
 
+    // Vérifier s'il reste des participations passées
+    const remainingPastParticipations = await prisma.activityParticipant.count({
+      where: {
+        userId: user.id,
+        session: {
+          activityId: activityId,
+          date: {
+            lt: now
+          }
+        }
+      }
+    })
+
+    const message = existingSubscription
+      ? `Désinscription de l'activité réussie. ${deletedParticipations.count} participation(s) future(s) supprimée(s).`
+      : `${deletedParticipations.count} participation(s) future(s) supprimée(s).`
+
     return NextResponse.json({
       success: true,
       data: {
-        message: `Désinscription réussie. ${deletedParticipations.count} participation(s) supprimée(s).`,
+        message,
         activityId,
         activityName: activity.name,
-        deletedCount: deletedParticipations.count
+        deletedCount: deletedParticipations.count,
+        wasSubscribed: !!existingSubscription,
+        hasPastParticipations: remainingPastParticipations > 0
       }
     })
 

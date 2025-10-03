@@ -150,7 +150,7 @@ export default function SInscrirePage() {
               onJoin={handleJoinActivity}
               onLeave={handleLeaveActivity}
               onManage={handleManageActivity}
-              isSubscribed={activity.isParticipant}
+              isSubscribed={activity.isSubscribed}
               loading={actionLoading === activity.id}
             />
           ))}

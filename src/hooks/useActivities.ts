@@ -21,6 +21,7 @@ export interface Activity {
   upcomingSessionsCount: number
   totalParticipants: number
   isParticipant: boolean
+  isSubscribed: boolean // Nouveau champ
   canManage: boolean
 }
 
@@ -55,6 +56,7 @@ const fetchActivitiesFromAPI = async (userId?: string): Promise<Activity[]> => {
         upcomingSessionsCount: activity.upcomingSessionsCount || 0,
         totalParticipants: activity.totalParticipants || 0,
         isParticipant: activity.userStatus?.isParticipant || false,
+        isSubscribed: activity.userStatus?.isSubscribed || false,
         canManage: userId === activity.createdBy
       }
     })
@@ -95,6 +97,7 @@ const fetchMatchesFromAPI = async (userId?: string): Promise<Activity[]> => {
         upcomingSessionsCount: 1,
         totalParticipants: match.players ? match.players.length : 0,
         isParticipant,
+        isSubscribed: false,
         canManage: false
       }
     })

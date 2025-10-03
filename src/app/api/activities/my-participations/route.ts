@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     const now = new Date()
     const futureLimit = addWeeks(now, weeksAhead)
 
-    // Récupérer toutes les participations de l'utilisateur
+    // 1. Récupérer toutes les participations directes de l'utilisateur
     const participations = await prisma.activityParticipant.findMany({
       where: {
         userId: user.id,
@@ -97,9 +97,53 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Grouper par activité et enrichir les données
+    // 2. Récupérer les abonnements de l'utilisateur (activités auxquelles il est inscrit)
+    const subscriptions = await prisma.activitySubscription.findMany({
+      where: {
+        userId: user.id
+      },
+      include: {
+        activity: {
+          include: {
+            creator: {
+              select: {
+                id: true,
+                pseudo: true,
+                avatar: true
+              }
+            },
+            sessions: {
+              where: includePast ? {} : {
+                date: {
+                  gte: now
+                }
+              },
+              include: {
+                participants: {
+                  include: {
+                    user: {
+                      select: {
+                        id: true,
+                        pseudo: true,
+                        avatar: true
+                      }
+                    }
+                  }
+                }
+              },
+              orderBy: {
+                date: includePast ? 'desc' : 'asc'
+              }
+            }
+          }
+        }
+      }
+    })
+
+    // 3. Grouper par activité et enrichir les données
     const activitiesMap = new Map()
 
+    // Traiter les participations directes
     for (const participation of participations) {
       const activityId = participation.session.activity.id
 
@@ -108,6 +152,7 @@ export async function GET(request: NextRequest) {
           activity: participation.session.activity,
           sessions: [],
           userStatus: {
+            isSubscribed: false,
             totalParticipations: 0,
             confirmedParticipations: 0,
             waitingParticipations: 0
@@ -140,6 +185,18 @@ export async function GET(request: NextRequest) {
       } else if (participation.status === 'waiting') {
         activityData.userStatus.waitingParticipations++
       }
+    }
+
+    // Marquer les activités auxquelles l'utilisateur est abonné
+    for (const subscription of subscriptions) {
+      const activityId = subscription.activity.id
+
+      if (activitiesMap.has(activityId)) {
+        // L'activité existe déjà (via participations), juste marquer comme abonné
+        activitiesMap.get(activityId).userStatus.isSubscribed = true
+      }
+      // Note: On n'ajoute PAS toutes les sessions d'une activité juste parce qu'on y est abonné
+      // L'abonnement sert uniquement à faciliter l'inscription, pas à afficher toutes les sessions
     }
 
     // Convertir en array et separer passe/futur si necessaire
