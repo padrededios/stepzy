@@ -127,6 +127,8 @@ export async function GET(request: NextRequest) {
           name: session.activity.name,
           description: session.activity.description,
           sport: session.activity.sport,
+          minPlayers: session.activity.minPlayers,
+          maxPlayers: session.activity.maxPlayers,
           creator: session.activity.creator
         },
         participants: {

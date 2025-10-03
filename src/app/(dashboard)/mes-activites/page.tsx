@@ -27,6 +27,7 @@ export default function MesActivitesPage() {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'available'>('upcoming')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const router = useRouter()
 
   // Utiliser uniquement les nouvelles participations aux activités récurrentes
   const upcomingParticipations = participationActivities.upcoming
@@ -61,6 +62,36 @@ export default function MesActivitesPage() {
         setMessage({ type: 'success', text: result.message || 'Désinscription réussie' })
       } else {
         setMessage({ type: 'error', text: result.message || 'Erreur lors de la désinscription' })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Erreur de connexion' })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleUnsubscribeFromActivity = async (activityId: string, activityName: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir vous désinscrire de l'activité "${activityName}" et de toutes ses sessions futures ?`)) {
+      return
+    }
+
+    setActionLoading(activityId)
+    setMessage(null)
+
+    try {
+      const response = await fetch(`/api/activities/${activityId}/subscribe`, {
+        method: 'DELETE',
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setMessage({ type: 'success', text: 'Désinscription réussie' })
+        // Recharger la page pour mettre à jour les données
+        router.refresh()
+        window.location.reload()
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Erreur lors de la désinscription' })
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Erreur de connexion' })
@@ -175,7 +206,12 @@ export default function MesActivitesPage() {
             <>
               {upcomingParticipations.length > 0 ? (
                 upcomingParticipations.map((activity) => (
-                  <ParticipationActivityCard key={`participation-${activity.id}`} activity={activity} />
+                  <ParticipationActivityCard
+                    key={`participation-${activity.id}`}
+                    activity={activity}
+                    onUnsubscribe={handleUnsubscribeFromActivity}
+                    loading={actionLoading === activity.id}
+                  />
                 ))
               ) : (
                 <div className="text-center py-12">
@@ -229,7 +265,11 @@ export default function MesActivitesPage() {
             <>
               {pastParticipations.length > 0 ? (
                 pastParticipations.map((activity) => (
-                  <ParticipationActivityCard key={`past-participation-${activity.id}`} activity={activity} />
+                  <ParticipationActivityCard
+                    key={`past-participation-${activity.id}`}
+                    activity={activity}
+                    isPast={true}
+                  />
                 ))
               ) : (
                 <div className="text-center py-12">
@@ -311,7 +351,17 @@ function ActivityCard({
 }
 
 // Composant pour afficher les participations (sessions auxquelles l'utilisateur participe)
-function ParticipationActivityCard({ activity }: { activity: RecurringActivity }) {
+function ParticipationActivityCard({
+  activity,
+  onUnsubscribe,
+  loading,
+  isPast = false
+}: {
+  activity: RecurringActivity
+  onUnsubscribe?: (activityId: string, activityName: string) => void
+  loading?: boolean
+  isPast?: boolean
+}) {
   const sportConfig = SPORTS_CONFIG[activity.sport]
 
   return (
@@ -330,18 +380,30 @@ function ParticipationActivityCard({ activity }: { activity: RecurringActivity }
         {/* Activity Info */}
         <div className="flex-1">
           <div className="flex items-center justify-between mb-4">
-            <div>
+            <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900">{activity.name}</h3>
               <p className="text-sm text-gray-500">{sportConfig.name}</p>
               {activity.description && (
                 <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
               )}
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                Inscrit
-              </span>
-            </div>
+            {/* Afficher le badge et bouton seulement pour les participations futures */}
+            {!isPast && (
+              <div className="flex items-center space-x-2">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Inscrit
+                </span>
+                {onUnsubscribe && (
+                  <button
+                    onClick={() => onUnsubscribe(activity.id, activity.name)}
+                    disabled={loading}
+                    className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {loading ? 'Chargement...' : 'Se désinscrire'}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Mes sessions dans cette activité */}
@@ -349,31 +411,78 @@ function ParticipationActivityCard({ activity }: { activity: RecurringActivity }
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-gray-700">Mes sessions :</h4>
               <div className="space-y-1">
-                {activity.sessions.map((session: any) => (
-                  <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900">
-                          📅 {formatDateTime(session.date)}
+                {activity.sessions.map((session: any) => {
+                  const sessionDate = new Date(session.date)
+                  const now = new Date()
+                  const isSessionPast = sessionDate < now
+                  const isCancelled = session.isCancelled || session.status === 'cancelled'
+
+                  // Déterminer le statut à afficher
+                  let statusBadge
+                  if (isSessionPast) {
+                    if (isCancelled) {
+                      statusBadge = (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          Annulée
                         </span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs text-gray-500">
-                            {session.confirmedParticipants || 0}/{session.maxPlayers} joueurs
+                      )
+                    } else {
+                      statusBadge = (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Terminée
+                        </span>
+                      )
+                    }
+                  } else if (session.userParticipation) {
+                    // Session future - vérifier le statut réel
+                    const userStatus = session.userParticipation.status
+                    const confirmedCount = session.confirmedParticipants || 0
+                    const minPlayers = activity.minPlayers || 2
+
+                    // Si l'utilisateur est en liste d'attente
+                    if (userStatus === 'waiting') {
+                      statusBadge = (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Liste d'attente
+                        </span>
+                      )
+                    }
+                    // Si le nombre minimum de participants n'est pas atteint
+                    else if (confirmedCount < minPlayers) {
+                      statusBadge = (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                          Non confirmée ({confirmedCount}/{minPlayers} min)
+                        </span>
+                      )
+                    }
+                    // Session confirmée
+                    else {
+                      statusBadge = (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Confirmée
+                        </span>
+                      )
+                    }
+                  }
+
+                  return (
+                    <div key={session.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900">
+                            📅 {formatDateTime(session.date)}
                           </span>
-                          {session.userParticipation && (
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                              session.userParticipation.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                              session.userParticipation.status === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-blue-100 text-blue-800'
-                            }`}>
-                              {PARTICIPANT_STATUS_LABELS[session.userParticipation.status] || session.userParticipation.status}
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-500">
+                              {session.confirmedParticipants || 0}/{session.maxPlayers} joueurs
                             </span>
-                          )}
+                            {statusBadge}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
@@ -435,11 +544,36 @@ function SessionCard({
               <span className="text-sm text-gray-600">
                 {session.stats.confirmedCount}/{session.maxPlayers} joueurs
               </span>
-              {session.stats.availableSpots === 0 && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                  Complet
-                </span>
-              )}
+              {(() => {
+                const confirmedCount = session.stats.confirmedCount || 0
+                const minPlayers = session.activity.minPlayers || 2
+                const availableSpots = session.stats.availableSpots || 0
+
+                // Si complet
+                if (availableSpots === 0) {
+                  return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      Complet
+                    </span>
+                  )
+                }
+                // Si le minimum n'est pas atteint
+                else if (confirmedCount < minPlayers) {
+                  return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      Non confirmée ({confirmedCount}/{minPlayers} min)
+                    </span>
+                  )
+                }
+                // Session confirmée avec places disponibles
+                else {
+                  return (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Confirmée
+                    </span>
+                  )
+                }
+              })()}
             </div>
           </div>
 
