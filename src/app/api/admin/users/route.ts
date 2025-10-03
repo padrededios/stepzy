@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/database/prisma';
 import { requireAdmin } from '@/lib/middleware/auth';
-
-const prisma = new PrismaClient();
 
 // GET /api/admin/users - Liste tous les utilisateurs
 export async function GET(request: NextRequest) {

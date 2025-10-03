@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/database/prisma';
 import { requireAdmin } from '@/lib/middleware/auth';
 import { randomBytes } from 'crypto';
-
-const prisma = new PrismaClient();
 
 // POST /api/admin/users/[id]/reset-password - Réinitialiser le mot de passe d'un utilisateur
 export async function POST(

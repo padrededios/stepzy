@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '../../../../lib/middleware/auth'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/database/prisma'
 import {
   calculateRecurringDates,
   validateMatchCreation,
   type RecurringFrequency
 } from '../../../../lib/utils/time-constraints'
-
-const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   return requireAuth(request, async (req, context) => {

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '../../../../lib/middleware/auth'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/database/prisma'
 
 export async function GET(request: NextRequest) {
   return requireAuth(request, async (req, context) => {

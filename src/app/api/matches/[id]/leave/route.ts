@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/database/prisma'
 import { requireAuth } from '@/lib/middleware/auth'
-
-const prisma = new PrismaClient()
 
 // DELETE /api/matches/[id]/leave - Leave a match
 export async function DELETE(

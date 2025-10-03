@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/database/prisma'
 import { requireAdmin } from '@/lib/middleware/auth'
-
-const prisma = new PrismaClient()
 
 // POST /api/matches/[id]/force-leave - Force remove player from match (admin only)
 export async function POST(

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/database/prisma';
 import { requireAdmin, canAccessResource } from '@/lib/middleware/auth';
 import { generateAvatarUrl } from '@/lib/auth/validators';
-
-const prisma = new PrismaClient();
 
 // GET /api/admin/users/[id] - Récupérer un utilisateur spécifique
 export async function GET(

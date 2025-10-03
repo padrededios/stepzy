@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { requireAuth, requireAdmin } from '@/lib/middleware/auth'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/database/prisma'
 
 // GET /api/matches/[id] - Get match details
 export async function GET(
