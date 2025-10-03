@@ -21,8 +21,25 @@ export default function CreateActivityPage() {
     minPlayers: 2,
     maxPlayers: 12,
     recurringDays: [],
-    recurringType: 'weekly'
+    recurringType: 'weekly',
+    startTime: '12:00',
+    endTime: '13:00'
   })
+
+  // Générer les créneaux horaires par tranche de 15 minutes
+  const generateTimeSlots = () => {
+    const slots: string[] = []
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const h = hour.toString().padStart(2, '0')
+        const m = minute.toString().padStart(2, '0')
+        slots.push(`${h}:${m}`)
+      }
+    }
+    return slots
+  }
+
+  const timeSlots = generateTimeSlots()
 
   const availableDays: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
@@ -70,6 +87,21 @@ export default function CreateActivityPage() {
 
     if (formData.minPlayers > formData.maxPlayers) {
       setMessage({ type: 'error', text: 'Le nombre minimum de joueurs ne peut pas être supérieur au nombre maximum' })
+      return false
+    }
+
+    if (!formData.startTime) {
+      setMessage({ type: 'error', text: 'L\'heure de début est obligatoire' })
+      return false
+    }
+
+    if (!formData.endTime) {
+      setMessage({ type: 'error', text: 'L\'heure de fin est obligatoire' })
+      return false
+    }
+
+    if (formData.startTime >= formData.endTime) {
+      setMessage({ type: 'error', text: 'L\'heure de fin doit être après l\'heure de début' })
       return false
     }
 
@@ -196,9 +228,52 @@ export default function CreateActivityPage() {
                         className="rounded-full object-cover"
                       />
                     </div>
-                    <span className="text-xs font-medium text-center">{sport.name}</span>
+                    <span className="text-xs font-medium text-center text-gray-900">{sport.name}</span>
                   </label>
                 ))}
+              </div>
+            </div>
+
+            {/* Horaires */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Heure de début */}
+              <div>
+                <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-2">
+                  Heure de début *
+                </label>
+                <select
+                  id="startTime"
+                  value={formData.startTime}
+                  onChange={(e) => handleInputChange('startTime', e.target.value)}
+                  disabled={loading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                >
+                  {timeSlots.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Heure de fin */}
+              <div>
+                <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-2">
+                  Heure de fin *
+                </label>
+                <select
+                  id="endTime"
+                  value={formData.endTime}
+                  onChange={(e) => handleInputChange('endTime', e.target.value)}
+                  disabled={loading}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                >
+                  {timeSlots.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -333,6 +408,7 @@ export default function CreateActivityPage() {
             <p className="text-sm text-gray-600">
               Cette activité aura lieu <strong>{RECURRING_TYPE_LABELS[formData.recurringType]}</strong> les{' '}
               <strong>{formData.recurringDays.map(day => DAY_LABELS[day]).join(', ')}</strong>
+              {' '}de <strong>{formData.startTime}</strong> à <strong>{formData.endTime}</strong>
             </p>
             <p className="text-sm text-gray-500 mt-1">
               Les sessions seront générées automatiquement et visibles 2 semaines à l'avance

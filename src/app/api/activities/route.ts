@@ -12,10 +12,15 @@ const createActivitySchema = z.object({
   minPlayers: z.number().min(2, 'Le nombre minimum de joueurs doit être au moins 2'),
   maxPlayers: z.number().min(2).max(100, 'Le nombre maximum de joueurs ne peut pas dépasser 100'),
   recurringDays: z.array(z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])),
-  recurringType: z.enum(['weekly', 'monthly'])
+  recurringType: z.enum(['weekly', 'monthly']),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide (HH:MM)'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format d\'heure invalide (HH:MM)')
 }).refine(data => data.minPlayers <= data.maxPlayers, {
   message: 'Le nombre minimum de joueurs ne peut pas être supérieur au nombre maximum',
   path: ['minPlayers']
+}).refine(data => data.startTime < data.endTime, {
+  message: 'L\'heure de fin doit être après l\'heure de début',
+  path: ['endTime']
 })
 
 // Schema de validation pour les filtres
@@ -93,6 +98,8 @@ export async function POST(request: NextRequest) {
         createdBy: user.id,
         recurringDays: validatedData.recurringDays,
         recurringType: validatedData.recurringType,
+        startTime: validatedData.startTime,
+        endTime: validatedData.endTime,
         isPublic: true
       },
       include: {
@@ -308,8 +315,8 @@ export async function GET(request: NextRequest) {
         totalSessionsCount: activity._count.sessions,
         nextSessionDate: activity.sessions[0]?.date || null,
         userStatus: {
-          isParticipant: userParticipatesInSessions || isSubscribed,
-          isSubscribed: isSubscribed
+          isParticipant: userParticipatesInSessions, // Uniquement si participe à une session
+          isSubscribed: isSubscribed // Séparé de isParticipant
         },
         sessions: activity.sessions.map(session => ({
           ...session,

@@ -234,6 +234,8 @@ model Activity {
   // Récurrence
   recurringDays    String[]  // ["monday", "wednesday"]
   recurringType    RecurringType // weekly, monthly
+  startTime        String    @default("12:00") // Format HH:MM (ex: "12:00")
+  endTime          String    @default("13:00") // Format HH:MM (ex: "13:00")
 
   // Relations
   creator   User @relation("ActivityCreator", fields: [createdBy], references: [id], onDelete: Cascade)

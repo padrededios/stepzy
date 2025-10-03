@@ -26,6 +26,8 @@ export interface Activity {
   // Récurrence
   recurringDays: DayOfWeek[]
   recurringType: RecurringType
+  startTime: string // Format HH:MM
+  endTime: string   // Format HH:MM
 
   // Relations
   creator: User
@@ -73,6 +75,8 @@ export interface CreateActivityData {
   maxPlayers: number
   recurringDays: DayOfWeek[]
   recurringType: RecurringType
+  startTime: string
+  endTime: string
 }
 
 export interface UpdateActivityData {
