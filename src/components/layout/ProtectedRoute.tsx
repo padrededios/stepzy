@@ -6,11 +6,10 @@ import { User } from '@/types'
 
 interface ProtectedRouteProps {
   children: (user: User) => React.ReactNode
-  requireAdmin?: boolean
   fallback?: React.ReactNode
 }
 
-export function ProtectedRoute({ children, requireAdmin = false, fallback }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -26,18 +25,9 @@ export function ProtectedRoute({ children, requireAdmin = false, fallback }: Pro
         }
 
         const data = await response.json()
-        
-        if (data.success && data.user) {
-          const userData = data.user
-          
-          // Check admin requirement
-          if (requireAdmin && userData.role !== 'root') {
-            setError('Accès administrateur requis')
-            router.replace('/mes-activites')
-            return
-          }
 
-          setUser(userData)
+        if (data.success && data.user) {
+          setUser(data.user)
         } else {
           throw new Error('Invalid response')
         }
@@ -55,7 +45,7 @@ export function ProtectedRoute({ children, requireAdmin = false, fallback }: Pro
     }
 
     checkAuth()
-  }, [router, requireAdmin])
+  }, [router])
 
   if (loading) {
     return (
@@ -93,12 +83,11 @@ export function ProtectedRoute({ children, requireAdmin = false, fallback }: Pro
 
 // Higher-order component version
 export function withAuth<P extends object>(
-  Component: React.ComponentType<P & { user: User }>,
-  options: { requireAdmin?: boolean } = {}
+  Component: React.ComponentType<P & { user: User }>
 ) {
   return function AuthenticatedComponent(props: P) {
     return (
-      <ProtectedRoute requireAdmin={options.requireAdmin}>
+      <ProtectedRoute>
         {(user) => <Component {...props} user={user} />}
       </ProtectedRoute>
     )

@@ -537,23 +537,6 @@ const MatchView: React.FC<MatchViewProps> = ({
     </div>
   )
 
-  const AdminControls = () => {
-    if (currentUser.role !== 'root') return null
-
-    return (
-      <div className="bg-blue-50 rounded-lg p-4 mb-6">
-        <h3 className="text-lg font-semibold text-blue-800 mb-4">Actions administrateur</h3>
-        <div className="space-x-2">
-          <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
-            Forcer inscription
-          </button>
-          <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
-            Remplacer joueur
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   if (isLoading) {
     return (
@@ -564,14 +547,12 @@ const MatchView: React.FC<MatchViewProps> = ({
   }
 
   return (
-    <div 
+    <div
       data-testid={isMobile ? 'mobile-layout' : 'desktop-layout'}
       className="max-w-4xl mx-auto p-4"
     >
       <MatchInfo />
-      
-      <AdminControls />
-      
+
       {/* Toujours afficher le terrain, même sans joueurs */}
       {getSportField()}
 

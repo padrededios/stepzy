@@ -90,19 +90,10 @@ describe('UserProfile Component', () => {
 
     it('should show registration date', async () => {
       render(<UserProfile user={mockUser} />)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Membre depuis/)).toBeInTheDocument()
         expect(screen.getByText(/janvier 2024/)).toBeInTheDocument()
-      })
-    })
-
-    it('should display admin badge for admin users', async () => {
-      const adminUser = { ...mockUser, role: 'root' as const }
-      render(<UserProfile user={adminUser} />)
-      
-      await waitFor(() => {
-        expect(screen.getByText('Administrateur')).toBeInTheDocument()
       })
     })
   })

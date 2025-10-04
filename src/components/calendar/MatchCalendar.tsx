@@ -165,22 +165,6 @@ const MatchCalendar: React.FC<MatchCalendarProps> = ({
               >
                 {day.date.getDate()}
               </button>
-              
-              {/* Add match button for admins on valid days */}
-              {currentUser?.role === 'root' && 
-               day.isCurrentMonth && 
-               !day.isWeekend &&
-               day.date > new Date() && (
-                <button
-                  onClick={() => handleDateClick(day.date)}
-                  className="text-xs text-gray-400 hover:text-blue-600"
-                  title="Créer un match"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </button>
-              )}
             </div>
 
             {/* Matches for this day */}
@@ -253,9 +237,6 @@ const MatchCalendar: React.FC<MatchCalendarProps> = ({
         
         <div className="mt-2 text-xs text-gray-500">
           • Les matchs ont lieu du lundi au vendredi de 12h à 14h uniquement
-          {currentUser?.role === 'root' && (
-            <span> • Cliquez sur + pour créer un match</span>
-          )}
         </div>
       </div>
     </div>
