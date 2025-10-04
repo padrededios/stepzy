@@ -21,6 +21,465 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - **Couverture de code**: Objectif > 90%
 - **Tests**: Unitaires, intégration, E2E complets
 
+## 🔄 Plan de Séparation Backend / Frontend
+
+### Architecture Cible (Monorepo Multi-Frontend)
+
+**Objectif**: Séparer le backend du frontend pour permettre plusieurs frontends (web-app utilisateur + admin-app) accédant à la même API.
+
+#### Structure du Monorepo
+```
+stepzy/
+├── packages/
+│   ├── backend/                  # API REST standalone
+│   │   ├── src/
+│   │   │   ├── routes/          # Routes API organisées par ressource
+│   │   │   ├── services/        # Logique métier
+│   │   │   ├── middleware/      # Auth, validation, CORS
+│   │   │   ├── database/        # Prisma client singleton
+│   │   │   └── types/           # Types backend
+│   │   ├── prisma/              # Schema et migrations
+│   │   └── package.json
+│   │
+│   ├── shared/                   # Code partagé entre packages
+│   │   ├── types/               # Types TypeScript communs
+│   │   ├── constants/           # SPORTS_CONFIG, routes API
+│   │   ├── utils/               # Fonctions utilitaires
+│   │   └── package.json
+│   │
+│   ├── web-app/                  # Frontend utilisateur (actuel)
+│   │   ├── src/
+│   │   │   ├── app/             # Pages Next.js
+│   │   │   ├── components/      # Composants UI
+│   │   │   ├── hooks/           # React hooks
+│   │   │   └── lib/api/         # Client API HTTP
+│   │   └── package.json
+│   │
+│   └── admin-app/                # Dashboard admin (futur)
+│       ├── src/
+│       │   ├── app/             # Pages admin
+│       │   ├── components/      # Composants admin
+│       │   └── lib/api/         # Client API (réutilisé)
+│       └── package.json
+│
+├── package.json                  # Root package (workspaces)
+└── turbo.json                    # Configuration Turborepo
+```
+
+### Backend (API REST Standalone)
+
+#### Technologies
+- **Framework**: Fastify (plus performant qu'Express)
+- **ORM**: Prisma (conservé)
+- **Auth**: JWT (remplacement Better-auth pour multi-frontend)
+- **Validation**: Zod (conservé)
+- **Cache**: Redis (conservé)
+
+#### Structure Backend
+```typescript
+backend/
+├── src/
+│   ├── index.ts                 # Point d'entrée serveur
+│   ├── routes/
+│   │   ├── auth.routes.ts       # POST /api/auth/login, /register, /me
+│   │   ├── activities.routes.ts # CRUD /api/activities/*
+│   │   ├── sessions.routes.ts   # CRUD /api/activities/sessions/*
+│   │   ├── users.routes.ts      # CRUD /api/users/*
+│   │   └── admin.routes.ts      # Routes admin /api/admin/*
+│   │
+│   ├── services/
+│   │   ├── auth.service.ts      # Logique authentification
+│   │   ├── activity.service.ts  # Logique activités
+│   │   ├── session.service.ts   # Logique sessions
+│   │   └── user.service.ts      # Logique utilisateurs
+│   │
+│   ├── middleware/
+│   │   ├── auth.middleware.ts   # Vérification JWT
+│   │   ├── admin.middleware.ts  # Vérification role admin
+│   │   ├── validation.middleware.ts # Validation Zod
+│   │   └── cors.middleware.ts   # CORS multi-origine
+│   │
+│   └── database/
+│       ├── prisma.ts            # Client Prisma singleton
+│       └── repositories/        # Data access layer
+```
+
+#### Format API Standardisé
+```typescript
+// Toutes les réponses suivent ce format
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
+  meta?: {
+    page?: number
+    limit?: number
+    total?: number
+  }
+}
+
+// Authentification via JWT
+// Header: Authorization: Bearer <token>
+
+// Routes RESTful
+GET    /api/activities          # Liste activités
+POST   /api/activities          # Créer activité
+GET    /api/activities/:id      # Détail activité
+PUT    /api/activities/:id      # Modifier activité
+DELETE /api/activities/:id      # Supprimer activité
+```
+
+### Package Shared (@stepzy/shared)
+
+#### Contenu
+```typescript
+shared/
+├── types/
+│   ├── user.types.ts           # User, UserStats, etc.
+│   ├── activity.types.ts       # Activity, Session, etc.
+│   ├── api.types.ts            # ApiResponse, ApiError
+│   └── index.ts                # Exports centralisés
+│
+├── constants/
+│   ├── sports.config.ts        # SPORTS_CONFIG
+│   ├── routes.ts               # Routes API
+│   └── index.ts
+│
+└── utils/
+    ├── date.utils.ts           # formatDate, formatTime
+    ├── validation.utils.ts     # Validateurs communs
+    └── index.ts
+```
+
+**Avantages**:
+- Types partagés entre backend et tous les frontends
+- Évite duplication de code (SPORTS_CONFIG, utilitaires)
+- Single source of truth pour les constantes
+- Import facile: `import { User } from '@stepzy/shared'`
+
+### Web App (Frontend Utilisateur)
+
+#### Structure
+```typescript
+web-app/
+├── src/
+│   ├── app/                     # Next.js App Router (inchangé)
+│   │   ├── (auth)/
+│   │   ├── (dashboard)/
+│   │   └── page.tsx
+│   │
+│   ├── components/              # Composants (inchangés)
+│   │
+│   ├── lib/
+│   │   └── api/                 # Client API HTTP
+│   │       ├── client.ts        # Wrapper Fetch avec JWT
+│   │       ├── activities.api.ts
+│   │       ├── auth.api.ts
+│   │       └── users.api.ts
+│   │
+│   └── hooks/                   # React hooks (inchangés)
+│
+└── .env.local
+    NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+#### Client API
+```typescript
+// lib/api/client.ts
+class ApiClient {
+  private baseURL = process.env.NEXT_PUBLIC_API_URL
+
+  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
+    const token = localStorage.getItem('accessToken')
+    const response = await fetch(`${this.baseURL}${endpoint}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    return response.json()
+  }
+
+  async post<T>(endpoint: string, data: any): Promise<ApiResponse<T>> {
+    // ...
+  }
+}
+
+export const apiClient = new ApiClient()
+```
+
+### Admin App (Dashboard Futur)
+
+#### Structure
+```typescript
+admin-app/
+├── src/
+│   ├── app/
+│   │   ├── dashboard/          # Vue d'ensemble admin
+│   │   ├── users/              # Gestion utilisateurs
+│   │   ├── activities/         # Gestion activités
+│   │   └── statistics/         # Statistiques
+│   │
+│   ├── components/
+│   │   ├── admin/              # Composants admin spécifiques
+│   │   └── shared/             # Composants réutilisés
+│   │
+│   └── lib/
+│       └── api/
+│           └── admin.api.ts    # Routes admin
+│
+└── .env.local
+    NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+### Authentification Multi-Frontend
+
+#### Stratégie JWT
+```typescript
+// 1. Login - Backend génère JWT
+POST /api/auth/login
+Request: { email, password }
+Response: {
+  success: true,
+  data: {
+    user: { id, email, pseudo, role, avatar },
+    accessToken: "eyJhbGci...",
+    refreshToken: "eyJhbGci..."
+  }
+}
+
+// 2. Frontend stocke token
+localStorage.setItem('accessToken', token)
+
+// 3. Toutes les requêtes incluent le token
+Authorization: Bearer eyJhbGci...
+
+// 4. Backend vérifie via middleware
+requireAuth → vérifie JWT → req.user = decodedUser
+```
+
+#### Middleware Auth
+```typescript
+// middleware/auth.middleware.ts
+export const requireAuth = async (req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '')
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: 'Non authentifié'
+    })
+  }
+
+  try {
+    const user = await verifyJWT(token)
+    req.user = user
+    next()
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: 'Token invalide'
+    })
+  }
+}
+
+// middleware/admin.middleware.ts
+export const requireAdmin = (req, res, next) => {
+  if (req.user.role !== 'root') {
+    return res.status(403).json({
+      success: false,
+      error: 'Accès administrateur requis'
+    })
+  }
+  next()
+}
+
+// Utilisation
+router.get('/api/admin/users', requireAuth, requireAdmin, getUsers)
+```
+
+### Configuration CORS
+
+```typescript
+// middleware/cors.middleware.ts
+const allowedOrigins = [
+  'http://localhost:3000',      // web-app dev
+  'http://localhost:3002',      // admin-app dev
+  'https://stepzy.com',         // web-app prod
+  'https://admin.stepzy.com'    // admin-app prod
+]
+
+export const corsMiddleware = cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Non autorisé par CORS'))
+    }
+  },
+  credentials: true
+})
+```
+
+### Plan de Migration (6-8 semaines)
+
+#### Phase 1: Préparation (1-2 semaines)
+- ✓ Créer structure monorepo avec Turborepo
+- ✓ Créer package @stepzy/shared
+- ✓ Migrer types communs vers shared
+- ✓ Migrer constantes (SPORTS_CONFIG, etc.)
+- ✓ Configurer npm workspaces
+
+#### Phase 2: Backend Standalone (2-3 semaines)
+- ✓ Créer projet backend avec Fastify
+- ✓ Migrer Prisma vers backend
+- ✓ Migrer routes API (auth, activities, users, admin)
+- ✓ Implémenter authentification JWT
+- ✓ Implémenter middlewares (auth, admin, CORS, validation)
+- ✓ Tester toutes les routes avec Postman/Thunder Client
+
+#### Phase 3: Adaptation Web App (1-2 semaines)
+- ✓ Créer package web-app
+- ✓ Migrer pages Next.js actuelles
+- ✓ Créer client API HTTP
+- ✓ Remplacer `fetch('/api/...')` par `apiClient.get(...)`
+- ✓ Configurer variables d'environnement
+- ✓ Tester intégration frontend-backend
+
+#### Phase 4: Admin App (2-3 semaines)
+- ✓ Créer package admin-app
+- ✓ Implémenter pages admin (users, activities, statistics)
+- ✓ Réutiliser client API
+- ✓ Développer composants admin
+- ✓ Tests E2E admin
+
+#### Phase 5: Déploiement (1 semaine)
+- ✓ Déployer backend (Railway, Render, Fly.io)
+- ✓ Déployer web-app (Vercel)
+- ✓ Déployer admin-app (Vercel)
+- ✓ Configurer DNS et SSL
+- ✓ Tests production
+
+### Avantages Architecture
+
+| Aspect | Avant (Monolithe) | Après (Séparé) |
+|--------|-------------------|----------------|
+| **Scalabilité** | Couplé frontend/backend | Scalabilité indépendante |
+| **Déploiement** | Monolithique | Indépendant par service |
+| **Développement** | Équipe unique | Équipes spécialisées possibles |
+| **Réutilisation** | Code dupliqué | Code partagé via @stepzy/shared |
+| **Multi-frontend** | Impossible | Natif (web + admin + mobile future) |
+| **Tests** | Couplés | Isolés par service |
+| **Performance** | Tout ou rien | Cache/CDN par frontend |
+| **Maintenance** | Modifications risquées | Modifications isolées |
+
+### Stack Technique Recommandée
+
+#### Backend
+- **Runtime**: Node.js 20+
+- **Framework**: Fastify (plus rapide qu'Express)
+- **ORM**: Prisma (conservé)
+- **Auth**: JWT + bcrypt
+- **Validation**: Zod (conservé)
+- **Cache**: Redis (conservé)
+- **Tests**: Jest + Supertest
+
+#### Shared
+- **Language**: TypeScript strict
+- **Exports**: Types + Constants + Utils
+- **Build**: tsup (fast bundler)
+
+#### Frontends
+- **Framework**: Next.js 15 App Router (conservé)
+- **State**: React hooks + Context API
+- **Styling**: Tailwind CSS v4 (conservé)
+- **API Client**: Fetch wrapper custom + types
+- **Tests**: Jest + Testing Library + Playwright
+
+#### Monorepo
+- **Tool**: Turborepo (parallel builds)
+- **Package Manager**: npm workspaces
+- **CI/CD**: GitHub Actions
+
+### Variables d'Environnement
+
+#### Backend (.env)
+```bash
+DATABASE_URL="postgresql://..."
+JWT_SECRET="secret-key-change-in-production"
+JWT_EXPIRES_IN="7d"
+REDIS_URL="redis://..."
+NODE_ENV="development"
+PORT="3001"
+CORS_ORIGINS="http://localhost:3000,http://localhost:3002"
+```
+
+#### Web App (.env.local)
+```bash
+NEXT_PUBLIC_API_URL="http://localhost:3001"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
+#### Admin App (.env.local)
+```bash
+NEXT_PUBLIC_API_URL="http://localhost:3001"
+NEXT_PUBLIC_APP_URL="http://localhost:3002"
+```
+
+### Scripts de Développement
+
+```json
+// package.json (root)
+{
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:backend": "turbo run dev --filter=backend",
+    "dev:web": "turbo run dev --filter=web-app",
+    "dev:admin": "turbo run dev --filter=admin-app",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint"
+  },
+  "workspaces": ["packages/*"]
+}
+```
+
+**Développement local**:
+```bash
+# Terminal 1 - Backend
+npm run dev:backend  # → http://localhost:3001
+
+# Terminal 2 - Web App
+npm run dev:web      # → http://localhost:3000
+
+# Terminal 3 - Admin App
+npm run dev:admin    # → http://localhost:3002
+```
+
+### Points d'Attention
+
+#### Sécurité
+- ✓ Valider toutes les entrées côté backend (Zod)
+- ✓ Utiliser HTTPS en production uniquement
+- ✓ Implémenter rate limiting (5 req/min login)
+- ✓ Sanitizer les erreurs (pas de stack traces)
+- ✓ Hash passwords avec bcrypt (12 rounds)
+- ✓ JWT avec expiration courte (7j) + refresh token
+
+#### Performance
+- ✓ Cache Redis pour requêtes fréquentes
+- ✓ Pagination obligatoire (limit 50 par défaut)
+- ✓ Optimiser requêtes Prisma (select, include)
+- ✓ Compression gzip/brotli
+- ✓ CDN pour assets statiques
+
+#### Monitoring
+- ✓ Logger toutes erreurs (Winston/Pino)
+- ✓ Health check: GET /api/health
+- ✓ Métriques (CPU, RAM, latence)
+- ✓ Sentry pour tracking erreurs
+- ✓ Analytics utilisateurs
+
 ## 📊 Modèle de Données
 
 ### Entités Principales

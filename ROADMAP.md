@@ -3,9 +3,16 @@
 ## 📋 Vue d'ensemble
 Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservation d'activités sportives multiples, développée en TDD.
 
-## 🎉 Version Actuelle : 3.2.0 (Janvier 2025)
+## 🎉 Version Actuelle : 3.3.0 (Janvier 2025)
 
-### ✅ Améliorations Récentes v3.2
+### ✅ Améliorations Récentes v3.3
+- **Séparation Frontend/Backend** : Suppression de toutes les fonctionnalités admin du frontend utilisateur
+- **Architecture Évolutive** : Préparation pour architecture multi-frontend (web-app + admin-app)
+- **Composants Nettoyés** : Suppression des contrôles admin de MatchView, MatchCalendar, Sidebar
+- **Tests Actualisés** : Mise à jour tests pour refléter suppression fonctionnalités admin
+- **Documentation Complète** : Plan détaillé de séparation backend/frontend dans SPECIFICATIONS.md
+
+### ✅ Améliorations v3.2
 - **Optimisation Performance** : Mise à jour optimiste des états au lieu de rechargement complet des données
 - **Navigation Améliorée** : Formulaire de création intégré comme onglet dans "Mes activités"
 - **Interface Épurée** : Suppression des headers redondants sur toutes les pages
@@ -371,6 +378,125 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 
 ---
 
+## 🏗️ Phase 13 : Architecture Multi-Frontend (v4.0) 📋 PLANIFIÉE
+
+### 13.1 Préparation Monorepo (Semaines 1-2)
+- [ ] Créer structure monorepo avec Turborepo
+- [ ] Configurer npm workspaces
+- [ ] Setup configuration TypeScript partagée
+- [ ] Créer package @stepzy/shared
+- [ ] Migrer types communs vers shared
+- [ ] Migrer constantes (SPORTS_CONFIG, etc.) vers shared
+- [ ] Créer utilitaires partagés (date, validation)
+
+### 13.2 Backend Standalone (Semaines 3-5)
+- [ ] Créer projet backend avec Fastify
+- [ ] Configurer TypeScript et ESLint backend
+- [ ] Migrer Prisma vers package backend
+- [ ] Implémenter authentification JWT
+- [ ] Créer middleware auth.middleware.ts
+- [ ] Créer middleware admin.middleware.ts
+- [ ] Créer middleware cors.middleware.ts
+- [ ] Créer middleware validation.middleware.ts
+- [ ] Migrer routes auth (login, register, logout, me)
+- [ ] Migrer routes activities (CRUD complet)
+- [ ] Migrer routes sessions (join, leave, etc.)
+- [ ] Migrer routes users (profile, stats)
+- [ ] Migrer routes admin (users, statistics, announcements)
+- [ ] Créer services métier (auth, activity, session, user)
+- [ ] Implémenter repositories pour accès données
+- [ ] Tests unitaires services (> 90% coverage)
+- [ ] Tests intégration API avec Supertest
+- [ ] Documentation API avec types TypeScript
+
+### 13.3 Adaptation Frontend Web-App (Semaines 6-7)
+- [ ] Créer package web-app
+- [ ] Migrer pages Next.js actuelles
+- [ ] Créer client API HTTP (lib/api/client.ts)
+- [ ] Créer wrappers API par ressource (auth.api.ts, activities.api.ts, etc.)
+- [ ] Remplacer tous les fetch('/api/...') par apiClient
+- [ ] Implémenter gestion tokens JWT côté client
+- [ ] Configurer variables d'environnement (NEXT_PUBLIC_API_URL)
+- [ ] Mettre à jour hooks pour utiliser nouveau client API
+- [ ] Adapter ProtectedRoute pour JWT
+- [ ] Tests intégration frontend-backend
+- [ ] Tests E2E mis à jour
+
+### 13.4 Dashboard Admin (Semaines 8-10)
+- [ ] Créer package admin-app
+- [ ] Setup Next.js avec configuration similaire à web-app
+- [ ] Créer layout admin avec sidebar dédiée
+- [ ] Page dashboard admin (/dashboard)
+- [ ] Page gestion utilisateurs (/users)
+- [ ] Page gestion activités (/activities)
+- [ ] Page statistiques avancées (/statistics)
+- [ ] Page annonces (/announcements)
+- [ ] Réutiliser client API avec routes admin
+- [ ] Créer composants admin spécifiques
+- [ ] Implémenter tableaux de données avec tri/filtrage
+- [ ] Graphiques et visualisations (recharts/victory)
+- [ ] Tests composants admin
+- [ ] Tests E2E parcours admin
+
+### 13.5 Configuration & Déploiement (Semaine 11)
+- [ ] Configuration CORS pour origines multiples
+- [ ] Variables d'environnement par package
+- [ ] Scripts Turborepo (dev, build, test, lint)
+- [ ] Docker Compose pour dev (backend + postgres + redis)
+- [ ] Configuration CI/CD GitHub Actions
+- [ ] Déployer backend sur Railway/Render/Fly.io
+- [ ] Déployer web-app sur Vercel
+- [ ] Déployer admin-app sur Vercel (sous-domaine)
+- [ ] Configurer DNS (stepzy.com, admin.stepzy.com)
+- [ ] Configurer SSL/HTTPS
+- [ ] Tests smoke production
+- [ ] Monitoring et alertes (Sentry, logs)
+
+### 13.6 Migration de Données & Finalisation (Semaine 12)
+- [ ] Script de migration données si nécessaire
+- [ ] Tests de charge backend (K6 ou Artillery)
+- [ ] Optimisations performance (cache Redis)
+- [ ] Documentation utilisateur mise à jour
+- [ ] Documentation développeur complète
+- [ ] Guide de contribution
+- [ ] Changelog détaillé v4.0
+- [ ] Release notes
+
+### 13.7 Points d'Attention
+**Sécurité**
+- [ ] Validation Zod sur toutes les entrées backend
+- [ ] Rate limiting (5 req/min login, 100 req/min API)
+- [ ] Sanitization erreurs (pas de stack traces en prod)
+- [ ] Hash passwords bcrypt (12 rounds)
+- [ ] JWT expiration + refresh tokens
+- [ ] HTTPS obligatoire en production
+
+**Performance**
+- [ ] Cache Redis pour requêtes fréquentes
+- [ ] Pagination toutes les listes (limit 50)
+- [ ] Optimisation requêtes Prisma (select, include)
+- [ ] Compression gzip/brotli
+- [ ] CDN pour assets statiques
+
+**Monitoring**
+- [ ] Logs structurés (Pino/Winston)
+- [ ] Health check GET /api/health
+- [ ] Métriques application (CPU, RAM, latence)
+- [ ] Error tracking Sentry
+- [ ] Analytics utilisateurs
+
+### Objectifs v4.0
+- ✅ Backend API REST indépendant et réutilisable
+- ✅ Frontend web-app optimisé pour utilisateurs
+- ✅ Dashboard admin complet et séparé
+- ✅ Architecture scalable pour futurs clients (mobile, etc.)
+- ✅ Code partagé via @stepzy/shared
+- ✅ Tests > 90% sur tous les packages
+- ✅ Documentation complète et à jour
+- ✅ Déploiement production sans interruption
+
+---
+
 ## 📊 Métriques de Succès
 
 - ✅ Tous les tests passent (unitaires, intégration, E2E)
@@ -383,15 +509,50 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 
 ---
 
-## 🛠️ Stack Technique Finale
+## 🛠️ Stack Technique Actuelle (v3.3)
 
-- **Frontend** : Next.js 14 (App Router) + TypeScript
-- **Styling** : Tailwind CSS + Headless UI
-- **Auth** : Better-auth
+- **Frontend** : Next.js 15 (App Router) + TypeScript
+- **Styling** : Tailwind CSS v4
+- **Auth** : Better-auth (sera remplacé par JWT en v4.0)
 - **Database** : PostgreSQL + Prisma ORM
 - **Testing** : Jest + Testing Library + Playwright
 - **Deployment** : Docker + Vercel/Railway
 - **Monitoring** : Sentry + Analytics
+
+## 🛠️ Stack Technique Future (v4.0)
+
+**Backend**
+- **Runtime** : Node.js 20+
+- **Framework** : Fastify
+- **ORM** : Prisma
+- **Auth** : JWT + bcrypt
+- **Validation** : Zod
+- **Cache** : Redis
+- **Tests** : Jest + Supertest
+
+**Shared (@stepzy/shared)**
+- **Language** : TypeScript strict
+- **Build** : tsup
+- **Exports** : Types + Constants + Utils
+
+**Frontend Web-App**
+- **Framework** : Next.js 15 App Router
+- **Styling** : Tailwind CSS v4
+- **State** : React hooks + Context API
+- **API Client** : Fetch wrapper custom
+- **Tests** : Jest + Testing Library + Playwright
+
+**Frontend Admin-App**
+- **Framework** : Next.js 15 App Router
+- **Styling** : Tailwind CSS v4
+- **Charts** : Recharts/Victory
+- **API Client** : Shared avec web-app
+- **Tests** : Jest + Testing Library + Playwright
+
+**Monorepo**
+- **Tool** : Turborepo
+- **Package Manager** : npm workspaces
+- **CI/CD** : GitHub Actions
 
 ---
 
