@@ -1,0 +1,318 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modèle Utilisateur
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  pseudo    String
+  avatar    String?
+  role      UserRole @default(user)
+  password  String?  // Better-auth v1.3.8 Prisma adapter stores password here
+  emailVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  matchPlayers  MatchPlayer[]
+  sessions      Session[]
+  accounts      Account[]
+  notifications Notification[] @relation("NotificationRecipient")
+  sentAnnouncements Announcement[]
+
+  // Nouvelles relations pour activités
+  createdActivities Activity[] @relation("ActivityCreator")
+  activityParticipations ActivityParticipant[]
+  activitySubscriptions ActivitySubscription[]
+
+  @@map("users")
+}
+
+// Modèle Match
+model Match {
+  id         String      @id @default(cuid())
+  date       DateTime
+  sport      SportType   @default(football)
+  maxPlayers Int         @default(12)
+  status     MatchStatus @default(open)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  // Relations
+  players MatchPlayer[]
+  notifications Notification[]
+
+  @@map("matches")
+}
+
+// Table de liaison entre User et Match
+model MatchPlayer {
+  id       String       @id @default(cuid())
+  userId   String
+  matchId  String
+  status   PlayerStatus @default(confirmed)
+  joinedAt DateTime     @default(now())
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  // Un utilisateur ne peut être inscrit qu'une seule fois par match
+  @@unique([userId, matchId])
+  @@map("match_players")
+}
+
+// Enums
+enum UserRole {
+  user
+  root
+}
+
+enum MatchStatus {
+  open
+  full
+  cancelled
+  completed
+}
+
+enum PlayerStatus {
+  confirmed
+  waiting
+
+  @@map("player_status")
+}
+
+enum SportType {
+  football
+  badminton
+  volley
+  pingpong
+  rugby
+
+  @@map("sport_type")
+}
+
+// Tables Better-auth
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  accountId         String   // Better-auth uses accountId instead of providerAccountId
+  providerId        String   // Better-auth uses providerId instead of provider
+  accessToken       String?  @map("access_token")
+  refreshToken      String?  @map("refresh_token")
+  accessTokenExpiresAt  DateTime? @map("expires_at")
+  scope             String?
+  idToken           String?  @map("id_token")
+  password          String?  // For credential provider
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([identifier, token])
+  @@map("verifications")
+}
+
+// Modèle Notification
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?            // Additional data for the notification
+  read      Boolean          @default(false)
+  matchId   String?          // Optional match reference
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Relations
+  user  User   @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  match Match? @relation(fields: [matchId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// Modèle Announcement (Annonces admin)
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  authorId  String
+  priority  Priority @default(normal)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("announcements")
+}
+
+// Enums pour notifications
+enum NotificationType {
+  match_created
+  match_updated
+  match_cancelled
+  match_reminder
+  match_joined
+  match_left
+  waiting_list_promoted
+  announcement
+  system
+
+  @@map("notification_type")
+}
+
+enum Priority {
+  low
+  normal
+  high
+  urgent
+
+  @@map("priority")
+}
+
+// Nouveaux modèles pour activités récurrentes
+
+// Modèle Activity (activité parente)
+model Activity {
+  id          String   @id @default(cuid())
+  name        String   // "Foot entre collègues"
+  description String?
+  sport       SportType
+  minPlayers  Int      @default(2) // Nombre minimum de joueurs pour confirmer une session
+  maxPlayers  Int
+  createdBy   String   // Le créateur de l'activité
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Récurrence
+  recurringDays    String[]  // ["monday", "wednesday"]
+  recurringType    RecurringType // weekly, monthly
+  startTime        String    @default("12:00") // Format HH:MM (ex: "12:00")
+  endTime          String    @default("13:00") // Format HH:MM (ex: "13:00")
+
+  // Relations
+  creator   User @relation("ActivityCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  sessions  ActivitySession[]
+  subscriptions ActivitySubscription[]
+
+  @@map("activities")
+}
+
+// Modèle ActivitySession (session individuelle d'une activité)
+model ActivitySession {
+  id          String   @id @default(cuid())
+  activityId  String
+  date        DateTime
+  status      SessionStatus @default(active)
+  maxPlayers  Int      // Peut être différent de l'activité parente
+  isCancelled Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  activity     Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  participants ActivityParticipant[]
+
+  @@map("activity_sessions")
+}
+
+// Modèle ActivityParticipant (participation à une session)
+model ActivityParticipant {
+  id        String @id @default(cuid())
+  sessionId String
+  userId    String
+  status    ParticipantStatus @default(interested)
+  joinedAt  DateTime @default(now())
+
+  // Relations
+  session ActivitySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@map("activity_participants")
+}
+
+// Modèle ActivitySubscription (abonnement à une activité)
+model ActivitySubscription {
+  id          String   @id @default(cuid())
+  activityId  String
+  userId      String
+  subscribedAt DateTime @default(now())
+
+  // Relations
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([activityId, userId])
+  @@map("activity_subscriptions")
+}
+
+// Nouveaux enums pour les activités
+enum RecurringType {
+  weekly
+  monthly
+
+  @@map("recurring_type")
+}
+
+enum SessionStatus {
+  active
+  cancelled
+  completed
+
+  @@map("session_status")
+}
+
+enum ParticipantStatus {
+  interested  // L'utilisateur a cliqué "rejoindre"
+  confirmed   // Confirmé pour cette session
+  waiting     // Liste d'attente
+
+  @@map("participant_status")
+}
