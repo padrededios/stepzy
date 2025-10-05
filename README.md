@@ -140,18 +140,30 @@ npm install
 # Copier les variables d'environnement
 cp .env.example .env.local
 
-# Démarrer les services (PostgreSQL + Redis)
-docker-compose up -d
-
-# Initialiser la base de données
-npx prisma migrate dev
-npx prisma db seed
+# Démarrer en mode développement (première fois - avec données de test)
+./start-dev.sh --init
 
 # Démarrer le serveur de développement
 npm run dev
 ```
 
 L'application sera disponible sur [http://localhost:3000](http://localhost:3000)
+
+### Commandes disponibles
+
+```bash
+# Démarrer en mode dev (sans toucher à la base de données)
+./start-dev.sh
+
+# Démarrer avec réinitialisation complète de la base
+./start-dev.sh --reset
+
+# Démarrer et ajouter les données de test
+./start-dev.sh --init
+
+# Combiner reset et init
+./start-dev.sh --reset --init
+```
 
 ### Compte administrateur par défaut
 

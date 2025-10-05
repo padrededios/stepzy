@@ -71,7 +71,7 @@ stepzy/
 #### Technologies
 - **Framework**: Fastify (plus performant qu'Express)
 - **ORM**: Prisma (conservé)
-- **Auth**: JWT (remplacement Better-auth pour multi-frontend)
+- **Auth**: Better-auth (conservé, compatible multi-frontend)
 - **Validation**: Zod (conservé)
 - **Cache**: Redis (conservé)
 
@@ -94,7 +94,7 @@ backend/
 │   │   └── user.service.ts      # Logique utilisateurs
 │   │
 │   ├── middleware/
-│   │   ├── auth.middleware.ts   # Vérification JWT
+│   │   ├── auth.middleware.ts   # Vérification Better-auth session
 │   │   ├── admin.middleware.ts  # Vérification role admin
 │   │   ├── validation.middleware.ts # Validation Zod
 │   │   └── cors.middleware.ts   # CORS multi-origine
@@ -118,8 +118,8 @@ interface ApiResponse<T> {
   }
 }
 
-// Authentification via JWT
-// Header: Authorization: Bearer <token>
+// Authentification via Better-auth
+// Session cookies gérés automatiquement
 
 // Routes RESTful
 GET    /api/activities          # Liste activités
@@ -234,53 +234,47 @@ admin-app/
 
 ### Authentification Multi-Frontend
 
-#### Stratégie JWT
+#### Stratégie Better-auth
 ```typescript
-// 1. Login - Backend génère JWT
-POST /api/auth/login
+// 1. Login - Backend via Better-auth
+POST /api/auth/sign-in/email
 Request: { email, password }
 Response: {
-  success: true,
-  data: {
-    user: { id, email, pseudo, role, avatar },
-    accessToken: "eyJhbGci...",
-    refreshToken: "eyJhbGci..."
-  }
+  user: { id, email, name, role, image },
+  session: { ... }
 }
+// Cookie de session automatiquement défini
 
-// 2. Frontend stocke token
-localStorage.setItem('accessToken', token)
+// 2. Frontend utilise les cookies
+// Pas besoin de localStorage - Better-auth gère les cookies
 
-// 3. Toutes les requêtes incluent le token
-Authorization: Bearer eyJhbGci...
+// 3. Toutes les requêtes incluent le cookie
+// Cookie: better-auth.session_token=...
 
-// 4. Backend vérifie via middleware
-requireAuth → vérifie JWT → req.user = decodedUser
+// 4. Backend vérifie via Better-auth
+requireAuth → vérifie session → req.user = sessionUser
 ```
 
 #### Middleware Auth
 ```typescript
 // middleware/auth.middleware.ts
-export const requireAuth = async (req, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '')
+import { auth } from '../lib/auth'
 
-  if (!token) {
+export const requireAuth = async (req, res, next) => {
+  const session = await auth.api.getSession({
+    headers: req.headers
+  })
+
+  if (!session) {
     return res.status(401).json({
       success: false,
       error: 'Non authentifié'
     })
   }
 
-  try {
-    const user = await verifyJWT(token)
-    req.user = user
-    next()
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: 'Token invalide'
-    })
-  }
+  req.user = session.user
+  req.session = session.session
+  next()
 }
 
 // middleware/admin.middleware.ts
@@ -333,8 +327,8 @@ export const corsMiddleware = cors({
 #### Phase 2: Backend Standalone (2-3 semaines)
 - ✓ Créer projet backend avec Fastify
 - ✓ Migrer Prisma vers backend
+- ✓ Configurer Better-auth avec Fastify
 - ✓ Migrer routes API (auth, activities, users, admin)
-- ✓ Implémenter authentification JWT
 - ✓ Implémenter middlewares (auth, admin, CORS, validation)
 - ✓ Tester toutes les routes avec Postman/Thunder Client
 

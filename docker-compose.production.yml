@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backups:/backups
     networks:
-      - futsal_network
+      - stepzy_network
     ports:
       - "5432:5432"
     healthcheck:
@@ -35,7 +35,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - futsal_network
+      - stepzy_network
     ports:
       - "6379:6379"
     healthcheck:
@@ -76,7 +76,7 @@ services:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
     networks:
-      - futsal_network
+      - stepzy_network
     ports:
       - "3000:3000"
     depends_on:
@@ -109,7 +109,7 @@ services:
       - ./ssl:/etc/ssl/private:ro
       - nginx_logs:/var/log/nginx
     networks:
-      - futsal_network
+      - stepzy_network
     depends_on:
       - app
     deploy:
@@ -130,7 +130,7 @@ services:
       - ./backups:/backups
       - ./scripts/backup.sh:/backup.sh:ro
     networks:
-      - futsal_network
+      - stepzy_network
     depends_on:
       - postgres
     command: sh -c 'chmod +x /backup.sh && crond -f'
@@ -150,7 +150,7 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
-      - futsal_network
+      - stepzy_network
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -165,7 +165,7 @@ services:
           cpus: '0.25'
 
 networks:
-  futsal_network:
+  stepzy_network:
     driver: bridge
 
 volumes:

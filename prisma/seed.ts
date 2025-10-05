@@ -10,10 +10,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash('admin123!', 10)
   
   const rootUser = await prisma.user.upsert({
-    where: { email: 'admin@futsal.local' },
+    where: { email: 'admin@stepzy.local' },
     update: {},
     create: {
-      email: 'admin@futsal.local',
+      email: 'admin@stepzy.local',
       password: hashedPassword,
       pseudo: 'Admin',
       avatar: null,
@@ -153,7 +153,7 @@ async function main() {
   console.log('🌱 Seed terminé avec succès!')
   console.log('')
   console.log('🔐 Identifiants administrateur:')
-  console.log('Email: admin@futsal.local')
+  console.log('Email: admin@stepzy.local')
   console.log('Mot de passe: admin123!')
   console.log('')
   console.log('👤 Identifiants joueurs de test:')
