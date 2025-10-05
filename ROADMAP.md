@@ -3,14 +3,15 @@
 ## 📋 Vue d'ensemble
 Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservation d'activités sportives multiples, développée en TDD.
 
-## 🎉 Version Actuelle : 3.3.0 (Janvier 2025)
+## 🎉 Version Actuelle : 3.3.0 (Octobre 2025)
 
 ### ✅ Améliorations Récentes v3.3
-- **Séparation Frontend/Backend** : Suppression de toutes les fonctionnalités admin du frontend utilisateur
-- **Architecture Évolutive** : Préparation pour architecture multi-frontend (web-app + admin-app)
-- **Composants Nettoyés** : Suppression des contrôles admin de MatchView, MatchCalendar, Sidebar
-- **Tests Actualisés** : Mise à jour tests pour refléter suppression fonctionnalités admin
-- **Documentation Complète** : Plan détaillé de séparation backend/frontend dans SPECIFICATIONS.md
+- **Seed System** : Système de seed réécrit pour générer activités récurrentes au lieu de matches legacy
+- **Filtrage Sessions** : Sessions disponibles filtrées par abonnements utilisateur (bugfix)
+- **Navigation Terrain** : Route `/sessions/[id]` créée pour afficher terrain avec joueurs positionnés
+- **Scripts Développement** : Options `--reset` et `--init` pour `start-dev.sh`
+- **API Client** : Utilisation systématique de ApiClient pour pointer vers backend:3001
+- **Data Consistency** : Données de test cohérentes avec abonnements et participations logiques
 
 ### ✅ Améliorations v3.2
 - **Optimisation Performance** : Mise à jour optimiste des états au lieu de rechargement complet des données
@@ -381,24 +382,24 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 ## 🏗️ Phase 13 : Architecture Multi-Frontend (v4.0) 📋 PLANIFIÉE
 
 ### 13.1 Préparation Monorepo (Semaines 1-2)
-- [ ] Créer structure monorepo avec Turborepo
-- [ ] Configurer npm workspaces
-- [ ] Setup configuration TypeScript partagée
-- [ ] Créer package @stepzy/shared
-- [ ] Migrer types communs vers shared
-- [ ] Migrer constantes (SPORTS_CONFIG, etc.) vers shared
-- [ ] Créer utilitaires partagés (date, validation)
+- [x] Créer structure monorepo avec Turborepo
+- [x] Configurer npm workspaces
+- [x] Setup configuration TypeScript partagée
+- [x] Créer package @stepzy/shared
+- [x] Migrer types communs vers shared
+- [x] Migrer constantes (SPORTS_CONFIG, etc.) vers shared
+- [x] Créer utilitaires partagés (date, validation)
 
 ### 13.2 Backend Standalone (Semaines 3-5)
 - [ ] Créer projet backend avec Fastify
 - [ ] Configurer TypeScript et ESLint backend
 - [ ] Migrer Prisma vers package backend
-- [ ] Implémenter authentification JWT
-- [ ] Créer middleware auth.middleware.ts
+- [ ] Configurer Better-auth avec Fastify adapter
+- [ ] Créer middleware auth.middleware.ts (Better-auth session)
 - [ ] Créer middleware admin.middleware.ts
 - [ ] Créer middleware cors.middleware.ts
 - [ ] Créer middleware validation.middleware.ts
-- [ ] Migrer routes auth (login, register, logout, me)
+- [ ] Migrer routes auth (déléguer à Better-auth)
 - [ ] Migrer routes activities (CRUD complet)
 - [ ] Migrer routes sessions (join, leave, etc.)
 - [ ] Migrer routes users (profile, stats)
@@ -415,10 +416,10 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - [ ] Créer client API HTTP (lib/api/client.ts)
 - [ ] Créer wrappers API par ressource (auth.api.ts, activities.api.ts, etc.)
 - [ ] Remplacer tous les fetch('/api/...') par apiClient
-- [ ] Implémenter gestion tokens JWT côté client
+- [ ] Configurer Better-auth client pour pointer vers backend
 - [ ] Configurer variables d'environnement (NEXT_PUBLIC_API_URL)
 - [ ] Mettre à jour hooks pour utiliser nouveau client API
-- [ ] Adapter ProtectedRoute pour JWT
+- [ ] Adapter ProtectedRoute pour Better-auth distant
 - [ ] Tests intégration frontend-backend
 - [ ] Tests E2E mis à jour
 
@@ -467,8 +468,8 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - [ ] Validation Zod sur toutes les entrées backend
 - [ ] Rate limiting (5 req/min login, 100 req/min API)
 - [ ] Sanitization erreurs (pas de stack traces en prod)
-- [ ] Hash passwords bcrypt (12 rounds)
-- [ ] JWT expiration + refresh tokens
+- [ ] Hash passwords bcrypt via Better-auth
+- [ ] Session expiration + rotation Better-auth
 - [ ] HTTPS obligatoire en production
 
 **Performance**
@@ -513,7 +514,7 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 
 - **Frontend** : Next.js 15 (App Router) + TypeScript
 - **Styling** : Tailwind CSS v4
-- **Auth** : Better-auth (sera remplacé par JWT en v4.0)
+- **Auth** : Better-auth
 - **Database** : PostgreSQL + Prisma ORM
 - **Testing** : Jest + Testing Library + Playwright
 - **Deployment** : Docker + Vercel/Railway
@@ -525,7 +526,7 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - **Runtime** : Node.js 20+
 - **Framework** : Fastify
 - **ORM** : Prisma
-- **Auth** : JWT + bcrypt
+- **Auth** : Better-auth (conservé)
 - **Validation** : Zod
 - **Cache** : Redis
 - **Tests** : Jest + Supertest

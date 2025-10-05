@@ -28,7 +28,7 @@ src/app/(dashboard)/
 ├── mes-statistiques/page.tsx # Stats utilisateur
 ├── profile/page.tsx        # Profil utilisateur
 ├── notifications/page.tsx  # Centre notifications
-├── matches/[id]/page.tsx   # Détail match
+├── sessions/[id]/page.tsx  # Détail session avec terrain
 ├── my-activities/manage/   # Gestion activités
 └── admin/                  # Pages administration
     ├── users/page.tsx
@@ -67,8 +67,36 @@ src/app/(dashboard)/
 6. `52a915f` - docs: add detailed v3.1 section to PROGRESS_SUMMARY
 7. `c2c87e4` - perf: optimize session join/leave with optimistic UI updates
 8. `ee74c56` - refactor: improve navigation and remove redundant page headers
+9. `b279ab3` - feat: add min/max players configuration for activities
 
-**État Git** : Branche `manage_sports` en avance de 9 commits, working directory propre
+**État Git** : Branche `manage_sports`, working directory propre
+
+#### Corrections v3.3 (Octobre 2025)
+
+##### Système de Seed Amélioré
+- **Script seed mis à jour** : Génération d'activités récurrentes au lieu de matches legacy
+- **4 activités de test** : Football (mardi), Badminton (mercredi), Volleyball (jeudi), Ping-Pong (samedi)
+- **Sessions auto-générées** : 16 sessions pour 4 semaines à venir
+- **Données cohérentes** : Abonnements et participations logiques pour les 3 joueurs test
+- **Password admin** : Aligné avec README (RootPass123!)
+
+##### Filtrage Sessions Disponibles
+- **Bug corrigé** : Sessions disponibles filtrées par abonnements utilisateur
+- **Logique backend** : `getUpcomingSessions()` filtre par `ActivitySubscription`
+- **Exclusion participations** : Ne montre pas les sessions où l'utilisateur participe déjà
+- **UX améliorée** : Chaque utilisateur voit uniquement ses sessions pertinentes
+
+##### Navigation Terrain de Jeu
+- **Route créée** : `/sessions/[id]` pour afficher le terrain avec joueurs
+- **Fix 404** : Navigation corrigée de `/matches/[id]` vers `/sessions/[id]`
+- **API Client utilisé** : Utilisation de `ApiClient` pour pointer vers backend:3001
+- **Conversion données** : Sessions converties au format Match pour MatchView
+- **WaitingList ajoutée** : Séparation joueurs confirmés/en attente
+
+##### Scripts de Démarrage
+- **Options ajoutées** : `--reset` pour réinitialiser DB, `--init` pour seed
+- **Comportement par défaut** : Préservation des données (migrations uniquement)
+- **Documentation** : README.md mis à jour avec exemples d'utilisation
 
 ---
 
