@@ -76,3 +76,8 @@ logs
 
 # Health check temp files
 healthcheck.tmp
+
+# Turbo
+.turbo/cache/
+.turbo/daemon/
+.turbo/cookies/*.cookie
