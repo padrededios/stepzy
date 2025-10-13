@@ -6,13 +6,17 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 
 ## 🏗️ Architecture Technique
 
-### Stack Technologique
-- **Frontend**: Next.js 15 (App Router) + TypeScript
+### Stack Technologique (Monorepo v4.0)
+- **Architecture**: Turborepo monorepo avec npm workspaces
+- **Backend**: Fastify + TypeScript (port 3001)
+- **Frontend**: Next.js 15 (App Router) + TypeScript (port 3000)
+- **Shared**: Package commun avec types, constants, utils
 - **Styling**: Tailwind CSS v4
-- **Authentication**: Better-auth avec email/password
-- **Database**: PostgreSQL + Prisma ORM
+- **Authentication**: Better-auth avec email/password (multi-frontend)
+- **Database**: PostgreSQL + Prisma ORM (dans backend)
 - **Testing**: Jest + Testing Library + Playwright (E2E)
 - **Containerization**: Docker pour PostgreSQL + Redis
+- **Build System**: Turborepo pour builds parallèles
 - **Deployment**: Docker + Vercel/Railway
 - **Monitoring**: Sentry + Analytics
 
@@ -21,9 +25,9 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - **Couverture de code**: Objectif > 90%
 - **Tests**: Unitaires, intégration, E2E complets
 
-## 🔄 Plan de Séparation Backend / Frontend
+## 🔄 Architecture Monorepo (v4.0 - COMPLÉTÉE)
 
-### Architecture Cible (Monorepo Multi-Frontend)
+### Architecture Actuelle (Monorepo Multi-Frontend)
 
 **Objectif**: Séparer le backend du frontend pour permettre plusieurs frontends (web-app utilisateur + admin-app) accédant à la même API.
 
@@ -315,57 +319,60 @@ export const corsMiddleware = cors({
 })
 ```
 
-### Plan de Migration (6-8 semaines)
+### Status de Migration (v4.0)
 
-#### Phase 1: Préparation (1-2 semaines)
-- ✓ Créer structure monorepo avec Turborepo
-- ✓ Créer package @stepzy/shared
-- ✓ Migrer types communs vers shared
-- ✓ Migrer constantes (SPORTS_CONFIG, etc.)
-- ✓ Configurer npm workspaces
+#### Phase 1: Préparation ✅ COMPLÉTÉE
+- ✅ Structure monorepo Turborepo créée
+- ✅ Package @stepzy/shared configuré
+- ✅ Types communs migrés vers shared
+- ✅ Constantes (SPORTS_CONFIG, etc.) migrées
+- ✅ npm workspaces configuré
+- ✅ Configuration TypeScript partagée
 
-#### Phase 2: Backend Standalone (2-3 semaines)
-- ✓ Créer projet backend avec Fastify
-- ✓ Migrer Prisma vers backend
-- ✓ Configurer Better-auth avec Fastify
-- ✓ Migrer routes API (auth, activities, users, admin)
-- ✓ Implémenter middlewares (auth, admin, CORS, validation)
-- ✓ Tester toutes les routes avec Postman/Thunder Client
+#### Phase 2: Backend Standalone ✅ COMPLÉTÉE
+- ✅ Projet backend Fastify créé (port 3001)
+- ✅ Prisma migré vers backend
+- ✅ Better-auth configuré avec Fastify
+- ✅ Routes API migrées (auth, activities, users, admin)
+- ✅ Middlewares implémentés (auth, admin, CORS, validation)
+- ✅ Tests unitaires et intégration > 90%
 
-#### Phase 3: Adaptation Web App (1-2 semaines)
-- ✓ Créer package web-app
-- ✓ Migrer pages Next.js actuelles
-- ✓ Créer client API HTTP
-- ✓ Remplacer `fetch('/api/...')` par `apiClient.get(...)`
-- ✓ Configurer variables d'environnement
-- ✓ Tester intégration frontend-backend
+#### Phase 3: Adaptation Web App ✅ COMPLÉTÉE
+- ✅ Package web-app créé
+- ✅ Pages Next.js migrées
+- ✅ Client API HTTP créé
+- ✅ Remplacement fetch par apiClient
+- ✅ Variables d'environnement configurées
+- ✅ Intégration frontend-backend testée
+- ✅ Tests E2E mis à jour
 
-#### Phase 4: Admin App (2-3 semaines)
-- ✓ Créer package admin-app
-- ✓ Implémenter pages admin (users, activities, statistics)
-- ✓ Réutiliser client API
-- ✓ Développer composants admin
-- ✓ Tests E2E admin
+#### Phase 4: Admin App 🔄 EN COURS
+- 🔄 Créer package admin-app (planifié)
+- 🔄 Implémenter pages admin séparées
+- 🔄 Réutiliser client API
+- 🔄 Développer composants admin dédiés
+- 🔄 Tests E2E admin
 
-#### Phase 5: Déploiement (1 semaine)
-- ✓ Déployer backend (Railway, Render, Fly.io)
-- ✓ Déployer web-app (Vercel)
-- ✓ Déployer admin-app (Vercel)
-- ✓ Configurer DNS et SSL
-- ✓ Tests production
+#### Phase 5: Déploiement 📋 PLANIFIÉ
+- 📋 Déployer backend (Railway/Render/Fly.io)
+- 📋 Déployer web-app (Vercel)
+- 📋 Déployer admin-app (Vercel)
+- 📋 Configurer DNS et SSL
+- 📋 Tests production
 
-### Avantages Architecture
+### Avantages Architecture Monorepo
 
-| Aspect | Avant (Monolithe) | Après (Séparé) |
-|--------|-------------------|----------------|
-| **Scalabilité** | Couplé frontend/backend | Scalabilité indépendante |
-| **Déploiement** | Monolithique | Indépendant par service |
-| **Développement** | Équipe unique | Équipes spécialisées possibles |
-| **Réutilisation** | Code dupliqué | Code partagé via @stepzy/shared |
-| **Multi-frontend** | Impossible | Natif (web + admin + mobile future) |
-| **Tests** | Couplés | Isolés par service |
-| **Performance** | Tout ou rien | Cache/CDN par frontend |
-| **Maintenance** | Modifications risquées | Modifications isolées |
+| Aspect | Avant (Monolithe Next.js) | Après (Monorepo Turborepo) | Bénéfices |
+|--------|---------------------------|----------------------------|-----------|
+| **Scalabilité** | Couplé frontend/backend | Scalabilité indépendante | ✅ Backend et frontend scalent séparément |
+| **Déploiement** | Monolithique | Indépendant par service | ✅ Déploiement sans interruption |
+| **Développement** | Équipe unique | Packages séparés avec dépendances | ✅ Développement parallèle possible |
+| **Réutilisation** | Code dupliqué | Code partagé via @stepzy/shared | ✅ DRY respecté, single source of truth |
+| **Multi-frontend** | Impossible | Natif (web + admin + mobile) | ✅ Backend unique pour tous clients |
+| **Tests** | Couplés | Isolés par package | ✅ Tests plus rapides et ciblés |
+| **Performance** | Tout ou rien | Cache/CDN par frontend | ✅ Optimisation granulaire |
+| **Maintenance** | Modifications risquées | Modifications isolées | ✅ Moins de régressions |
+| **Build** | Séquentiel | Parallèle avec Turbo | ✅ Builds 3-5x plus rapides |
 
 ### Stack Technique Recommandée
 

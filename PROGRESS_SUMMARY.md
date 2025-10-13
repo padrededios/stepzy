@@ -4,11 +4,11 @@
 
 Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour les activités multisports, développée selon la méthodologie TDD.
 
-**Phases complétées** : 12/12 phases terminées ✅ (incluant v3.0 activités récurrentes + v3.1 optimisations UX)
+**Phases complétées** : 13/13 phases terminées ✅ (incluant v4.0 architecture monorepo)
 **Tests** : 134/134 tests passent (41 auth/DB + 17 logique métier + 20 MatchView + 42 admin + profils + notifications)
 **Couverture** : >95% sur toutes les parties implémentées
-**Code Quality** : Codebase entièrement refactorisé et optimisé (88 fichiers)
-**Version actuelle** : v3.1 avec layout persistant, toast notifications et Context API
+**Code Quality** : Architecture monorepo complète avec backend Fastify séparé
+**Version actuelle** : v4.0 avec architecture multi-frontend et backend standalone
 
 ### 🆕 Nouveautés v3.1 (Janvier 2025)
 
@@ -97,6 +97,60 @@ src/app/(dashboard)/
 - **Options ajoutées** : `--reset` pour réinitialiser DB, `--init` pour seed
 - **Comportement par défaut** : Préservation des données (migrations uniquement)
 - **Documentation** : README.md mis à jour avec exemples d'utilisation
+
+#### Architecture Monorepo v4.0 (Octobre 2025)
+
+##### Migration Structure Projet
+- **Monorepo Turborepo** : Architecture complète avec npm workspaces
+- **Backend Fastify** : API REST standalone (`packages/backend`)
+  - Port 3001 dédié avec Fastify
+  - Middleware auth Better-auth pour Fastify
+  - Routes organisées par ressource
+  - Prisma migré vers backend
+- **Frontend Web-App** : Application Next.js utilisateur (`packages/web-app`)
+  - Port 3000 pour utilisateurs finaux
+  - Client API HTTP pointant vers backend:3001
+  - Components et pages migrés
+- **Package Shared** : Code partagé (`packages/shared`)
+  - Types TypeScript communs
+  - Constantes (SPORTS_CONFIG, etc.)
+  - Utilitaires réutilisables
+
+##### Configuration Better-auth Simplifiée
+- **cookieCache** : Configuration streamline avec `enabled: true` au lieu de tous les paramètres
+- **trustedOrigins** : Filtrage amélioré avec type guard pour origines multiples
+- **rateLimit** : Utilisation de `customRules` pour configuration par route
+- **Middleware** : Mapping utilisateur amélioré avec fallbacks proper
+
+##### Scripts de Développement Améliorés
+- **start-dev.sh optimisé** :
+  - Trap SIGINT/SIGTERM pour cleanup propre
+  - Capture PID du processus `npm run dev`
+  - Arrêt de tous les processus enfants (pkill -P)
+  - Nettoyage automatique ports 3000 et 3001
+- **stop-dev.sh créé** : Script dédié pour arrêter tous les services
+  - Tue processus sur ports 3000 et 3001
+  - Nettoie processus Turbo, Next.js et TSX
+  - Arrête services Docker
+- **Fix "Previous process hasn't exited yet"** : Problème résolu complètement
+
+##### Nettoyage Codebase
+- **Suppression fichiers legacy** : 158 fichiers root-level supprimés
+  - Ancienne structure src/ (migré vers packages/web-app)
+  - Fichiers config racine (eslint.config.mjs, jest.config.js, next.config.ts)
+  - Tests anciens (migré vers packages appropriés)
+- **Gitignore amélioré** : Ajout .turbo/cache/, .turbo/daemon/, .turbo/cookies/*.cookie
+- **Tests mis à jour** : Extension .tsx pour tests React components
+- **PostCSS config** : Ajouté à packages/web-app
+
+##### Commits Git v4.0 (5 nouveaux)
+1. `28b8995` - refactor: simplify Better-auth configuration
+2. `af38438` - feat: improve development server lifecycle management
+3. `fa3bf2b` - chore: remove legacy root-level files after monorepo migration
+4. `bd62e78` - chore: add missing web-app configuration and test files
+5. `24ae967` - chore: add Turbo cache files to gitignore
+
+**État Git** : Branche `architecture`, working directory propre
 
 ---
 
@@ -191,13 +245,47 @@ src/app/(dashboard)/
 
 ## 🏗️ Architecture Technique Actuelle
 
-### Stack Implémenté
+### Stack Implémenté (Monorepo v4.0)
 ```typescript
-Frontend: Next.js 15 (App Router) + TypeScript + Tailwind v4
+Architecture: Turborepo monorepo avec npm workspaces
+Backend: Fastify + TypeScript (packages/backend, port 3001)
+Frontend: Next.js 15 (App Router) + TypeScript + Tailwind v4 (packages/web-app, port 3000)
+Shared: Types + Constants + Utils communs (packages/shared)
 Auth: Better-auth 1.3.8 avec configuration emailAndPassword
-Database: PostgreSQL + Prisma ORM
+Database: PostgreSQL + Prisma ORM (dans backend)
 Tests: Jest + Testing Library + Playwright
 Dev: Docker PostgreSQL + Redis
+Build: Turbo pour builds parallèles
+```
+
+### Structure Monorepo
+```
+stepzy/
+├── packages/
+│   ├── backend/          # API REST Fastify (port 3001)
+│   │   ├── src/
+│   │   │   ├── routes/   # Routes API
+│   │   │   ├── services/ # Logique métier
+│   │   │   ├── middleware/ # Auth, validation
+│   │   │   ├── database/ # Prisma client
+│   │   │   └── lib/      # Auth config
+│   │   └── prisma/       # Schema et migrations
+│   │
+│   ├── web-app/          # Frontend utilisateur (port 3000)
+│   │   ├── src/
+│   │   │   ├── app/      # Pages Next.js
+│   │   │   ├── components/ # Composants UI
+│   │   │   └── hooks/    # React hooks
+│   │   └── public/       # Assets statiques
+│   │
+│   └── shared/           # Code partagé
+│       ├── types/        # Types TypeScript
+│       ├── constants/    # SPORTS_CONFIG, etc.
+│       └── utils/        # Utilitaires communs
+│
+├── turbo.json            # Configuration Turborepo
+├── start-dev.sh          # Script de démarrage
+└── stop-dev.sh           # Script d'arrêt
 ```
 
 ### Structure des Données
@@ -223,27 +311,30 @@ Announcement (id, title, content, authorId, priority, active, timestamps)
 
 ---
 
-## 📁 Fichiers Clés Implémentés
+## 📁 Fichiers Clés Implémentés (Monorepo v4.0)
 
-### Configuration & Utils
+### Backend (packages/backend/)
 - `prisma/schema.prisma` - Schema BDD complet
-- `src/lib/auth/config.ts` - Configuration Better-auth
-- `src/lib/auth/validators.ts` - Validation email/pseudo/password
-- `src/lib/middleware/auth.ts` - Middleware protection routes
+- `src/lib/auth.ts` - Configuration Better-auth pour Fastify
+- `src/middleware/auth.middleware.ts` - Middleware Better-auth session verification
+- `src/database/prisma.ts` - Client Prisma singleton
+- `src/routes/auth.routes.ts` - Routes authentification
+- `src/routes/activities.routes.ts` - Routes CRUD activités
+- `src/routes/sessions.routes.ts` - Routes gestion sessions
+- `src/routes/users.routes.ts` - Routes utilisateurs
+- `src/routes/admin.routes.ts` - Routes administration
+- `src/index.ts` - Point d'entrée serveur Fastify
 
-### API Routes
-- `src/app/api/auth/register/route.ts` - Inscription utilisateur
-- `src/app/api/auth/login/route.ts` - Connexion utilisateur
-- `src/app/api/auth/me/route.ts` - Vérification session
-- `src/app/api/matches/route.ts` - Liste des matchs
-- `src/app/api/matches/[id]/route.ts` - Détails, modification, suppression match
-- `src/app/api/matches/[id]/join/route.ts` - Inscription match
-- `src/app/api/matches/[id]/leave/route.ts` - Désinscription match
-- `src/app/api/matches/[id]/force-join/route.ts` - Inscription forcée (admin)
-- `src/app/api/matches/[id]/force-leave/route.ts` - Désinscription forcée (admin)
-- `src/app/api/matches/[id]/replace/route.ts` - Remplacement joueur (admin)
+### Shared (packages/shared/)
+- `types/user.types.ts` - Types User, UserStats, etc.
+- `types/activity.types.ts` - Types Activity, Session, etc.
+- `types/api.types.ts` - Types ApiResponse, ApiError
+- `constants/sports.config.ts` - Configuration sports SPORTS_CONFIG
+- `utils/date.utils.ts` - Utilitaires de dates
+- `utils/validation.utils.ts` - Validateurs communs
 
-### Composants UI
+### Web-App (packages/web-app/)
+#### Composants UI
 - `src/components/auth/LoginForm.tsx` - Formulaire connexion
 - `src/components/auth/RegisterForm.tsx` - Formulaire inscription
 - `src/components/layout/Header.tsx` - Header avec menu utilisateur
@@ -254,17 +345,22 @@ Announcement (id, title, content, authorId, priority, active, timestamps)
 - `src/components/admin/AdminUserList.tsx` - Gestion des utilisateurs admin
 - `src/components/admin/AdminStatistics.tsx` - Dashboard statistiques admin
 - `src/components/profile/UserProfile.tsx` - Interface profil utilisateur complet
-- `src/components/profile/UserMatchHistory.tsx` - Historique matchs utilisateur
-- `src/components/profile/UserBadges.tsx` - Système badges et récompenses
+- `src/components/ui/Toast.tsx` - Système notifications toast moderne
 
-### Pages
+#### Pages
 - `src/app/login/page.tsx` - Page connexion
 - `src/app/register/page.tsx` - Page inscription
-- `src/app/dashboard/page.tsx` - Dashboard principal
-- `src/app/matches/[id]/page.tsx` - Page détaillée d'un match
-- `src/app/admin/users/page.tsx` - Page administration utilisateurs
-- `src/app/admin/statistics/page.tsx` - Page statistiques administrateur
-- `src/app/profile/page.tsx` - Page profil utilisateur personnalisé
+- `src/app/(dashboard)/mes-activites/page.tsx` - Dashboard participations
+- `src/app/(dashboard)/s-inscrire/page.tsx` - Catalogue activités
+- `src/app/(dashboard)/mes-statistiques/page.tsx` - Statistiques utilisateur
+- `src/app/(dashboard)/profile/page.tsx` - Profil utilisateur
+- `src/app/(dashboard)/sessions/[id]/page.tsx` - Détail session
+- `src/app/(dashboard)/admin/` - Pages administration
+
+### Scripts de Développement
+- `start-dev.sh` - Script démarrage avec gestion propre des signaux
+- `stop-dev.sh` - Script arrêt propre de tous les services
+- `turbo.json` - Configuration Turborepo pour builds parallèles
 
 ---
 
@@ -414,16 +510,19 @@ Responsive Design Tests: Tests adaptation mobile/desktop
 
 ## 🏆 Projet Entièrement Terminé
 
-**Status** : 🎊 **PROJET COMPLET** - Toutes les 11 phases terminées ✅
+**Status** : 🎊 **PROJET COMPLET** - Toutes les 13 phases terminées ✅
 
 **Livrable final** : Plateforme multisports Stepzy entièrement fonctionnelle avec :
-- Architecture moderne Next.js 15 + TypeScript
-- Système d'authentification robuste Better-auth
+- Architecture monorepo moderne (Turborepo + npm workspaces)
+- Backend API REST standalone Fastify (port 3001)
+- Frontend Next.js 15 optimisé (port 3000)
+- Package shared pour code réutilisable
+- Système d'authentification robuste Better-auth multi-frontend
 - Interface utilisateur intuitive et responsive
 - Panel d'administration complet
 - Système de notifications temps réel
-- Code quality professionnel (88 fichiers optimisés)
-- Documentation exhaustive
+- Scripts de développement optimisés avec gestion propre des processus
+- Documentation exhaustive et à jour
 
 ---
 

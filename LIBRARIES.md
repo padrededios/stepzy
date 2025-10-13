@@ -1,10 +1,41 @@
 # 📚 Libraries Documentation
 
-Ce document liste toutes les librairies utilisées dans le projet avec leurs fonctionnalités principales pour éviter la réimplémentation de fonctions existantes.
+Ce document liste toutes les librairies utilisées dans le projet monorepo (v4.0) avec leurs fonctionnalités principales pour éviter la réimplémentation de fonctions existantes.
+
+## 📦 Architecture Monorepo
+
+**Structure actuelle** :
+- `packages/backend/` - API Fastify standalone (port 3001)
+- `packages/web-app/` - Frontend Next.js (port 3000)
+- `packages/shared/` - Code partagé (types, constants, utils)
+
+## 🚀 Backend - Fastify Framework
+
+**Fichier**: `packages/backend/src/index.ts`
+
+### Fonctionnalités principales:
+- `fastify()` - Créer instance serveur Fastify
+- `app.get()`, `app.post()`, `app.put()`, `app.delete()` - Définir routes HTTP
+- `app.register()` - Enregistrer plugins et routes
+- `app.addHook()` - Ajouter hooks lifecycle (onRequest, preHandler, etc.)
+- `app.listen()` - Démarrer serveur avec port
+- `app.close()` - Fermer serveur proprement
+
+### Middleware disponibles:
+- `@fastify/cors` - Configuration CORS multi-origine
+- `@fastify/helmet` - Sécurité headers HTTP
+- `@fastify/cookie` - Gestion cookies
+- `@fastify/rate-limit` - Rate limiting par route
+
+### Types Fastify:
+```typescript
+import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
+```
 
 ## 🔐 Authentication - Better-auth v1.3.8
 
-**Fichier**: `src/lib/auth/`
+**Fichiers Backend**: `packages/backend/src/lib/auth.ts`, `packages/backend/src/middleware/auth.middleware.ts`
+**Fichiers Frontend**: `packages/web-app/src/lib/auth/` (client-side)
 
 ### Fonctions principales:
 - `auth.api.signUp()` - Inscription utilisateur avec validation email/password
@@ -37,7 +68,8 @@ Ce document liste toutes les librairies utilisées dans le projet avec leurs fon
 
 ## 🗄️ Database - Prisma ORM
 
-**Fichier**: `src/lib/database/prisma.ts`
+**Fichier**: `packages/backend/src/database/prisma.ts`
+**Schema**: `packages/backend/prisma/schema.prisma`
 
 ### Méthodes CRUD (pour chaque modèle: user, match, matchPlayer, notification):
 - `prisma.model.findUnique()` - Trouver un enregistrement unique
@@ -63,7 +95,7 @@ Ce document liste toutes les librairies utilisées dans le projet avec leurs fon
 
 ## 🚀 Cache - Redis v4+
 
-**Fichier**: `src/lib/cache/redis.ts`
+**Fichier**: `packages/backend/src/lib/cache/redis.ts`
 
 ### Opérations de base:
 - `client.get()` - Récupérer une valeur string par clé
@@ -100,7 +132,7 @@ Ce document liste toutes les librairies utilisées dans le projet avec leurs fon
 
 ## 🔔 Notifications - Service complet
 
-**Fichier**: `src/lib/notifications/service.ts`
+**Fichier**: `packages/backend/src/lib/notifications/service.ts`
 
 ### Gestion des notifications:
 - `createNotification()` - Créer une nouvelle notification pour un utilisateur
@@ -133,7 +165,7 @@ Ce document liste toutes les librairies utilisées dans le projet avec leurs fon
 
 ## ⚛️ React Hooks
 
-**Fichier**: `src/lib/hooks/useAuth.ts`
+**Fichiers**: `packages/web-app/src/hooks/`
 
 ### Hooks React disponibles:
 - `useState()` - Gérer l'état des composants
@@ -156,13 +188,13 @@ Ce document liste toutes les librairies utilisées dans le projet avec leurs fon
 - `refreshUser()` - Fonction pour rafraîchir les données utilisateur
 
 ### Hook useCurrentUser personnalisé:
-**Fichier**: `src/hooks/useCurrentUser.ts`
+**Fichier**: `packages/web-app/src/hooks/useCurrentUser.ts`
 - Accès utilisateur via Context API sans props drilling
 - `user` - Utilisateur authentifié depuis le contexte
 - Simplifie l'architecture en évitant la transmission de props
 
-### Hook useRecurringActivities personnalisé:
-**Fichier**: `src/hooks/useRecurringActivities.ts`
+### Hook useActivities personnalisé:
+**Fichier**: `packages/web-app/src/hooks/useActivities.ts`
 - `createdActivities` - Activités créées par l'utilisateur
 - `participationActivities` - Activités auxquelles l'utilisateur participe (upcoming/past)
 - `availableSessions` - Sessions disponibles pour inscription
@@ -176,7 +208,35 @@ Ce document liste toutes les librairies utilisées dans le projet avec leurs fon
 
 ---
 
+## 📦 Shared Package (@stepzy/shared)
+
+**Fichier**: `packages/shared/`
+
+### Types TypeScript:
+- `packages/shared/types/user.types.ts` - User, UserStats, AuthUser, etc.
+- `packages/shared/types/activity.types.ts` - Activity, Session, Participant, etc.
+- `packages/shared/types/api.types.ts` - ApiResponse, ApiError, etc.
+
+### Constants:
+- `packages/shared/constants/sports.config.ts` - SPORTS_CONFIG avec configuration sports
+- `packages/shared/constants/routes.ts` - Routes API centralisées
+
+### Utilitaires:
+- `packages/shared/utils/date.utils.ts` - formatDate, formatTime, parseDate
+- `packages/shared/utils/validation.utils.ts` - Validateurs réutilisables
+
+### Import depuis shared:
+```typescript
+import { User, Activity } from '@stepzy/shared/types'
+import { SPORTS_CONFIG } from '@stepzy/shared/constants'
+import { formatDate } from '@stepzy/shared/utils'
+```
+
+---
+
 ## 📦 Next.js v15 - Framework React
+
+**Package**: `packages/web-app/`
 
 ### Composants et fonctions disponibles:
 - `Image` - Composant d'image optimisé avec lazy loading
@@ -322,16 +382,21 @@ Utiliser les classes existantes plutôt que de créer du CSS personnalisé.
 ## 🔧 Utilitaires supplémentaires
 
 ### Validation:
-- **Zod** pour la validation de schémas TypeScript
+- **Zod** pour la validation de schémas TypeScript (backend et frontend)
 - **Better-auth validators** pour la validation d'auth
 
-### Export/Import:
-- **Fonctions d'export** dans `src/lib/utils/export.ts`
-- **Contraintes de temps** dans `src/lib/utils/time-constraints.ts`
+### Backend Utils:
+- **Export** dans `packages/backend/src/lib/utils/export.ts`
+- **Time constraints** dans `packages/backend/src/lib/utils/time-constraints.ts`
 
-### Monitoring:
-- **Métriques** dans `src/lib/monitoring/metrics.ts`
-- **Logging** dans `src/lib/logging/logger.ts`
+### Monitoring (Backend):
+- **Métriques** dans `packages/backend/src/lib/monitoring/metrics.ts`
+- **Logging** dans `packages/backend/src/lib/logging/logger.ts`
+
+### Turborepo:
+- **turbo.json** - Configuration builds parallèles
+- Commandes: `npm run dev`, `npm run build`, `npm run test`
+- Filtres: `--filter=backend`, `--filter=web-app`, `--filter=shared`
 
 ---
 
@@ -340,7 +405,31 @@ Utiliser les classes existantes plutôt que de créer du CSS personnalisé.
 1. **Toujours vérifier** si une fonction existe déjà avant d'en créer une nouvelle
 2. **Consulter ce fichier** et les commentaires dans le code pour connaître les fonctions disponibles
 3. **Utiliser les patterns établis** (ex: cache.getOrSet, prisma.$transaction)
-4. **Réutiliser les types** existants plutôt que d'en créer de nouveaux
-5. **Suivre les conventions** de nommage et d'organisation du projet
+4. **Réutiliser les types** depuis `@stepzy/shared` plutôt que d'en créer de nouveaux
+5. **Suivre les conventions** de nommage et d'organisation du monorepo
+6. **Backend vs Frontend** : Séparer clairement la logique (backend API, frontend UI)
+7. **Shared package** : Mettre le code réutilisable dans `packages/shared/`
+8. **Scripts Turbo** : Utiliser `npm run dev` pour lancer tous les packages en parallèle
 
-Ce document sera mis à jour au fur et à mesure de l'ajout de nouvelles librairies.
+## 🔧 Scripts de Développement
+
+### Démarrage:
+```bash
+./start-dev.sh           # Démarre backend + web-app + Docker
+./start-dev.sh --reset   # Réinitialise la DB
+./start-dev.sh --init    # Réinitialise et seed la DB
+```
+
+### Arrêt:
+```bash
+./stop-dev.sh            # Arrête tous les services proprement
+# ou Ctrl+C dans start-dev.sh (gestion propre des signaux)
+```
+
+### Développement ciblé:
+```bash
+npm run dev:backend      # Backend seul (port 3001)
+npm run dev:web          # Web-app seul (port 3000)
+```
+
+Ce document sera mis à jour au fur et à mesure de l'ajout de nouvelles librairies et de l'évolution de l'architecture.

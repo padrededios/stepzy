@@ -3,9 +3,18 @@
 ## 📋 Vue d'ensemble
 Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservation d'activités sportives multiples, développée en TDD.
 
-## 🎉 Version Actuelle : 3.3.0 (Octobre 2025)
+## 🎉 Version Actuelle : 4.0.0 (Octobre 2025)
 
-### ✅ Améliorations Récentes v3.3
+### ✅ Améliorations Récentes v4.0 (Architecture Monorepo)
+- **Monorepo Turborepo** : Structure complète avec npm workspaces et builds parallèles
+- **Backend Fastify** : API REST standalone sur port 3001 avec middleware Better-auth
+- **Frontend Web-App** : Application Next.js optimisée sur port 3000
+- **Package Shared** : Code commun (types, constants, utils) réutilisable
+- **Better-auth simplifié** : Configuration streamline avec cookieCache et customRules
+- **Scripts optimisés** : start-dev.sh avec trap SIGINT/SIGTERM, stop-dev.sh dédié
+- **Nettoyage complet** : Suppression 158 fichiers legacy, gitignore amélioré
+
+### ✅ Améliorations v3.3
 - **Seed System** : Système de seed réécrit pour générer activités récurrentes au lieu de matches legacy
 - **Filtrage Sessions** : Sessions disponibles filtrées par abonnements utilisateur (bugfix)
 - **Navigation Terrain** : Route `/sessions/[id]` créée pour afficher terrain avec joueurs positionnés
@@ -379,9 +388,9 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 
 ---
 
-## 🏗️ Phase 13 : Architecture Multi-Frontend (v4.0) 📋 PLANIFIÉE
+## 🏗️ Phase 13 : Architecture Multi-Frontend (v4.0) ✅ COMPLÉTÉE
 
-### 13.1 Préparation Monorepo (Semaines 1-2)
+### 13.1 Préparation Monorepo (Semaines 1-2) ✅
 - [x] Créer structure monorepo avec Turborepo
 - [x] Configurer npm workspaces
 - [x] Setup configuration TypeScript partagée
@@ -390,38 +399,38 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - [x] Migrer constantes (SPORTS_CONFIG, etc.) vers shared
 - [x] Créer utilitaires partagés (date, validation)
 
-### 13.2 Backend Standalone (Semaines 3-5)
-- [ ] Créer projet backend avec Fastify
-- [ ] Configurer TypeScript et ESLint backend
-- [ ] Migrer Prisma vers package backend
-- [ ] Configurer Better-auth avec Fastify adapter
-- [ ] Créer middleware auth.middleware.ts (Better-auth session)
-- [ ] Créer middleware admin.middleware.ts
-- [ ] Créer middleware cors.middleware.ts
-- [ ] Créer middleware validation.middleware.ts
-- [ ] Migrer routes auth (déléguer à Better-auth)
-- [ ] Migrer routes activities (CRUD complet)
-- [ ] Migrer routes sessions (join, leave, etc.)
-- [ ] Migrer routes users (profile, stats)
-- [ ] Migrer routes admin (users, statistics, announcements)
-- [ ] Créer services métier (auth, activity, session, user)
-- [ ] Implémenter repositories pour accès données
-- [ ] Tests unitaires services (> 90% coverage)
-- [ ] Tests intégration API avec Supertest
-- [ ] Documentation API avec types TypeScript
+### 13.2 Backend Standalone (Semaines 3-5) ✅
+- [x] Créer projet backend avec Fastify
+- [x] Configurer TypeScript et ESLint backend
+- [x] Migrer Prisma vers package backend
+- [x] Configurer Better-auth avec Fastify adapter
+- [x] Créer middleware auth.middleware.ts (Better-auth session)
+- [x] Créer middleware admin.middleware.ts
+- [x] Créer middleware cors.middleware.ts
+- [x] Créer middleware validation.middleware.ts
+- [x] Migrer routes auth (déléguer à Better-auth)
+- [x] Migrer routes activities (CRUD complet)
+- [x] Migrer routes sessions (join, leave, etc.)
+- [x] Migrer routes users (profile, stats)
+- [x] Migrer routes admin (users, statistics, announcements)
+- [x] Créer services métier (auth, activity, session, user)
+- [x] Implémenter repositories pour accès données
+- [x] Tests unitaires services (> 90% coverage)
+- [x] Tests intégration API avec Supertest
+- [x] Documentation API avec types TypeScript
 
-### 13.3 Adaptation Frontend Web-App (Semaines 6-7)
-- [ ] Créer package web-app
-- [ ] Migrer pages Next.js actuelles
-- [ ] Créer client API HTTP (lib/api/client.ts)
-- [ ] Créer wrappers API par ressource (auth.api.ts, activities.api.ts, etc.)
-- [ ] Remplacer tous les fetch('/api/...') par apiClient
-- [ ] Configurer Better-auth client pour pointer vers backend
-- [ ] Configurer variables d'environnement (NEXT_PUBLIC_API_URL)
-- [ ] Mettre à jour hooks pour utiliser nouveau client API
-- [ ] Adapter ProtectedRoute pour Better-auth distant
-- [ ] Tests intégration frontend-backend
-- [ ] Tests E2E mis à jour
+### 13.3 Adaptation Frontend Web-App (Semaines 6-7) ✅
+- [x] Créer package web-app
+- [x] Migrer pages Next.js actuelles
+- [x] Créer client API HTTP (lib/api/client.ts)
+- [x] Créer wrappers API par ressource (auth.api.ts, activities.api.ts, etc.)
+- [x] Remplacer tous les fetch('/api/...') par apiClient
+- [x] Configurer Better-auth client pour pointer vers backend
+- [x] Configurer variables d'environnement (NEXT_PUBLIC_API_URL)
+- [x] Mettre à jour hooks pour utiliser nouveau client API
+- [x] Adapter ProtectedRoute pour Better-auth distant
+- [x] Tests intégration frontend-backend
+- [x] Tests E2E mis à jour
 
 ### 13.4 Dashboard Admin (Semaines 8-10)
 - [ ] Créer package admin-app
@@ -439,11 +448,11 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 - [ ] Tests composants admin
 - [ ] Tests E2E parcours admin
 
-### 13.5 Configuration & Déploiement (Semaine 11)
-- [ ] Configuration CORS pour origines multiples
-- [ ] Variables d'environnement par package
-- [ ] Scripts Turborepo (dev, build, test, lint)
-- [ ] Docker Compose pour dev (backend + postgres + redis)
+### 13.5 Configuration & Déploiement (Semaine 11) 🔄 EN COURS
+- [x] Configuration CORS pour origines multiples
+- [x] Variables d'environnement par package
+- [x] Scripts Turborepo (dev, build, test, lint)
+- [x] Docker Compose pour dev (backend + postgres + redis)
 - [ ] Configuration CI/CD GitHub Actions
 - [ ] Déployer backend sur Railway/Render/Fly.io
 - [ ] Déployer web-app sur Vercel
@@ -489,12 +498,30 @@ Plateforme Next.js (App Router) avec Better-auth et PostgreSQL pour la réservat
 ### Objectifs v4.0
 - ✅ Backend API REST indépendant et réutilisable
 - ✅ Frontend web-app optimisé pour utilisateurs
-- ✅ Dashboard admin complet et séparé
+- 🔄 Dashboard admin complet et séparé (en cours)
 - ✅ Architecture scalable pour futurs clients (mobile, etc.)
 - ✅ Code partagé via @stepzy/shared
 - ✅ Tests > 90% sur tous les packages
 - ✅ Documentation complète et à jour
-- ✅ Déploiement production sans interruption
+- 🔄 Déploiement production sans interruption (planifié)
+
+### 🎊 Status Phase 13
+**Phase 13 (v4.0) - Architecture Multi-Frontend** : ✅ **COMPLÉTÉE** (13.1, 13.2, 13.3)
+
+**Réalisations majeures** :
+- Architecture monorepo Turborepo fonctionnelle
+- Backend Fastify standalone avec Better-auth
+- Frontend web-app migré et optimisé
+- Package shared avec code réutilisable
+- Scripts de développement améliorés (start-dev.sh, stop-dev.sh)
+- Configuration Better-auth simplifiée et robuste
+- 158 fichiers legacy nettoyés
+- Tests et couverture maintenus > 90%
+
+**Reste à faire** :
+- Dashboard admin séparé (Phase 13.4)
+- Déploiement production complet (Phase 13.5)
+- Migration données si nécessaire (Phase 13.6)
 
 ---
 
