@@ -24,6 +24,27 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Trap SIGINT and SIGTERM to cleanup properly
+cleanup() {
+  echo ""
+  echo "🛑 Stopping development servers..."
+
+  # Kill all child processes
+  if [ ! -z "$DEV_PID" ]; then
+    pkill -P $DEV_PID 2>/dev/null || true
+    kill $DEV_PID 2>/dev/null || true
+  fi
+
+  # Kill any remaining processes on ports 3000 and 3001
+  lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+  lsof -ti:3001 | xargs kill -9 2>/dev/null || true
+
+  echo "✅ Cleanup complete!"
+  exit 0
+}
+
+trap cleanup SIGINT SIGTERM
+
 echo "🚀 Starting Stepzy in development mode..."
 
 # Stop any existing Docker services
@@ -84,4 +105,12 @@ echo ""
 echo "📍 Backend API:  http://localhost:3001"
 echo "📍 Frontend:     http://localhost:3000"
 echo ""
-npm run dev
+echo "💡 Press Ctrl+C to stop all servers"
+echo ""
+
+# Run npm dev in background and capture PID
+npm run dev &
+DEV_PID=$!
+
+# Wait for the process
+wait $DEV_PID
