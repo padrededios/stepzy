@@ -23,11 +23,8 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 jours
     updateAge: 60 * 60 * 24, // 1 jour
     cookieCache: {
-      name: 'stepzy.session-token',
-      maxAge: 60 * 60 * 24 * 7, // 7 jours
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      sameSite: 'lax'
+      enabled: true,
+      maxAge: 60 * 60 * 24 * 7 // 7 jours
     }
   },
 
@@ -60,7 +57,7 @@ export const auth = betterAuth({
     'http://localhost:3002', // admin-app dev
     process.env.WEB_APP_URL,
     process.env.ADMIN_APP_URL
-  ].filter(Boolean),
+  ].filter((origin): origin is string => typeof origin === 'string'),
 
   logger: {
     disabled: process.env.NODE_ENV === 'production'
@@ -69,18 +66,18 @@ export const auth = betterAuth({
   rateLimit: {
     enabled: true,
     storage: 'memory',
-    rules: [
-      {
-        pathMatcher: (path: string) => path.includes('/sign-in'),
-        max: 5,
-        window: 60 * 1000 // 1 minute
+    window: 60 * 1000, // 1 minute
+    max: 10,
+    customRules: {
+      '/auth/sign-in': {
+        window: 60 * 1000,
+        max: 5
       },
-      {
-        pathMatcher: (path: string) => path.includes('/sign-up'),
-        max: 3,
-        window: 60 * 1000 // 1 minute
+      '/auth/sign-up': {
+        window: 60 * 1000,
+        max: 3
       }
-    ]
+    }
   },
 
   advanced: {

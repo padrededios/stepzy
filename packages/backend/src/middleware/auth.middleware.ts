@@ -46,12 +46,12 @@ export async function requireAuth(
     }
 
     // Attach user and session to request
-    request.user = session.user as {
-      id: string
-      email: string
-      pseudo: string
-      avatar?: string | null
-      role: 'user' | 'root'
+    request.user = {
+      id: session.user.id,
+      email: session.user.email,
+      pseudo: (session.user as any).pseudo || session.user.name || '',
+      avatar: (session.user as any).avatar || session.user.image || null,
+      role: ((session.user as any).role as 'user' | 'root') || 'user'
     }
 
     request.session = {
@@ -84,12 +84,12 @@ export async function optionalAuth(
     })
 
     if (session) {
-      request.user = session.user as {
-        id: string
-        email: string
-        pseudo: string
-        avatar?: string | null
-        role: 'user' | 'root'
+      request.user = {
+        id: session.user.id,
+        email: session.user.email,
+        pseudo: (session.user as any).pseudo || session.user.name || '',
+        avatar: (session.user as any).avatar || session.user.image || null,
+        role: ((session.user as any).role as 'user' | 'root') || 'user'
       }
 
       request.session = {
