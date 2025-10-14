@@ -7,7 +7,10 @@ import { createAuthClient } from 'better-auth/react'
 const AUTH_URL = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3001'
 
 export const authClient = createAuthClient({
-  baseURL: AUTH_URL
+  baseURL: AUTH_URL,
+  fetchOptions: {
+    credentials: 'include' as RequestCredentials
+  }
 })
 
 export interface SignInData {

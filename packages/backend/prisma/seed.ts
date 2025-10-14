@@ -3,6 +3,7 @@
  * Uses Better-auth compatible password hashing (scrypt)
  */
 
+import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { scrypt, randomBytes } from 'crypto'
 import { promisify } from 'util'
