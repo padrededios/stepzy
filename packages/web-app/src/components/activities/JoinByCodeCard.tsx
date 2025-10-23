@@ -16,6 +16,7 @@ export function JoinByCodeCard({ onJoin }: JoinByCodeCardProps) {
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [activityPreview, setActivityPreview] = useState<any>(null)
+  const [infoMessage, setInfoMessage] = useState<string | null>(null)
 
   const handleCodeChange = (value: string) => {
     const sanitized = sanitizeActivityCode(value)
@@ -56,18 +57,29 @@ export function JoinByCodeCard({ onJoin }: JoinByCodeCardProps) {
   const handleJoin = async () => {
     setIsLoading(true)
     setError(null)
+    setInfoMessage(null)
 
     try {
       const result = await onJoin(code)
 
       if (result.success) {
-        setMessage({ type: 'success', text: result.message || 'Activité rejointe avec succès' })
-        setCode('')
-        setActivityPreview(null)
-        setTimeout(() => {
-          setIsModalOpen(false)
-          setMessage(null)
-        }, 2000)
+        // Check if user was already a member
+        const isAlreadyMember = result.message?.includes('déjà membre')
+
+        if (isAlreadyMember) {
+          // If already a member, show info message in modal and don't auto-close
+          setInfoMessage(result.message || 'Vous êtes déjà membre de cette activité')
+          setActivityPreview(null)
+        } else {
+          // New member: show success message and close modal after delay
+          setMessage({ type: 'success', text: result.message || 'Activité rejointe avec succès' })
+          setCode('')
+          setActivityPreview(null)
+          setTimeout(() => {
+            setIsModalOpen(false)
+            setMessage(null)
+          }, 2000)
+        }
       } else {
         setError(result.error || 'Erreur lors de la tentative de rejoindre l\'activité')
       }
@@ -84,6 +96,7 @@ export function JoinByCodeCard({ onJoin }: JoinByCodeCardProps) {
     setError(null)
     setActivityPreview(null)
     setMessage(null)
+    setInfoMessage(null)
   }
 
   return (
@@ -193,6 +206,14 @@ export function JoinByCodeCard({ onJoin }: JoinByCodeCardProps) {
               </div>
             )}
 
+            {/* Info message (for "already member" case) */}
+            {infoMessage && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-700 font-medium">{infoMessage}</p>
+                <p className="text-xs text-blue-600 mt-1">L'activité est déjà présente dans votre liste.</p>
+              </div>
+            )}
+
             {/* Activity preview */}
             {activityPreview && (
               <div className="mb-4 p-4 bg-gray-50 rounded-md border border-gray-200">
@@ -208,7 +229,16 @@ export function JoinByCodeCard({ onJoin }: JoinByCodeCardProps) {
 
             {/* Actions */}
             <div className="flex space-x-3">
-              {!activityPreview ? (
+              {infoMessage ? (
+                // Already member: show only OK button
+                <button
+                  onClick={handleClose}
+                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                >
+                  OK
+                </button>
+              ) : !activityPreview ? (
+                // No preview yet: show Cancel and Verify buttons
                 <>
                   <button
                     onClick={handleClose}
@@ -226,6 +256,7 @@ export function JoinByCodeCard({ onJoin }: JoinByCodeCardProps) {
                   </button>
                 </>
               ) : (
+                // Preview shown: show Back and Join buttons
                 <>
                   <button
                     onClick={() => {
