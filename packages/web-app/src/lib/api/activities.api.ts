@@ -160,5 +160,12 @@ export const activitiesApi = {
       return `Utilisez ce code pour rejoindre l'activité : ${code}`
     }
     return `${window.location.origin}/join/${code}`
+  },
+
+  /**
+   * Send activity invitation by email
+   */
+  async sendInvitation(activityId: string, email: string) {
+    return apiClient.post(`/api/activities/${activityId}/send-invitation`, { email })
   }
 }

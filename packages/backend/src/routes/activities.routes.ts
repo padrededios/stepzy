@@ -5,10 +5,13 @@
 import type { FastifyInstance } from 'fastify'
 import { ActivityService } from '../services/activity.service'
 import { ActivitySessionService } from '../services/activity-session.service'
+import { EmailService } from '../services/email.service'
 import { requireAuth } from '../middleware/auth.middleware'
 import { validate, commonSchemas } from '../middleware/validation.middleware'
 import { z } from 'zod'
 import type { SportType, DayOfWeek, RecurringType } from '@stepzy/shared'
+import { DAY_LABELS } from '@stepzy/shared'
+import { SPORTS_CONFIG } from '@stepzy/shared'
 
 // Validation schemas
 const createActivitySchema = z.object({
@@ -53,6 +56,10 @@ const joinByCodeSchema = z.object({
 
 const activityCodeParam = z.object({
   code: z.string().length(8).regex(/^[A-Z0-9]{8}$/)
+})
+
+const sendInvitationSchema = z.object({
+  email: z.string().email('Adresse email invalide')
 })
 
 export async function activitiesRoutes(fastify: FastifyInstance) {
@@ -383,6 +390,74 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({
         success: false,
         error: 'Erreur lors de la récupération des informations de l\'activité'
+      })
+    }
+  })
+
+  // POST /api/activities/:id/send-invitation - Send activity invitation by email
+  fastify.post('/api/activities/:id/send-invitation', {
+    preHandler: [requireAuth, validate({ params: commonSchemas.idParam, body: sendInvitationSchema })]
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+      const { email } = request.body as { email: string }
+
+      // Get activity details
+      const activity = await ActivityService.findById(id, request.user!.id)
+
+      if (!activity) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Activité non trouvée'
+        })
+      }
+
+      // Check if user is the creator
+      if (activity.createdBy !== request.user!.id) {
+        return reply.status(403).send({
+          success: false,
+          error: 'Seul le créateur peut envoyer des invitations'
+        })
+      }
+
+      // Prepare email data
+      const sportConfig = SPORTS_CONFIG[activity.sport as SportType]
+      const formattedDays = activity.recurringDays.map(day => DAY_LABELS[day as keyof typeof DAY_LABELS])
+      const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/join/${activity.code}`
+
+      const emailData = {
+        activityName: activity.name,
+        sportName: sportConfig.name,
+        creatorName: request.user!.pseudo,
+        activityCode: activity.code,
+        inviteLink,
+        recurringDays: formattedDays,
+        recurringType: activity.recurringType === 'weekly' ? 'hebdomadaire' : 'mensuel',
+        startTime: activity.startTime,
+        endTime: activity.endTime,
+        maxPlayers: activity.maxPlayers
+      }
+
+      // Send email
+      const result = await EmailService.sendActivityInvitation(email, emailData)
+
+      if (!result.success) {
+        return reply.status(500).send({
+          success: false,
+          error: result.error || 'Erreur lors de l\'envoi de l\'email'
+        })
+      }
+
+      return reply.send({
+        success: true,
+        message: `Invitation envoyée à ${email}`,
+        messageId: result.messageId
+      })
+    } catch (error) {
+      request.log.error(error)
+      return reply.status(500).send({
+        success: false,
+        error: error instanceof Error ? error.message : 'Erreur lors de l\'envoi de l\'invitation'
       })
     }
   })
