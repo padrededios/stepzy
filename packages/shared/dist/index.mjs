@@ -135,20 +135,48 @@ var getTimeUntil = (date) => {
   if (minutes > 0) return `Dans ${minutes} minute${minutes > 1 ? "s" : ""}`;
   return "Bient\xF4t";
 };
+
+// src/utils/code.ts
+function generateActivityCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 8; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    code += chars[randomIndex];
+  }
+  return code;
+}
+function isValidActivityCode(code) {
+  const codeRegex = /^[A-Z0-9]{8}$/;
+  return codeRegex.test(code);
+}
+function formatActivityCode(code) {
+  if (!isValidActivityCode(code)) {
+    return code;
+  }
+  return `${code.slice(0, 4)} ${code.slice(4)}`;
+}
+function sanitizeActivityCode(input) {
+  return input.replace(/\s/g, "").toUpperCase();
+}
 export {
   DAY_LABELS,
   PARTICIPANT_STATUS_LABELS,
   RECURRING_TYPE_LABELS,
   SPORTS_CONFIG,
+  formatActivityCode,
   formatDate,
   formatDateShort,
   formatDateTime,
   formatTime,
+  generateActivityCode,
   getAllSports,
   getSportConfig,
   getTimeUntil,
   isFuture,
   isPast,
-  isToday
+  isToday,
+  isValidActivityCode,
+  sanitizeActivityCode
 };
 //# sourceMappingURL=index.mjs.map

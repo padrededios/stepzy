@@ -7,6 +7,9 @@ import { SPORTS_CONFIG, type SportType } from '@/config/sports'
 import { useActivities, type Activity } from '@/hooks/useActivities'
 import Image from 'next/image'
 import { Toast } from '@/components/ui/Toast'
+import { JoinByCodeCard } from '@/components/activities/JoinByCodeCard'
+import { formatActivityCode } from '@stepzy/shared'
+import { activitiesApi } from '@/lib/api'
 
 
 export default function SInscrirePage() {
@@ -15,6 +18,8 @@ export default function SInscrirePage() {
     getAvailableActivities,
     registerForActivity,
     unregisterFromActivity,
+    joinByCode,
+    leaveActivity,
     loading
   } = useActivities(user.id)
 
@@ -65,6 +70,29 @@ export default function SInscrirePage() {
         setMessage({ type: 'success', text: 'Désinscription réussie' })
       } else {
         setMessage({ type: 'error', text: result?.error || 'Erreur lors de la désinscription' })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Erreur de connexion' })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleQuitActivity = async (activityId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir quitter définitivement cette activité ? Elle ne sera plus visible dans votre liste.')) {
+      return
+    }
+
+    setActionLoading(activityId)
+    setMessage(null)
+
+    try {
+      const result = await leaveActivity(activityId)
+
+      if (result?.success) {
+        setMessage({ type: 'success', text: 'Vous avez quitté l\'activité' })
+      } else {
+        setMessage({ type: 'error', text: result?.error || 'Erreur lors de la tentative de quitter l\'activité' })
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Erreur de connexion' })
@@ -149,11 +177,15 @@ export default function SInscrirePage() {
               activity={activity}
               onJoin={handleJoinActivity}
               onLeave={handleLeaveActivity}
+              onQuit={handleQuitActivity}
               onManage={handleManageActivity}
               isSubscribed={activity.isSubscribed}
               loading={actionLoading === activity.id}
             />
           ))}
+
+          {/* Join by Code Card */}
+          <JoinByCodeCard onJoin={joinByCode} />
 
           {/* Create Activity Card */}
           <CreateActivityCard />
@@ -242,6 +274,7 @@ function ActivityCard({
   activity,
   onJoin,
   onLeave,
+  onQuit,
   onManage,
   isSubscribed,
   loading
@@ -249,12 +282,15 @@ function ActivityCard({
   activity: Activity
   onJoin: (id: string) => void
   onLeave: (id: string) => void
+  onQuit: (id: string) => void
   onManage: (id: string) => void
   isSubscribed: boolean
   loading: boolean
 }) {
   const sportConfig = SPORTS_CONFIG[activity.sport]
   const userIsSubscribed = isSubscribed || activity.isParticipant
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null)
+  const canQuit = !userIsSubscribed && !activity.canManage // Peut quitter si désinscrit et non créateur
 
   // Formater les jours de récurrence
   const formatRecurringDays = (days: string[], type: string) => {
@@ -270,6 +306,40 @@ function ActivityCard({
 
     const formattedDays = days.map(day => dayLabels[day] || day).join(', ')
     return `${formattedDays} (${type === 'weekly' ? 'hebdomadaire' : 'mensuel'})`
+  }
+
+  // Copier le code dans le presse-papiers
+  const handleCopyCode = async () => {
+    const success = await activitiesApi.copyCodeToClipboard(activity.code)
+    if (success) {
+      setCopyFeedback('Code copié !')
+      setTimeout(() => setCopyFeedback(null), 2000)
+    } else {
+      setCopyFeedback('Erreur de copie')
+      setTimeout(() => setCopyFeedback(null), 2000)
+    }
+  }
+
+  // Copier le lien de partage
+  const handleCopyLink = async () => {
+    const link = activitiesApi.generateShareLink(activity.code)
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopyFeedback('Lien copié !')
+      setTimeout(() => setCopyFeedback(null), 2000)
+    } catch (error) {
+      setCopyFeedback('Erreur de copie')
+      setTimeout(() => setCopyFeedback(null), 2000)
+    }
+  }
+
+  // Partager par email
+  const handleShareByEmail = () => {
+    const subject = encodeURIComponent(`Invitation à rejoindre l'activité "${activity.name}"`)
+    const body = encodeURIComponent(
+      `Bonjour,\n\nJe t'invite à rejoindre mon activité "${activity.name}" (${sportConfig.name}).\n\nUtilise ce code pour rejoindre : ${activity.code}\n\nOu clique sur ce lien : ${activitiesApi.generateShareLink(activity.code)}\n\nÀ bientôt !`
+    )
+    window.location.href = `mailto:?subject=${subject}&body=${body}`
   }
 
   const getActionButtons = () => {
@@ -310,6 +380,23 @@ function ActivityCard({
           className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Gérer
+        </button>
+      )
+    }
+
+    // Bouton "Quitter" visible seulement si désinscrit et non créateur
+    if (canQuit) {
+      buttons.push(
+        <button
+          key="quit"
+          onClick={() => onQuit(activity.id)}
+          disabled={loading}
+          className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Quitter l'activité"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       )
     }
@@ -387,6 +474,68 @@ function ActivityCard({
             </span>
           </div>
         </div>
+
+        {/* Code de partage pour les créateurs */}
+        {activity.canManage && (
+          <div className="mb-4 p-3 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 rounded-lg">
+            <div className="flex items-center space-x-2 mb-3">
+              <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+              <span className="text-sm font-semibold text-teal-900">Code d'invitation</span>
+            </div>
+
+            {/* Code display */}
+            <div className="bg-white border border-teal-300 rounded-md p-2 mb-3 text-center">
+              <span className="text-lg font-mono font-bold text-teal-700 tracking-widest">
+                {formatActivityCode(activity.code)}
+              </span>
+            </div>
+
+            {/* Feedback message */}
+            {copyFeedback && (
+              <div className="mb-2 text-xs text-center text-teal-700 font-medium">
+                {copyFeedback}
+              </div>
+            )}
+
+            {/* Share buttons */}
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={handleCopyCode}
+                className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs font-medium transition-colors"
+                title="Copier le code"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Code</span>
+              </button>
+
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-medium transition-colors"
+                title="Copier le lien d'invitation"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <span>Lien</span>
+              </button>
+
+              <button
+                onClick={handleShareByEmail}
+                className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition-colors"
+                title="Partager par email"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span>Email</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Action buttons */}
         {getActionButtons()}

@@ -3,7 +3,15 @@
  */
 
 import { apiClient } from './client'
-import type { Activity, CreateActivityData, UpdateActivityData, ActivityFilters } from '@stepzy/shared'
+import type {
+  Activity,
+  CreateActivityData,
+  UpdateActivityData,
+  ActivityFilters,
+  JoinActivityByCodeData,
+  ActivityCodeResponse,
+  ActivityCodeInfo
+} from '@stepzy/shared'
 
 export const activitiesApi = {
   /**
@@ -75,6 +83,13 @@ export const activitiesApi = {
   },
 
   /**
+   * Leave activity (remove from user's list)
+   */
+  async leave(id: string) {
+    return apiClient.delete(`/api/activities/${id}/leave`)
+  },
+
+  /**
    * Get my created activities
    */
   async getMyCreated() {
@@ -93,5 +108,57 @@ export const activitiesApi = {
    */
   async getUpcomingSessions() {
     return apiClient.get('/api/activities/upcoming-sessions')
+  },
+
+  /**
+   * Join activity by code
+   */
+  async joinByCode(code: string) {
+    return apiClient.post<ActivityCodeResponse>('/api/activities/join-by-code', { code })
+  },
+
+  /**
+   * Get activity info by code (preview before joining)
+   */
+  async getByCode(code: string) {
+    return apiClient.get<ActivityCodeInfo>(`/api/activities/code/${code}`)
+  },
+
+  /**
+   * Copy code to clipboard
+   */
+  async copyCodeToClipboard(code: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(code)
+      return true
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = code
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-999999px'
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+
+      try {
+        document.execCommand('copy')
+        document.body.removeChild(textArea)
+        return true
+      } catch (err) {
+        document.body.removeChild(textArea)
+        return false
+      }
+    }
+  },
+
+  /**
+   * Generate share link for activity
+   */
+  generateShareLink(code: string): string {
+    if (typeof window === 'undefined') {
+      return `Utilisez ce code pour rejoindre l'activité : ${code}`
+    }
+    return `${window.location.origin}/join/${code}`
   }
 }

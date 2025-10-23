@@ -74,6 +74,7 @@ interface Activity {
     maxPlayers: number;
     createdBy: string;
     isPublic: boolean;
+    code: string;
     createdAt: Date;
     updatedAt: Date;
     recurringDays: DayOfWeek[];
@@ -165,6 +166,25 @@ interface SessionFilters {
     dateTo?: Date;
     hasSpots?: boolean;
 }
+interface JoinActivityByCodeData {
+    code: string;
+}
+interface ActivityCodeResponse {
+    activity: Activity;
+    alreadyMember: boolean;
+}
+interface ActivityCodeInfo {
+    name: string;
+    sport: SportType;
+    creator: {
+        pseudo: string;
+        avatar: string | null;
+    };
+    minPlayers: number;
+    maxPlayers: number;
+    recurringDays: DayOfWeek[];
+    recurringType: RecurringType;
+}
 declare const DAY_LABELS: Record<DayOfWeek, string>;
 declare const RECURRING_TYPE_LABELS: Record<RecurringType, string>;
 declare const PARTICIPANT_STATUS_LABELS: Record<ParticipantStatus, string>;
@@ -196,4 +216,4 @@ interface LoginData {
     password: string;
 }
 
-export { type Activity, type ActivityFilters, type ActivityParticipant, type ActivitySession, type ActivityWithStats, type ApiResponse, type CreateActivityData, type CreateUserData, DAY_LABELS, type DayOfWeek, type LoginData, type Match, type MatchActivity, type MatchPlayer, type MatchStatus, PARTICIPANT_STATUS_LABELS, type ParticipantStatus, type PlayerStatus, RECURRING_TYPE_LABELS, type RecurringType, type SessionFilters, type SessionStatus, type SessionWithParticipants, SportType, type UpdateActivityData, type UpdateSessionData, type UpdateUserData, type User, type UserProfile, type UserRole, type UserStats };
+export { type Activity, type ActivityCodeInfo, type ActivityCodeResponse, type ActivityFilters, type ActivityParticipant, type ActivitySession, type ActivityWithStats, type ApiResponse, type CreateActivityData, type CreateUserData, DAY_LABELS, type DayOfWeek, type JoinActivityByCodeData, type LoginData, type Match, type MatchActivity, type MatchPlayer, type MatchStatus, PARTICIPANT_STATUS_LABELS, type ParticipantStatus, type PlayerStatus, RECURRING_TYPE_LABELS, type RecurringType, type SessionFilters, type SessionStatus, type SessionWithParticipants, SportType, type UpdateActivityData, type UpdateSessionData, type UpdateUserData, type User, type UserProfile, type UserRole, type UserStats };

@@ -19,6 +19,7 @@ export interface Activity {
   maxPlayers: number
   createdBy: string
   isPublic: boolean
+  code: string // Code unique de 8 caractères pour rejoindre l'activité
   createdAt: Date
   updatedAt: Date
 
@@ -131,6 +132,29 @@ export interface SessionFilters {
   dateFrom?: Date
   dateTo?: Date
   hasSpots?: boolean
+}
+
+// Types pour les codes d'activité
+export interface JoinActivityByCodeData {
+  code: string
+}
+
+export interface ActivityCodeResponse {
+  activity: Activity
+  alreadyMember: boolean
+}
+
+export interface ActivityCodeInfo {
+  name: string
+  sport: SportType
+  creator: {
+    pseudo: string
+    avatar: string | null
+  }
+  minPlayers: number
+  maxPlayers: number
+  recurringDays: DayOfWeek[]
+  recurringType: RecurringType
 }
 
 // Configuration des jours de la semaine

@@ -9,8 +9,37 @@ import type {
   UpdateActivityData,
   ActivityFilters
 } from '@stepzy/shared'
+import { generateActivityCode } from '@stepzy/shared'
 
 export class ActivityService {
+  /**
+   * Generate a unique activity code
+   */
+  private static async generateUniqueCode(): Promise<string> {
+    let code: string
+    let isUnique = false
+    let attempts = 0
+    const maxAttempts = 10
+
+    while (!isUnique && attempts < maxAttempts) {
+      code = generateActivityCode()
+
+      // Check if code already exists
+      const existing = await prisma.activity.findUnique({
+        where: { code }
+      })
+
+      if (!existing) {
+        isUnique = true
+        return code
+      }
+
+      attempts++
+    }
+
+    throw new Error('Impossible de générer un code unique pour l\'activité')
+  }
+
   /**
    * Create a new activity
    */
@@ -24,6 +53,9 @@ export class ActivityService {
       throw new Error('Le nombre minimum de joueurs ne peut pas être supérieur au nombre maximum')
     }
 
+    // Generate unique code
+    const code = await this.generateUniqueCode()
+
     // Create activity
     const activity = await prisma.activity.create({
       data: {
@@ -33,6 +65,7 @@ export class ActivityService {
         minPlayers: data.minPlayers,
         maxPlayers: data.maxPlayers,
         createdBy: userId,
+        code,
         recurringDays: data.recurringDays,
         recurringType: data.recurringType,
         startTime: data.startTime,
@@ -55,6 +88,7 @@ export class ActivityService {
 
   /**
    * Get activities with filters
+   * Returns only activities in user's list (created by them or joined via code)
    */
   static async findMany(
     userId: string,
@@ -64,8 +98,21 @@ export class ActivityService {
     const { page = 1, limit = 10 } = pagination
     const skip = (page - 1) * limit
 
+    // Get user's activity list (activities they've joined or created)
+    const userActivityList = await prisma.userActivityList.findMany({
+      where: { userId },
+      select: { activityId: true }
+    })
+
+    const activityIdsInList = userActivityList.map(item => item.activityId)
+
     // Build where clause
-    const whereClause: any = {}
+    const whereClause: any = {
+      OR: [
+        { id: { in: activityIdsInList } }, // Activities in user's list
+        { createdBy: userId } // Activities created by user
+      ]
+    }
 
     if (filters.sport) {
       whereClause.sport = filters.sport
@@ -306,6 +353,21 @@ export class ActivityService {
       throw new Error('Activité non trouvée')
     }
 
+    // Add to user's activity list if not already there
+    await prisma.userActivityList.upsert({
+      where: {
+        userId_activityId: {
+          userId,
+          activityId
+        }
+      },
+      create: {
+        userId,
+        activityId
+      },
+      update: {}
+    })
+
     // Check if already subscribed
     const existing = await prisma.activitySubscription.findFirst({
       where: {
@@ -491,5 +553,120 @@ export class ActivityService {
       upcoming: upcomingSessions,
       past: pastSessions.reverse() // Most recent first
     }
+  }
+
+  /**
+   * Find activity by code
+   */
+  static async findByCode(code: string) {
+    const activity = await prisma.activity.findUnique({
+      where: { code },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            pseudo: true,
+            avatar: true
+          }
+        }
+      }
+    })
+
+    return activity
+  }
+
+  /**
+   * Join activity by code
+   */
+  static async joinByCode(userId: string, code: string) {
+    // Find activity by code
+    const activity = await this.findByCode(code)
+
+    if (!activity) {
+      throw new Error('Code d\'activité invalide')
+    }
+
+    // Check if user is already subscribed
+    const existing = await prisma.activitySubscription.findFirst({
+      where: {
+        userId,
+        activityId: activity.id
+      }
+    })
+
+    // Check if already in list
+    const inList = await prisma.userActivityList.findFirst({
+      where: {
+        userId,
+        activityId: activity.id
+      }
+    })
+
+    if (existing && inList) {
+      return {
+        activity,
+        alreadyMember: true
+      }
+    }
+
+    // Add to user's activity list if not already there
+    if (!inList) {
+      await prisma.userActivityList.create({
+        data: {
+          userId,
+          activityId: activity.id
+        }
+      })
+    }
+
+    // Subscribe to activity if not already subscribed
+    if (!existing) {
+      await this.subscribe(activity.id, userId)
+    }
+
+    return {
+      activity,
+      alreadyMember: !!existing
+    }
+  }
+
+  /**
+   * Leave activity (remove from user's list)
+   * Only allowed if user is not subscribed and is not the creator
+   */
+  static async leave(activityId: string, userId: string) {
+    // Check if activity exists
+    const activity = await prisma.activity.findUnique({
+      where: { id: activityId }
+    })
+
+    if (!activity) {
+      throw new Error('Activité non trouvée')
+    }
+
+    // Don't allow creator to leave their own activity
+    if (activity.createdBy === userId) {
+      throw new Error('Vous ne pouvez pas quitter une activité que vous avez créée')
+    }
+
+    // Check if user is subscribed
+    const subscription = await prisma.activitySubscription.findFirst({
+      where: {
+        userId,
+        activityId
+      }
+    })
+
+    if (subscription) {
+      throw new Error('Vous devez d\'abord vous désinscrire de l\'activité')
+    }
+
+    // Remove from user's activity list
+    await prisma.userActivityList.deleteMany({
+      where: {
+        userId,
+        activityId
+      }
+    })
   }
 }

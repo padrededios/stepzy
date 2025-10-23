@@ -14,6 +14,7 @@ export interface Activity {
   recurringType: 'weekly' | 'monthly'
   isPublic: boolean
   createdBy: string
+  code: string // Code unique pour rejoindre l'activité
   creator: {
     id: string
     pseudo: string
@@ -48,6 +49,7 @@ const fetchActivitiesFromAPI = async (userId?: string): Promise<Activity[]> => {
         recurringType: activity.recurringType,
         isPublic: activity.isPublic,
         createdBy: activity.createdBy,
+        code: activity.code,
         creator: activity.creator,
         upcomingSessionsCount: activity.upcomingSessionsCount || 0,
         totalParticipants: activity.totalParticipants || 0,
@@ -190,8 +192,61 @@ export function useActivities(userId?: string) {
   }
 
   // Obtenir toutes les activités disponibles (pour "S'inscrire")
+  // Le backend filtre déjà selon la liste personnelle de l'utilisateur
   const getAvailableActivities = () => {
-    return activities.filter(activity => activity.status !== 'cancelled')
+    return activities
+  }
+
+  // Rejoindre une activité avec un code
+  const joinByCode = async (code: string) => {
+    if (!userId) return { success: false, error: 'Utilisateur non connecté' }
+
+    try {
+      const result = await activitiesApi.joinByCode(code)
+
+      if (result.success) {
+        // Recharger les activités depuis l'API
+        const fetchedActivities = await fetchActivitiesFromAPI(userId)
+        setActivities(fetchedActivities)
+
+        return {
+          success: true,
+          activity: result.data,
+          alreadyMember: result.alreadyMember || false,
+          message: result.message || (result.alreadyMember
+            ? 'Vous êtes déjà membre de cette activité'
+            : `Vous avez rejoint l'activité avec succès`)
+        }
+      } else {
+        throw new Error(result.error || 'Erreur lors de la tentative de rejoindre l\'activité')
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Erreur de connexion'
+      }
+    }
+  }
+
+  // Quitter une activité (retirer de la liste personnelle)
+  const leaveActivity = async (activityId: string) => {
+    if (!userId) return
+
+    try {
+      const result = await activitiesApi.leave(activityId)
+
+      if (result.success) {
+        // Recharger les activités depuis l'API avec les statuts à jour
+        const fetchedActivities = await fetchActivitiesFromAPI(userId)
+        setActivities(fetchedActivities)
+        return { success: true }
+      } else {
+        throw new Error(result.error || 'Erreur lors de la tentative de quitter l\'activité')
+      }
+    } catch (error) {
+      // Failed to leave activity
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la tentative de quitter l\'activité' }
+    }
   }
 
   return {
@@ -200,6 +255,8 @@ export function useActivities(userId?: string) {
     registerForActivity,
     unregisterFromActivity,
     getUserActivities,
-    getAvailableActivities
+    getAvailableActivities,
+    joinByCode,
+    leaveActivity
   }
 }

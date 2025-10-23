@@ -24,16 +24,20 @@ __export(src_exports, {
   PARTICIPANT_STATUS_LABELS: () => PARTICIPANT_STATUS_LABELS,
   RECURRING_TYPE_LABELS: () => RECURRING_TYPE_LABELS,
   SPORTS_CONFIG: () => SPORTS_CONFIG,
+  formatActivityCode: () => formatActivityCode,
   formatDate: () => formatDate,
   formatDateShort: () => formatDateShort,
   formatDateTime: () => formatDateTime,
   formatTime: () => formatTime,
+  generateActivityCode: () => generateActivityCode,
   getAllSports: () => getAllSports,
   getSportConfig: () => getSportConfig,
   getTimeUntil: () => getTimeUntil,
   isFuture: () => isFuture,
   isPast: () => isPast,
-  isToday: () => isToday
+  isToday: () => isToday,
+  isValidActivityCode: () => isValidActivityCode,
+  sanitizeActivityCode: () => sanitizeActivityCode
 });
 module.exports = __toCommonJS(src_exports);
 
@@ -174,21 +178,49 @@ var getTimeUntil = (date) => {
   if (minutes > 0) return `Dans ${minutes} minute${minutes > 1 ? "s" : ""}`;
   return "Bient\xF4t";
 };
+
+// src/utils/code.ts
+function generateActivityCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 8; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    code += chars[randomIndex];
+  }
+  return code;
+}
+function isValidActivityCode(code) {
+  const codeRegex = /^[A-Z0-9]{8}$/;
+  return codeRegex.test(code);
+}
+function formatActivityCode(code) {
+  if (!isValidActivityCode(code)) {
+    return code;
+  }
+  return `${code.slice(0, 4)} ${code.slice(4)}`;
+}
+function sanitizeActivityCode(input) {
+  return input.replace(/\s/g, "").toUpperCase();
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   DAY_LABELS,
   PARTICIPANT_STATUS_LABELS,
   RECURRING_TYPE_LABELS,
   SPORTS_CONFIG,
+  formatActivityCode,
   formatDate,
   formatDateShort,
   formatDateTime,
   formatTime,
+  generateActivityCode,
   getAllSports,
   getSportConfig,
   getTimeUntil,
   isFuture,
   isPast,
-  isToday
+  isToday,
+  isValidActivityCode,
+  sanitizeActivityCode
 });
 //# sourceMappingURL=index.js.map

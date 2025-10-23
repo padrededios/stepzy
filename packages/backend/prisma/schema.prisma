@@ -36,6 +36,7 @@ model User {
   createdActivities Activity[] @relation("ActivityCreator")
   activityParticipations ActivityParticipant[]
   activitySubscriptions ActivitySubscription[]
+  activityList UserActivityList[]
 
   @@map("users")
 }
@@ -227,6 +228,7 @@ model Activity {
   maxPlayers  Int
   createdBy   String   // Le créateur de l'activité
   isPublic    Boolean  @default(true)
+  code        String   @unique // Code unique de 8 caractères pour rejoindre l'activité
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -240,6 +242,7 @@ model Activity {
   creator   User @relation("ActivityCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   sessions  ActivitySession[]
   subscriptions ActivitySubscription[]
+  userLists UserActivityList[]
 
   @@map("activities")
 }
@@ -291,6 +294,22 @@ model ActivitySubscription {
 
   @@unique([activityId, userId])
   @@map("activity_subscriptions")
+}
+
+// Modèle UserActivityList (liste personnelle d'activités de l'utilisateur)
+// Permet de garder une activité visible même après désinscription
+model UserActivityList {
+  id         String   @id @default(cuid())
+  userId     String
+  activityId String
+  joinedAt   DateTime @default(now())
+
+  // Relations
+  user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityId])
+  @@map("user_activity_lists")
 }
 
 // Nouveaux enums pour les activités

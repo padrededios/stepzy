@@ -47,6 +47,14 @@ const activityFiltersSchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(10)
 })
 
+const joinByCodeSchema = z.object({
+  code: z.string().length(8, 'Le code doit faire exactement 8 caractères').regex(/^[A-Z0-9]{8}$/, 'Le code doit contenir uniquement des lettres majuscules et des chiffres')
+})
+
+const activityCodeParam = z.object({
+  code: z.string().length(8).regex(/^[A-Z0-9]{8}$/)
+})
+
 export async function activitiesRoutes(fastify: FastifyInstance) {
   // GET /api/activities - Get all activities with filters
   fastify.get('/api/activities', {
@@ -296,6 +304,122 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({
         success: false,
         error: 'Erreur lors de la récupération des sessions à venir'
+      })
+    }
+  })
+
+  // POST /api/activities/join-by-code - Join activity by code
+  fastify.post('/api/activities/join-by-code', {
+    preHandler: [requireAuth, validate({ body: joinByCodeSchema })]
+  }, async (request, reply) => {
+    try {
+      const { code } = request.body as { code: string }
+
+      const result = await ActivityService.joinByCode(request.user!.id, code)
+
+      if (result.alreadyMember) {
+        return reply.send({
+          success: true,
+          data: result.activity,
+          message: 'Vous êtes déjà membre de cette activité',
+          alreadyMember: true
+        })
+      }
+
+      return reply.status(201).send({
+        success: true,
+        data: result.activity,
+        message: `Vous avez rejoint l'activité "${result.activity.name}" avec succès`,
+        alreadyMember: false
+      })
+    } catch (error) {
+      request.log.error(error)
+
+      if (error instanceof Error && error.message.includes('invalide')) {
+        return reply.status(404).send({
+          success: false,
+          error: error.message
+        })
+      }
+
+      return reply.status(500).send({
+        success: false,
+        error: error instanceof Error ? error.message : 'Erreur lors de la tentative de rejoindre l\'activité'
+      })
+    }
+  })
+
+  // GET /api/activities/code/:code - Get activity info by code
+  fastify.get('/api/activities/code/:code', {
+    preHandler: [requireAuth, validate({ params: activityCodeParam })]
+  }, async (request, reply) => {
+    try {
+      const { code } = request.params as { code: string }
+
+      const activity = await ActivityService.findByCode(code)
+
+      if (!activity) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Code d\'activité invalide'
+        })
+      }
+
+      // Return limited info about the activity
+      return reply.send({
+        success: true,
+        data: {
+          name: activity.name,
+          sport: activity.sport,
+          creator: activity.creator,
+          minPlayers: activity.minPlayers,
+          maxPlayers: activity.maxPlayers,
+          recurringDays: activity.recurringDays,
+          recurringType: activity.recurringType
+        }
+      })
+    } catch (error) {
+      request.log.error(error)
+      return reply.status(500).send({
+        success: false,
+        error: 'Erreur lors de la récupération des informations de l\'activité'
+      })
+    }
+  })
+
+  // DELETE /api/activities/:id/leave - Leave activity (remove from user's list)
+  fastify.delete('/api/activities/:id/leave', {
+    preHandler: [requireAuth, validate({ params: commonSchemas.idParam })]
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+
+      await ActivityService.leave(id, request.user!.id)
+
+      return reply.send({
+        success: true,
+        message: 'Vous avez quitté l\'activité'
+      })
+    } catch (error) {
+      request.log.error(error)
+
+      if (error instanceof Error && error.message.includes('créée')) {
+        return reply.status(403).send({
+          success: false,
+          error: error.message
+        })
+      }
+
+      if (error instanceof Error && error.message.includes('désinscrire')) {
+        return reply.status(400).send({
+          success: false,
+          error: error.message
+        })
+      }
+
+      return reply.status(500).send({
+        success: false,
+        error: error instanceof Error ? error.message : 'Erreur lors de la tentative de quitter l\'activité'
       })
     }
   })
