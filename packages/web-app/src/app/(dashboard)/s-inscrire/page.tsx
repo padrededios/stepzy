@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { SPORTS_CONFIG, type SportType } from '@/config/sports'
@@ -292,17 +291,6 @@ function ActivityCard({
   const userIsSubscribed = isSubscribed || activity.isParticipant
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null)
   const canQuit = !userIsSubscribed && !activity.canManage // Peut quitter si désinscrit et non créateur
-  const [showEmailModal, setShowEmailModal] = useState(false)
-  const [emailAddress, setEmailAddress] = useState('')
-  const [emailLoading, setEmailLoading] = useState(false)
-  const [emailError, setEmailError] = useState<string | null>(null)
-  const [emailSuccess, setEmailSuccess] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  // Pour éviter les erreurs SSR avec createPortal
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // Formater les jours de récurrence
   const formatRecurringDays = (days: string[], type: string) => {
@@ -347,39 +335,52 @@ function ActivityCard({
 
   // Partager par email
   const handleShareByEmail = () => {
-    setShowEmailModal(true)
-    setEmailAddress('')
-    setEmailError(null)
-    setEmailSuccess(false)
-  }
-
-  const handleSendEmail = async () => {
-    if (!emailAddress || !emailAddress.includes('@')) {
-      setEmailError('Veuillez entrer une adresse email valide')
-      return
+    // Formater les jours de récurrence pour l'email
+    const dayLabels: Record<string, string> = {
+      monday: 'Lundi',
+      tuesday: 'Mardi',
+      wednesday: 'Mercredi',
+      thursday: 'Jeudi',
+      friday: 'Vendredi',
+      saturday: 'Samedi',
+      sunday: 'Dimanche'
     }
+    const formattedDays = activity.recurringDays.map(day => dayLabels[day] || day).join(', ')
+    const recurringTypeLabel = activity.recurringType === 'weekly' ? 'hebdomadaire' : 'mensuel'
 
-    setEmailLoading(true)
-    setEmailError(null)
+    const subject = `Invitation a rejoindre l'activite "${activity.name}"`
+    const shareLink = activitiesApi.generateShareLink(activity.code)
 
-    try {
-      const result = await activitiesApi.sendInvitation(activity.id, emailAddress)
+    // Message simplifié sans emojis ni caractères spéciaux pour meilleure compatibilité
+    const body = `Bonjour,
 
-      if (result.success) {
-        setEmailSuccess(true)
-        setTimeout(() => {
-          setShowEmailModal(false)
-          setEmailSuccess(false)
-          setEmailAddress('')
-        }, 2000)
-      } else {
-        setEmailError(result.error || 'Erreur lors de l\'envoi de l\'email')
-      }
-    } catch (error) {
-      setEmailError('Erreur de connexion')
-    } finally {
-      setEmailLoading(false)
-    }
+Je t'invite a rejoindre mon activite "${activity.name}" sur Stepzy.
+
+INFORMATIONS :
+- Sport : ${sportConfig.name}
+- Recurrence : ${formattedDays} (${recurringTypeLabel})
+- Horaires : ${activity.startTime} - ${activity.endTime}
+- Joueurs : Jusqu'a ${activity.maxPlayers} par session
+
+CODE D'INVITATION : ${formatActivityCode(activity.code)}
+
+POUR REJOINDRE :
+
+Option 1 - Lien direct :
+${shareLink}
+
+Option 2 - Code manuel :
+1. Ouvre Stepzy
+2. Va sur "S'inscrire"
+3. Clique sur "Rejoindre avec un code"
+4. Entre le code : ${activity.code}
+
+A bientot sur le terrain !
+
+--
+Envoye depuis Stepzy - Plateforme Multisports`
+
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 
   const getActionButtons = () => {
@@ -580,94 +581,6 @@ function ActivityCard({
         {/* Action buttons */}
         {getActionButtons()}
       </div>
-
-      {/* Email Modal - Using Portal to render outside the card */}
-      {mounted && showEmailModal && createPortal(
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowEmailModal(false)}
-        >
-          <div
-            className="bg-white rounded-lg max-w-md w-full p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Envoyer une invitation</h2>
-              <button
-                onClick={() => setShowEmailModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {!emailSuccess ? (
-              <>
-                <p className="text-sm text-gray-600 mb-4">
-                  Entrez l'adresse email de la personne que vous souhaitez inviter à rejoindre <strong>{activity.name}</strong>.
-                </p>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Adresse email
-                  </label>
-                  <input
-                    type="email"
-                    value={emailAddress}
-                    onChange={(e) => setEmailAddress(e.target.value)}
-                    placeholder="exemple@email.com"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={emailLoading}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSendEmail()
-                      }
-                    }}
-                  />
-                </div>
-
-                {emailError && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-sm text-red-700">{emailError}</p>
-                  </div>
-                )}
-
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => setShowEmailModal(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                    disabled={emailLoading}
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={handleSendEmail}
-                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={emailLoading || !emailAddress}
-                  >
-                    {emailLoading ? 'Envoi...' : 'Envoyer'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Email envoyé !</h3>
-                <p className="text-sm text-gray-600">
-                  L'invitation a été envoyée à <strong>{emailAddress}</strong>
-                </p>
-              </div>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
     </div>
   )
 }
