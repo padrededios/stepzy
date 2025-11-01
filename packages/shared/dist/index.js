@@ -200,7 +200,8 @@ function formatActivityCode(code) {
   return `${code.slice(0, 4)} ${code.slice(4)}`;
 }
 function sanitizeActivityCode(input) {
-  return input.replace(/\s/g, "").toUpperCase();
+  if (!input) return "";
+  return input.replace(/[^A-Z0-9]/gi, "").toUpperCase();
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

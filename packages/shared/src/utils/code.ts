@@ -41,8 +41,10 @@ export function formatActivityCode(code: string): string {
 
 /**
  * Nettoie un code saisi par l'utilisateur
- * Supprime les espaces et convertit en majuscules
+ * Supprime les espaces, caractères spéciaux et convertit en majuscules
+ * Ne garde que les caractères alphanumériques A-Z0-9
  */
 export function sanitizeActivityCode(input: string): string {
-  return input.replace(/\s/g, '').toUpperCase()
+  if (!input) return ''
+  return input.replace(/[^A-Z0-9]/gi, '').toUpperCase()
 }

@@ -6,8 +6,10 @@ import type { FastifyInstance } from 'fastify'
 import { ActivityService } from '../services/activity.service'
 import { ActivitySessionService } from '../services/activity-session.service'
 import { EmailService } from '../services/email.service'
+import { securityLogger } from '../services/security-logger.service'
 import { requireAuth } from '../middleware/auth.middleware'
 import { validate, commonSchemas } from '../middleware/validation.middleware'
+import { rateLimiters } from '../middleware/rate-limit.middleware'
 import { z } from 'zod'
 import type { SportType, DayOfWeek, RecurringType } from '@stepzy/shared'
 import { DAY_LABELS } from '@stepzy/shared'
@@ -317,7 +319,7 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
 
   // POST /api/activities/join-by-code - Join activity by code
   fastify.post('/api/activities/join-by-code', {
-    preHandler: [requireAuth, validate({ body: joinByCodeSchema })]
+    preHandler: [requireAuth, rateLimiters.joinByCode(), validate({ body: joinByCodeSchema })]
   }, async (request, reply) => {
     try {
       const { code } = request.body as { code: string }
@@ -343,6 +345,30 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
       request.log.error(error)
 
       if (error instanceof Error && error.message.includes('invalide')) {
+        // Log invalid code attempt for security monitoring
+        const { code: attemptedCode } = request.body as { code: string }
+        securityLogger.logInvalidCodeAttempt({
+          userId: request.user!.id,
+          ip: request.ip,
+          code: attemptedCode
+        })
+
+        // Check for suspicious pattern (multiple failed attempts)
+        const isSuspicious = securityLogger.checkSuspiciousPattern(
+          request.user!.id,
+          'INVALID_ACTIVITY_CODE',
+          5 // 5 minutes window
+        )
+
+        if (isSuspicious) {
+          securityLogger.logSuspiciousActivity({
+            userId: request.user!.id,
+            ip: request.ip,
+            event: 'MULTIPLE_INVALID_CODE_ATTEMPTS',
+            details: { code: attemptedCode, attempts: 'multiple' }
+          })
+        }
+
         return reply.status(404).send({
           success: false,
           error: error.message
@@ -396,7 +422,7 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
 
   // POST /api/activities/:id/send-invitation - Send activity invitation by email
   fastify.post('/api/activities/:id/send-invitation', {
-    preHandler: [requireAuth, validate({ params: commonSchemas.idParam, body: sendInvitationSchema })]
+    preHandler: [requireAuth, rateLimiters.moderate(), validate({ params: commonSchemas.idParam, body: sendInvitationSchema })]
   }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string }

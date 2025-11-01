@@ -620,3 +620,34 @@ export async function handler(request: NextRequest) {
 - **Gestion statuts** : Tracking précis isParticipant et isSubscribed depuis BDD
 - **UX améliorée** : Feedback immédiat et cohérent sur toutes les actions
 
+### Phase 13 : Système de Codes d'Activité ✅ (Novembre 2025)
+- **Génération codes uniques** : Codes 8 caractères alphanumériques (A-Z0-9) pour rejoindre activités
+- **Utilitaires shared** : `generateActivityCode()`, `isValidActivityCode()`, `sanitizeActivityCode()`, `formatActivityCode()`
+- **Migration Prisma** : Ajout champ `code` unique et indexé au modèle Activity
+- **API Backend** :
+  - `POST /api/activities/join-by-code` - Rejoindre activité avec code (gestion déjà membre)
+  - `GET /api/activities/code/:code` - Preview public activité (sans auth)
+  - `POST /api/activities/:id/send-invitation` - Envoyer invitation par email (créateur uniquement)
+  - `DELETE /api/activities/:id/leave` - Quitter définitivement une activité
+- **Email invitations** : Templates React Email avec Nodemailer pour invitations personnalisées
+- **Page invitation** : `/join/[code]` - Preview et inscription via lien partageable
+- **Composants UI** :
+  - `JoinByCodeCard` - Modal saisie code avec validation temps réel
+  - `ShareActivityModal` - Options partage (copier code, lien, email)
+- **UX améliorée** :
+  - Texte lisible dans inputs (text-2xl, text-gray-900)
+  - Gestion "déjà membre" avec message approprié
+  - Redirection auth automatique avec return URL
+  - Toast notifications pour feedback utilisateur
+- **Documentation complète** :
+  - `ACTIVITY_CODE_EXAMPLES.md` - Exemples usage frontend/backend/tests
+  - `ACTIVITY_TEST_CODES.md` - Codes de test pour développement
+  - `API_ROUTES.md` - Documentation endpoints activités
+  - `ROADMAP_CODE_ACTIVITE.md` - Roadmap 65% complète (40/62 tâches)
+- **Seed script mis à jour** : Génération codes pour toutes les activités test
+- **Sécurité** : Validation Zod côté backend + validation client shared
+- **Git commits** : 4 commits documentant implémentation complète
+
+**Branche actuelle** : `code_activite`
+**Status** : Système codes activité fonctionnel - Documentation complète - Tests à implémenter (Phase 7 TDD)
+

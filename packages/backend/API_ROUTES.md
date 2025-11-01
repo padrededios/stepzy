@@ -121,6 +121,95 @@ Sessions à venir des activités auxquelles l'utilisateur est abonné
 - **Note**: Filtre automatiquement par les activités auxquelles l'utilisateur est abonné via ActivitySubscription
 - **Note**: Exclut les sessions où l'utilisateur participe déjà
 
+### POST /api/activities/join-by-code
+Rejoindre une activité via un code unique
+- **Auth**: Requis
+- **Body**:
+  ```json
+  {
+    "code": "A1B2C3D4"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "activity_id",
+      "name": "Football du mardi",
+      ...
+    },
+    "message": "Vous avez rejoint l'activité avec succès",
+    "alreadyMember": false
+  }
+  ```
+- **Errors**:
+  - `404` - Code invalide ou activité introuvable
+  - `400` - Format de code invalide (doit être 8 caractères A-Z0-9)
+- **Note**: Si l'utilisateur est déjà membre, `alreadyMember: true` et message approprié
+
+### GET /api/activities/code/:code
+Obtenir les informations d'une activité par code (route publique)
+- **Auth**: Non requis (public pour preview invitation)
+- **Params**: `code` - Code de l'activité (8 caractères)
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "name": "Football du mardi",
+      "sport": "football",
+      "creator": {
+        "pseudo": "Player1",
+        "avatar": "https://..."
+      },
+      "minPlayers": 8,
+      "maxPlayers": 12,
+      "recurringDays": ["tuesday"],
+      "recurringType": "weekly"
+    }
+  }
+  ```
+- **Errors**:
+  - `404` - Code invalide
+  - `400` - Format de code invalide
+- **Note**: Route publique pour permettre la preview d'invitation sans authentification
+
+### POST /api/activities/:id/send-invitation
+Envoyer une invitation par email (créateur uniquement)
+- **Auth**: Requis (créateur de l'activité)
+- **Params**: `id` - ID de l'activité
+- **Body**:
+  ```json
+  {
+    "email": "friend@example.com"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "message": "Invitation envoyée à friend@example.com",
+    "messageId": "email_message_id"
+  }
+  ```
+- **Errors**:
+  - `403` - Seul le créateur peut envoyer des invitations
+  - `404` - Activité introuvable
+  - `400` - Email invalide
+  - `500` - Erreur lors de l'envoi de l'email
+- **Note**: Envoie un email avec template React Email contenant le code et le lien d'invitation
+
+### DELETE /api/activities/:id/leave
+Quitter définitivement une activité (retirer de la liste utilisateur)
+- **Auth**: Requis
+- **Params**: `id` - ID de l'activité
+- **Response**: `{ success: true, message: "Vous avez quitté l'activité" }`
+- **Errors**:
+  - `403` - Ne peut pas quitter une activité créée par soi-même
+  - `400` - Vous devez d'abord vous désinscrire avant de quitter
+- **Note**: Différent de "unsubscribe" - retire complètement l'activité de la liste utilisateur
+
 ---
 
 ## 📅 Sessions
