@@ -356,9 +356,9 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
     }
   })
 
-  // GET /api/activities/code/:code - Get activity info by code
+  // GET /api/activities/code/:code - Get activity info by code (public route for invitation links)
   fastify.get('/api/activities/code/:code', {
-    preHandler: [requireAuth, validate({ params: activityCodeParam })]
+    preHandler: [validate({ params: activityCodeParam })]
   }, async (request, reply) => {
     try {
       const { code } = request.params as { code: string }
