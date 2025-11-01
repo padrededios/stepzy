@@ -139,7 +139,7 @@ export default function SInscrirePage() {
               <select
                 value={selectedSport}
                 onChange={(e) => setSelectedSport(e.target.value as SportType | 'all')}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Tous les sports</option>
                 {Object.values(SPORTS_CONFIG).map(sport => (
@@ -154,7 +154,7 @@ export default function SInscrirePage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'name' | 'sport')}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="name">Nom</option>
                 <option value="sport">Sport</option>

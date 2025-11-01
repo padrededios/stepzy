@@ -189,14 +189,9 @@ export function JoinByCodeCard({ onJoin }: JoinByCodeCardProps) {
                 onChange={(e) => handleCodeChange(e.target.value)}
                 placeholder="Ex: A1B2C3D4"
                 maxLength={8}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-center text-lg font-mono tracking-widest uppercase"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-center text-2xl font-mono tracking-wider uppercase text-gray-900 placeholder-gray-400"
                 disabled={isLoading}
               />
-              {code && (
-                <p className="text-xs text-gray-500 mt-1 text-center">
-                  {formatActivityCode(code)}
-                </p>
-              )}
             </div>
 
             {/* Error message */}
