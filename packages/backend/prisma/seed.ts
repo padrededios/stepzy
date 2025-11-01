@@ -7,6 +7,7 @@ import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { scrypt, randomBytes } from 'crypto'
 import { promisify } from 'util'
+import { generateActivityCode } from '@stepzy/shared'
 
 const prisma = new PrismaClient()
 const scryptAsync = promisify(scrypt)
@@ -155,6 +156,7 @@ async function main() {
       maxPlayers: 12,
       createdBy: player1.id,
       isPublic: true,
+      code: generateActivityCode(),
     },
   })
 
@@ -172,6 +174,7 @@ async function main() {
       maxPlayers: 4,
       createdBy: player2.id,
       isPublic: true,
+      code: generateActivityCode(),
     },
   })
 
@@ -189,6 +192,7 @@ async function main() {
       maxPlayers: 12,
       createdBy: player3.id,
       isPublic: true,
+      code: generateActivityCode(),
     },
   })
 
@@ -206,6 +210,7 @@ async function main() {
       maxPlayers: 8,
       createdBy: rootUser.id,
       isPublic: true,
+      code: generateActivityCode(),
     },
   })
 
