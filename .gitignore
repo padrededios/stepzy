@@ -81,3 +81,6 @@ healthcheck.tmp
 .turbo/cache/
 .turbo/daemon/
 .turbo/cookies/*.cookie
+
+# Auto-generated test files
+ACTIVITY_TEST_CODES.md

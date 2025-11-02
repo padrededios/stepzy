@@ -397,6 +397,94 @@ async function main() {
 
   console.log('✅ Joueurs inscrits aux sessions de démonstration')
 
+  // Générer le fichier ACTIVITY_TEST_CODES.md
+  const fs = await import('fs')
+  const path = await import('path')
+  const { fileURLToPath } = await import('url')
+
+  const __filename = fileURLToPath(import.meta.url)
+  const __dirname = path.dirname(__filename)
+
+  const activityCodesContent = `# 🎯 Codes d'Activités de Test
+
+Ce fichier est généré automatiquement lors du seed de la base de données.
+
+**Dernière mise à jour**: ${new Date().toLocaleString('fr-FR', { timeZone: 'UTC' })} UTC
+
+---
+
+## 📋 Codes Valides
+
+### Football du mardi
+- **Code**: \`${footballActivity.code}\`
+- **Horaire**: Mardi 18h30-20h00
+- **Joueurs**: 8-12 joueurs
+- **Créateur**: player1@test.com
+
+### Badminton du mercredi
+- **Code**: \`${badmintonActivity.code}\`
+- **Horaire**: Mercredi 19h00-20h00
+- **Joueurs**: 2-4 joueurs
+- **Créateur**: player2@test.com
+
+### Volleyball du jeudi
+- **Code**: \`${volleyActivity.code}\`
+- **Horaire**: Jeudi 17h00-19h00
+- **Joueurs**: 6-12 joueurs
+- **Créateur**: player3@test.com
+
+### Ping-Pong du samedi
+- **Code**: \`${pingpongActivity.code}\`
+- **Horaire**: Samedi 14h00-15h30
+- **Joueurs**: 2-8 joueurs
+- **Créateur**: admin@stepzy.local
+
+---
+
+## 🧪 Comment Utiliser
+
+### Via l'interface web
+1. Aller sur http://localhost:3000/s-inscrire
+2. Cliquer sur "Rejoindre par code"
+3. Entrer un des codes ci-dessus
+
+### Via API
+\`\`\`bash
+# Prévisualiser une activité
+curl -X GET "http://localhost:3001/api/activities/by-code/${footballActivity.code}" \\
+  -H "Cookie: better-auth.session_token=YOUR_TOKEN"
+
+# Rejoindre une activité
+curl -X POST "http://localhost:3001/api/activities/join-by-code" \\
+  -H "Content-Type: application/json" \\
+  -H "Cookie: better-auth.session_token=YOUR_TOKEN" \\
+  -d '{"code": "${footballActivity.code}"}'
+\`\`\`
+
+---
+
+## 👥 Comptes de Test
+
+### Administrateur
+- **Email**: admin@stepzy.local
+- **Mot de passe**: RootPass123!
+
+### Joueurs
+- **Email**: player1@test.com / player2@test.com / player3@test.com
+- **Mot de passe**: password123
+
+---
+
+**Note**: Ces codes changent à chaque réinitialisation de la base de données.
+`
+
+  const projectRoot = path.resolve(__dirname, '../../..')
+  const filePath = path.join(projectRoot, 'ACTIVITY_TEST_CODES.md')
+
+  fs.writeFileSync(filePath, activityCodesContent, 'utf-8')
+  console.log(`📝 Fichier ACTIVITY_TEST_CODES.md généré à la racine du projet`)
+
+  console.log('')
   console.log('🌱 Seed terminé avec succès!')
   console.log('')
   console.log('🔐 Identifiants administrateur:')
@@ -408,15 +496,17 @@ async function main() {
   console.log('Mot de passe: password123')
   console.log('')
   console.log('📅 Activités créées:')
-  console.log('- Football du mardi 18h30-20h00 (8-12 joueurs)')
-  console.log('- Badminton du mercredi 19h00-20h00 (2-4 joueurs)')
-  console.log('- Volleyball du jeudi 17h00-19h00 (6-12 joueurs)')
-  console.log('- Ping-Pong du samedi 14h00-15h30 (2-8 joueurs)')
+  console.log(`- Football du mardi 18h30-20h00 (Code: ${footballActivity.code})`)
+  console.log(`- Badminton du mercredi 19h00-20h00 (Code: ${badmintonActivity.code})`)
+  console.log(`- Volleyball du jeudi 17h00-19h00 (Code: ${volleyActivity.code})`)
+  console.log(`- Ping-Pong du samedi 14h00-15h30 (Code: ${pingpongActivity.code})`)
   console.log('')
   console.log('🔔 Abonnements aux activités:')
   console.log('- Player1: Badminton + Football')
   console.log('- Player2: Football + Volleyball')
   console.log('- Player3: Ping-Pong + Volleyball')
+  console.log('')
+  console.log('📖 Codes disponibles dans: ACTIVITY_TEST_CODES.md')
 }
 
 main()
