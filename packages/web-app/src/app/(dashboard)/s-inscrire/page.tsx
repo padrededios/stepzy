@@ -7,6 +7,7 @@ import { SPORTS_CONFIG, type SportType } from '@/config/sports'
 import { useActivities, type Activity } from '@/hooks/useActivities'
 import Image from 'next/image'
 import { Toast } from '@/components/ui/Toast'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { JoinByCodeCard } from '@/components/activities/JoinByCodeCard'
 import { formatActivityCode } from '@stepzy/shared'
 import { activitiesApi } from '@/lib/api'
@@ -27,6 +28,17 @@ export default function SInscrirePage() {
   const [sortBy, setSortBy] = useState<'name' | 'sport'>('name')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    activityId: string | null
+    activityName: string
+    type: 'leave' | 'quit'
+  }>({
+    isOpen: false,
+    activityId: null,
+    activityName: '',
+    type: 'leave'
+  })
 
   const activities = getAvailableActivities()
 
@@ -55,49 +67,55 @@ export default function SInscrirePage() {
     }
   }
 
-  const handleLeaveActivity = async (activityId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir vous désinscrire de cette activité et de toutes ses sessions futures ?')) {
-      return
-    }
-
-    setActionLoading(activityId)
-    setMessage(null)
-
-    try {
-      const result = await unregisterFromActivity(activityId)
-
-      if (result?.success) {
-        setMessage({ type: 'success', text: 'Désinscription réussie' })
-      } else {
-        setMessage({ type: 'error', text: result?.error || 'Erreur lors de la désinscription' })
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Erreur de connexion' })
-    } finally {
-      setActionLoading(null)
-    }
+  const handleLeaveActivity = async (activityId: string, activityName: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      activityId,
+      activityName,
+      type: 'leave'
+    })
   }
 
-  const handleQuitActivity = async (activityId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir quitter définitivement cette activité ? Elle ne sera plus visible dans votre liste.')) {
-      return
-    }
+  const handleQuitActivity = async (activityId: string, activityName: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      activityId,
+      activityName,
+      type: 'quit'
+    })
+  }
 
-    setActionLoading(activityId)
+  const handleConfirmAction = async () => {
+    if (!confirmDialog.activityId) return
+
+    setActionLoading(confirmDialog.activityId)
     setMessage(null)
 
     try {
-      const result = await leaveActivity(activityId)
+      const result = confirmDialog.type === 'leave'
+        ? await unregisterFromActivity(confirmDialog.activityId)
+        : await leaveActivity(confirmDialog.activityId)
 
       if (result?.success) {
-        setMessage({ type: 'success', text: 'Vous avez quitté l\'activité' })
+        setMessage({
+          type: 'success',
+          text: confirmDialog.type === 'leave'
+            ? 'Désinscription réussie'
+            : 'Vous avez quitté l\'activité'
+        })
       } else {
-        setMessage({ type: 'error', text: result?.error || 'Erreur lors de la tentative de quitter l\'activité' })
+        setMessage({ type: 'error', text: result?.error || 'Erreur lors de l\'opération' })
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Erreur de connexion' })
     } finally {
       setActionLoading(null)
+      setConfirmDialog({
+        isOpen: false,
+        activityId: null,
+        activityName: '',
+        type: 'leave'
+      })
     }
   }
 
@@ -129,6 +147,22 @@ export default function SInscrirePage() {
             onClose={() => setMessage(null)}
           />
         )}
+
+        {/* Confirm Dialog */}
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+          onConfirm={handleConfirmAction}
+          title={confirmDialog.type === 'leave' ? 'Se désinscrire de l\'activité' : 'Quitter l\'activité'}
+          message={
+            confirmDialog.type === 'leave'
+              ? `Êtes-vous sûr de vouloir vous désinscrire de "${confirmDialog.activityName}" et de toutes ses sessions futures ?`
+              : `Êtes-vous sûr de vouloir quitter définitivement "${confirmDialog.activityName}" ? Elle ne sera plus visible dans votre liste.`
+          }
+          confirmText={confirmDialog.type === 'leave' ? 'Se désinscrire' : 'Quitter'}
+          cancelText="Annuler"
+          isLoading={actionLoading === confirmDialog.activityId}
+        />
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -176,8 +210,8 @@ export default function SInscrirePage() {
               key={activity.id}
               activity={activity}
               onJoin={handleJoinActivity}
-              onLeave={handleLeaveActivity}
-              onQuit={handleQuitActivity}
+              onLeave={(id) => handleLeaveActivity(id, activity.name)}
+              onQuit={(id) => handleQuitActivity(id, activity.name)}
               onManage={handleManageActivity}
               isSubscribed={activity.isSubscribed}
               loading={actionLoading === activity.id}
