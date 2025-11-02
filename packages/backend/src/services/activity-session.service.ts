@@ -197,6 +197,12 @@ export class ActivitySessionService {
         select: { activityId: true }
       })
       subscribedActivityIds = subscriptions.map(s => s.activityId)
+
+      // If user is not subscribed to any activity, return empty array
+      if (subscribedActivityIds.length === 0) {
+        console.log(`[getUpcomingSessions] userId: ${userId}, no subscriptions, returning empty array`)
+        return []
+      }
     }
 
     const sessions = await prisma.activitySession.findMany({
@@ -206,7 +212,7 @@ export class ActivitySessionService {
         },
         status: 'active',
         // Only show sessions from activities user is subscribed to
-        ...(userId && subscribedActivityIds.length > 0 ? {
+        ...(userId ? {
           activityId: { in: subscribedActivityIds }
         } : {})
       },
