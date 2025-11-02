@@ -40,6 +40,7 @@ async function main() {
   await prisma.match.deleteMany({})
   await prisma.activityParticipant.deleteMany({})
   await prisma.activitySubscription.deleteMany({})
+  await prisma.userActivityList.deleteMany({})
   await prisma.activitySession.deleteMany({})
   await prisma.activity.deleteMany({})
   await prisma.notification.deleteMany({})
@@ -260,7 +261,7 @@ async function main() {
 
   console.log(`✅ ${sessions.length} sessions générées pour les 4 prochaines semaines`)
 
-  // Inscrire quelques utilisateurs aux activités
+  // Inscrire quelques utilisateurs aux activités (subscription + userActivityList)
   await Promise.all([
     // Player1 s'inscrit au badminton ET au football
     prisma.activitySubscription.create({
@@ -269,7 +270,19 @@ async function main() {
         activityId: badmintonActivity.id,
       },
     }),
+    prisma.userActivityList.create({
+      data: {
+        userId: player1.id,
+        activityId: badmintonActivity.id,
+      },
+    }),
     prisma.activitySubscription.create({
+      data: {
+        userId: player1.id,
+        activityId: footballActivity.id,
+      },
+    }),
+    prisma.userActivityList.create({
       data: {
         userId: player1.id,
         activityId: footballActivity.id,
@@ -282,7 +295,19 @@ async function main() {
         activityId: footballActivity.id,
       },
     }),
+    prisma.userActivityList.create({
+      data: {
+        userId: player2.id,
+        activityId: footballActivity.id,
+      },
+    }),
     prisma.activitySubscription.create({
+      data: {
+        userId: player2.id,
+        activityId: volleyActivity.id,
+      },
+    }),
+    prisma.userActivityList.create({
       data: {
         userId: player2.id,
         activityId: volleyActivity.id,
@@ -295,7 +320,19 @@ async function main() {
         activityId: pingpongActivity.id,
       },
     }),
+    prisma.userActivityList.create({
+      data: {
+        userId: player3.id,
+        activityId: pingpongActivity.id,
+      },
+    }),
     prisma.activitySubscription.create({
+      data: {
+        userId: player3.id,
+        activityId: volleyActivity.id,
+      },
+    }),
+    prisma.userActivityList.create({
       data: {
         userId: player3.id,
         activityId: volleyActivity.id,
@@ -303,7 +340,7 @@ async function main() {
     }),
   ])
 
-  console.log('✅ Utilisateurs inscrits aux activités')
+  console.log('✅ Utilisateurs inscrits aux activités (subscription + userActivityList)')
 
   // Inscrire quelques joueurs aux premières sessions
   const footballSessions = sessions.filter(s => s.activityId === footballActivity.id).slice(0, 2)
