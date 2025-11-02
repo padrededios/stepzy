@@ -71,14 +71,17 @@ export function JoinByCodeCard({ onJoin }: JoinByCodeCardProps) {
           setInfoMessage(result.message || 'Vous êtes déjà membre de cette activité')
           setActivityPreview(null)
         } else {
-          // New member: show success message and close modal after delay
-          setMessage({ type: 'success', text: result.message || 'Activité rejointe avec succès' })
+          // New member: close modal immediately and show success toast
+          setIsModalOpen(false)
           setCode('')
           setActivityPreview(null)
+          setError(null)
+          setInfoMessage(null)
+
+          // Show success toast after modal is closed
           setTimeout(() => {
-            setIsModalOpen(false)
-            setMessage(null)
-          }, 2000)
+            setMessage({ type: 'success', text: result.message || 'Activité rejointe avec succès' })
+          }, 100)
         }
       } else {
         setError(result.error || 'Erreur lors de la tentative de rejoindre l\'activité')
