@@ -33,6 +33,22 @@ export class ApiClient {
       const data = await response.json()
 
       if (!response.ok) {
+        // Handle deleted user account - force logout
+        if (response.status === 401 && data.requiresLogout === true) {
+          // User account was deleted, force logout and redirect to login
+          if (typeof window !== 'undefined') {
+            // Import authClient dynamically to avoid circular dependencies
+            import('./auth.api').then(({ authApi }) => {
+              authApi.signOut().finally(() => {
+                window.location.href = '/login'
+              })
+            }).catch(() => {
+              // If auth import fails, just redirect to login
+              window.location.href = '/login'
+            })
+          }
+        }
+
         return {
           success: false,
           error: data.error || `HTTP ${response.status}: ${response.statusText}`,

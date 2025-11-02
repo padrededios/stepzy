@@ -5,6 +5,7 @@
 
 import type { FastifyRequest, FastifyReply } from 'fastify'
 import { auth } from '../lib/auth'
+import { prisma } from '../database/prisma'
 
 // Extend Fastify request type to include user
 declare module 'fastify' {
@@ -42,6 +43,24 @@ export async function requireAuth(
         success: false,
         error: 'Non authentifié',
         message: 'Vous devez être connecté pour accéder à cette ressource'
+      })
+    }
+
+    // Verify that the user still exists in the database
+    const userExists = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true }
+    })
+
+    if (!userExists) {
+      // User was deleted but session still exists - invalidate the session
+      request.log.warn({ userId: session.user.id }, 'User not found in database, invalidating session')
+
+      return reply.status(401).send({
+        success: false,
+        error: 'Compte supprimé',
+        message: 'Votre compte n\'existe plus. Veuillez vous reconnecter.',
+        requiresLogout: true
       })
     }
 
@@ -84,17 +103,28 @@ export async function optionalAuth(
     })
 
     if (session) {
-      request.user = {
-        id: session.user.id,
-        email: session.user.email,
-        pseudo: (session.user as any).pseudo || session.user.name || '',
-        avatar: (session.user as any).avatar || session.user.image || null,
-        role: ((session.user as any).role as 'user' | 'root') || 'user'
-      }
+      // Verify that the user still exists in the database
+      const userExists = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true }
+      })
 
-      request.session = {
-        token: session.session.token,
-        expiresAt: new Date(session.session.expiresAt)
+      // Only attach user if they exist in database
+      if (userExists) {
+        request.user = {
+          id: session.user.id,
+          email: session.user.email,
+          pseudo: (session.user as any).pseudo || session.user.name || '',
+          avatar: (session.user as any).avatar || session.user.image || null,
+          role: ((session.user as any).role as 'user' | 'root') || 'user'
+        }
+
+        request.session = {
+          token: session.session.token,
+          expiresAt: new Date(session.session.expiresAt)
+        }
+      } else {
+        request.log.debug({ userId: session.user.id }, 'User not found in database for optional auth')
       }
     }
   } catch (error) {
