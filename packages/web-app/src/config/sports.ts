@@ -8,6 +8,7 @@ export interface SportConfig {
   minPlayers: number
   description: string
   color: string
+  terrainImage: string
 }
 
 export const SPORTS_CONFIG: Record<SportType, SportConfig> = {
@@ -18,7 +19,8 @@ export const SPORTS_CONFIG: Record<SportType, SportConfig> = {
     maxPlayers: 12,
     minPlayers: 8,
     description: 'Match de football à 5 contre 5 avec remplaçants',
-    color: 'bg-green-500'
+    color: 'bg-green-500',
+    terrainImage: '/images/terrain_football.png'
   },
   badminton: {
     id: 'badminton',
@@ -27,7 +29,8 @@ export const SPORTS_CONFIG: Record<SportType, SportConfig> = {
     maxPlayers: 4,
     minPlayers: 2,
     description: 'Parties de badminton en simple ou double',
-    color: 'bg-yellow-500'
+    color: 'bg-yellow-500',
+    terrainImage: '/images/terrain_badminton.png'
   },
   volley: {
     id: 'volley',
@@ -36,7 +39,8 @@ export const SPORTS_CONFIG: Record<SportType, SportConfig> = {
     maxPlayers: 12,
     minPlayers: 6,
     description: 'Match de volleyball 6 contre 6',
-    color: 'bg-orange-500'
+    color: 'bg-orange-500',
+    terrainImage: '/images/terrain_volley.png'
   },
   pingpong: {
     id: 'pingpong',
@@ -45,7 +49,8 @@ export const SPORTS_CONFIG: Record<SportType, SportConfig> = {
     maxPlayers: 4,
     minPlayers: 2,
     description: 'Tournoi de ping-pong en simple ou double',
-    color: 'bg-red-500'
+    color: 'bg-red-500',
+    terrainImage: '/images/table_ping_pong.png'
   },
   rugby: {
     id: 'rugby',
@@ -54,7 +59,8 @@ export const SPORTS_CONFIG: Record<SportType, SportConfig> = {
     maxPlayers: 15,
     minPlayers: 10,
     description: 'Match de rugby à XV',
-    color: 'bg-purple-500'
+    color: 'bg-purple-500',
+    terrainImage: '/images/terrain_rugby.png'
   }
 }
 

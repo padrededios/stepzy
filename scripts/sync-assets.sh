@@ -2,7 +2,7 @@
 
 # Script pour synchroniser les assets partagés vers les frontends
 
-ASSETS_SOURCE="public/images"
+ASSETS_SOURCE="packages/shared/public/images"
 WEB_APP_DEST="packages/web-app/public/images"
 
 echo "🔄 Synchronisation des assets..."

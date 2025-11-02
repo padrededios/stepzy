@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { formatDate, formatTime } from '@/lib/utils/date'
 import { User, Match, MatchPlayer } from '@/types'
+import { getSportConfig } from '@/config/sports'
 
 interface MatchViewProps {
   match: Match
@@ -154,20 +155,11 @@ const MatchView: React.FC<MatchViewProps> = ({
   const PingPongTable = () => (
     <div
       data-testid="pingpong-table"
-      className="relative bg-blue-600 rounded-lg p-4 min-h-[400px] mb-6"
+      className="relative rounded-lg p-4 min-h-[350px] mb-4 bg-cover bg-center"
       style={{
-        backgroundImage: `
-          linear-gradient(90deg, white 0%, transparent 2%, transparent 98%, white 100%),
-          linear-gradient(0deg, white 0%, transparent 2%, transparent 98%, white 100%)
-        `
+        backgroundImage: `url(${getSportConfig('pingpong').terrainImage})`
       }}
     >
-      {/* Net */}
-      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-white"></div>
-
-      {/* Center line across the net */}
-      <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white"></div>
-
       {/* Team A (Left side) */}
       <div
         data-testid="team-a-side"
@@ -209,23 +201,13 @@ const MatchView: React.FC<MatchViewProps> = ({
   )
 
   const FootballField = () => (
-    <div 
+    <div
       data-testid="football-field"
-      className="relative bg-green-500 rounded-lg p-4 min-h-[400px] mb-6"
+      className="relative rounded-lg p-4 min-h-[350px] mb-4 bg-cover bg-center"
       style={{
-        backgroundImage: `
-          linear-gradient(90deg, white 0%, transparent 2%, transparent 98%, white 100%),
-          linear-gradient(0deg, white 0%, transparent 2%, transparent 98%, white 100%)
-        `
+        backgroundImage: `url(${getSportConfig('football').terrainImage})`
       }}
     >
-      {/* Center circle */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-2 border-white rounded-full"></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full"></div>
-      
-      {/* Center line */}
-      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-white"></div>
-
       {/* Team A (Left side) */}
       <div 
         data-testid="team-a-side"
@@ -320,54 +302,21 @@ const MatchView: React.FC<MatchViewProps> = ({
     </div>
   )
 
-  const MatchInfo = () => (
-    <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-      <div className="flex justify-center items-center mb-4">
-        <div className="text-center">
-          {match.status === 'full' && (
-            <span className="inline-block px-3 py-2 bg-red-100 text-red-700 text-sm rounded-full font-medium">
-              Match complet
-            </span>
-          )}
-          {match.status === 'cancelled' && (
-            <span
-              data-testid="cancelled-indicator"
-              className="inline-block px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-full font-medium"
-            >
-              Match annulé
-            </span>
-          )}
-          {match.status === 'open' && match.players.length < match.maxPlayers && (
-            <span className="inline-block px-3 py-2 bg-green-100 text-green-700 text-sm rounded-full font-medium">
-              Places disponibles
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-
   const BadmintonCourt = () => (
     <div
       data-testid="badminton-court"
-      className="relative bg-orange-400 rounded-lg p-4 min-h-[400px] mb-6"
+      className="relative rounded-lg p-4 min-h-[350px] mb-4 bg-cover bg-center"
       style={{
-        backgroundImage: `
-          linear-gradient(90deg, white 0%, transparent 2%, transparent 98%, white 100%),
-          linear-gradient(0deg, white 0%, transparent 2%, transparent 98%, white 100%)
-        `
+        backgroundImage: `url(${getSportConfig('badminton').terrainImage})`
       }}
     >
-      {/* Net */}
-      <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white transform -translate-y-0.5"></div>
-
-      {/* Team A (Top side) */}
+      {/* Team A (Left side) */}
       <div
         data-testid="team-a-side"
-        className="absolute left-4 right-4 top-4 h-1/2 flex flex-col justify-center items-center"
+        className="absolute left-4 top-4 bottom-4 w-1/2 flex flex-col justify-center items-center"
       >
         <div className="text-white font-bold mb-4">Équipe A</div>
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {[...Array(2)].map((_, index) => (
             <div key={index} data-testid={`position-a-${index + 1}`}>
               <PlayerAvatar
@@ -380,13 +329,13 @@ const MatchView: React.FC<MatchViewProps> = ({
         </div>
       </div>
 
-      {/* Team B (Bottom side) */}
+      {/* Team B (Right side) */}
       <div
         data-testid="team-b-side"
-        className="absolute left-4 right-4 bottom-4 h-1/2 flex flex-col justify-center items-center"
+        className="absolute right-4 top-4 bottom-4 w-1/2 flex flex-col justify-center items-center"
       >
         <div className="text-white font-bold mb-4">Équipe B</div>
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {[...Array(2)].map((_, index) => (
             <div key={index} data-testid={`position-b-${index + 1}`}>
               <PlayerAvatar
@@ -404,24 +353,18 @@ const MatchView: React.FC<MatchViewProps> = ({
   const VolleyballCourt = () => (
     <div
       data-testid="volleyball-court"
-      className="relative bg-yellow-500 rounded-lg p-4 min-h-[400px] mb-6"
+      className="relative rounded-lg p-4 min-h-[350px] mb-4 bg-cover bg-center"
       style={{
-        backgroundImage: `
-          linear-gradient(90deg, white 0%, transparent 2%, transparent 98%, white 100%),
-          linear-gradient(0deg, white 0%, transparent 2%, transparent 98%, white 100%)
-        `
+        backgroundImage: `url(${getSportConfig('volley').terrainImage})`
       }}
     >
-      {/* Net */}
-      <div className="absolute top-1/2 left-0 right-0 h-1 bg-white transform -translate-y-0.5"></div>
-
-      {/* Team A (Top side) */}
+      {/* Team A (Left side) */}
       <div
         data-testid="team-a-side"
-        className="absolute left-4 right-4 top-4 h-1/2 flex flex-col justify-center items-center"
+        className="absolute left-4 top-4 bottom-4 w-1/2 flex flex-col justify-around items-center"
       >
-        <div className="text-white font-bold mb-4">Équipe A</div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="text-white font-bold mb-2">Équipe A</div>
+        <div className="grid grid-cols-2 gap-4 flex-1 content-around">
           {[...Array(6)].map((_, index) => (
             <div key={index} data-testid={`position-a-${index + 1}`}>
               <PlayerAvatar
@@ -434,13 +377,13 @@ const MatchView: React.FC<MatchViewProps> = ({
         </div>
       </div>
 
-      {/* Team B (Bottom side) */}
+      {/* Team B (Right side) */}
       <div
         data-testid="team-b-side"
-        className="absolute left-4 right-4 bottom-4 h-1/2 flex flex-col justify-center items-center"
+        className="absolute right-4 top-4 bottom-4 w-1/2 flex flex-col justify-around items-center"
       >
-        <div className="text-white font-bold mb-4">Équipe B</div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="text-white font-bold mb-2">Équipe B</div>
+        <div className="grid grid-cols-2 gap-4 flex-1 content-around">
           {[...Array(6)].map((_, index) => (
             <div key={index} data-testid={`position-b-${index + 1}`}>
               <PlayerAvatar
@@ -458,17 +401,11 @@ const MatchView: React.FC<MatchViewProps> = ({
   const RugbyField = () => (
     <div
       data-testid="rugby-field"
-      className="relative bg-green-600 rounded-lg p-4 min-h-[400px] mb-6"
+      className="relative rounded-lg p-4 min-h-[350px] mb-4 bg-cover bg-center"
       style={{
-        backgroundImage: `
-          linear-gradient(90deg, white 0%, transparent 2%, transparent 98%, white 100%),
-          linear-gradient(0deg, white 0%, transparent 2%, transparent 98%, white 100%)
-        `
+        backgroundImage: `url(${getSportConfig('rugby').terrainImage})`
       }}
     >
-      {/* Center line */}
-      <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white transform -translate-y-0.5"></div>
-
       {/* Team A (Top side) */}
       <div
         data-testid="team-a-side"
@@ -551,8 +488,6 @@ const MatchView: React.FC<MatchViewProps> = ({
       data-testid={isMobile ? 'mobile-layout' : 'desktop-layout'}
       className="max-w-4xl mx-auto p-4"
     >
-      <MatchInfo />
-
       {/* Toujours afficher le terrain, même sans joueurs */}
       {getSportField()}
 
