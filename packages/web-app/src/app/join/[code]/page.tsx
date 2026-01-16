@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { activitiesApi } from '@/lib/api'
-import { SPORTS_CONFIG } from '@/config/sports'
+import { SPORTS_CONFIG, type SportType } from '@/config/sports'
 import { formatActivityCode, isValidActivityCode, sanitizeActivityCode } from '@stepzy/shared'
 import { Toast } from '@/components/ui/Toast'
 import Image from 'next/image'
@@ -136,7 +136,7 @@ export default function JoinByCodePage() {
     return null
   }
 
-  const sportConfig = SPORTS_CONFIG[activityPreview.sport]
+  const sportConfig = SPORTS_CONFIG[activityPreview.sport as SportType]
   const dayLabels: Record<string, string> = {
     monday: 'Lundi',
     tuesday: 'Mardi',
@@ -176,7 +176,7 @@ export default function JoinByCodePage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Activity Header */}
-          <div className={`px-8 py-6 bg-gradient-to-r ${sportConfig.gradient}`}>
+          <div className={`px-8 py-6 ${sportConfig.color}`}>
             <div className="flex items-start space-x-4">
               <div className="relative w-16 h-16 flex-shrink-0 bg-white rounded-lg overflow-hidden">
                 <Image

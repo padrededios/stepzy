@@ -270,7 +270,7 @@ const MatchView: React.FC<MatchViewProps> = ({
                   onClick={() => handlePlayerClick(player.id, player.user.id)}
                 >
                   <Image
-                    src={player.user.avatar}
+                    src={player.user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(player.user.pseudo)}`}
                     alt={`${player.user.pseudo} avatar`}
                     width={40}
                     height={40}

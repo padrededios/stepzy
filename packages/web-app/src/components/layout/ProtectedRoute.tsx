@@ -26,7 +26,18 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
         }
 
         if (session.data.user) {
-          setUser(session.data.user as User)
+          // Map session user to User type
+          const sessionUser = session.data.user as any
+          const user: User = {
+            id: sessionUser.id,
+            email: sessionUser.email,
+            pseudo: sessionUser.name || sessionUser.pseudo || '',
+            avatar: sessionUser.image || sessionUser.avatar,
+            role: sessionUser.role || 'user',
+            createdAt: sessionUser.createdAt,
+            updatedAt: sessionUser.updatedAt
+          }
+          setUser(user)
         } else {
           throw new Error('Invalid response')
         }

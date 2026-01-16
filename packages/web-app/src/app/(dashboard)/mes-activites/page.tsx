@@ -6,7 +6,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { SPORTS_CONFIG, type SportType } from '@/config/sports'
 import { useRecurringActivities } from '@/hooks/useRecurringActivities'
 import { formatDateTime } from '@/lib/utils/date'
-import { SessionWithParticipants, PARTICIPANT_STATUS_LABELS } from '@/types/activity'
+import { Activity, SessionWithParticipants, ParticipantStatus, PARTICIPANT_STATUS_LABELS } from '@/types/activity'
 import Image from 'next/image'
 import { Toast } from '@/components/ui/Toast'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -38,15 +38,15 @@ export default function MesActivitesPage() {
   const router = useRouter()
 
   // Utiliser uniquement les nouvelles participations aux activités récurrentes
-  const upcomingParticipations = participationActivities.upcoming
-  const pastParticipations = participationActivities.past
+  const upcomingParticipations = participationActivities.upcoming.filter(s => s.activity)
+  const pastParticipations = participationActivities.past.filter(s => s.activity)
 
   // Regrouper les sessions par activité pour l'onglet "Mes participations"
   const groupedUpcomingByActivity = upcomingParticipations.reduce((acc, session) => {
-    const activityId = session.activity.id
+    const activityId = session.activity!.id
     if (!acc[activityId]) {
       acc[activityId] = {
-        activity: session.activity,
+        activity: session.activity!,
         sessions: []
       }
     }
@@ -55,10 +55,10 @@ export default function MesActivitesPage() {
   }, {} as Record<string, { activity: any; sessions: any[] }>)
 
   const groupedPastByActivity = pastParticipations.reduce((acc, session) => {
-    const activityId = session.activity.id
+    const activityId = session.activity!.id
     if (!acc[activityId]) {
       acc[activityId] = {
-        activity: session.activity,
+        activity: session.activity!,
         sessions: []
       }
     }
@@ -146,38 +146,10 @@ export default function MesActivitesPage() {
     }
   }
 
-  const getStatusBadge = (activity: Activity) => {
-    if (activity.isWaitingList) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          Liste d\'attente
-        </span>
-      )
-    }
-
-    if (activity.isParticipant) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          Confirmé
-        </span>
-      )
-    }
-
-    if (activity.status === 'completed') {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-          Terminé
-        </span>
-      )
-    }
-
-    return null
-  }
-
   const getSessionStatusBadge = (session: any) => {
     if (session.userStatus?.isParticipant) {
-      const status = session.userStatus.status
-      const colors = {
+      const status = session.userStatus.status as ParticipantStatus
+      const colors: Record<string, string> = {
         confirmed: 'bg-green-100 text-green-800',
         waiting: 'bg-yellow-100 text-yellow-800',
         interested: 'bg-blue-100 text-blue-800'
@@ -361,65 +333,6 @@ export default function MesActivitesPage() {
   )
 }
 
-function ActivityCard({
-  activity,
-  getStatusBadge
-}: {
-  activity: Activity
-  getStatusBadge: (activity: Activity) => JSX.Element | null
-}) {
-  const router = useRouter()
-  const sportConfig = SPORTS_CONFIG[activity.sport]
-
-  const handleClick = () => {
-    router.push(`/matches/${activity.id}`)
-  }
-
-  return (
-    <div
-      className="bg-white rounded-lg shadow border border-gray-200 p-6 cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={handleClick}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-4">
-          {/* Sport Icon */}
-          <div className="relative w-12 h-12 flex-shrink-0">
-            <Image
-              src={sportConfig.icon}
-              alt={sportConfig.name}
-              fill
-              className="rounded-lg object-cover"
-            />
-          </div>
-
-          {/* Activity Info */}
-          <div className="flex-1">
-            <div className="flex items-center space-x-3">
-              <h3 className="text-lg font-semibold text-gray-900">{sportConfig.name}</h3>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-opacity-20 ${sportConfig.color} text-gray-800`}>
-                {activity.currentPlayers}/{activity.maxPlayers} joueurs
-              </span>
-            </div>
-
-            <p className="text-sm text-gray-600 mt-1">
-              {formatDateTime(activity.date)}
-            </p>
-
-            {activity.description && (
-              <p className="text-sm text-gray-500 mt-2">{activity.description}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Status Badge */}
-        <div className="flex flex-col items-end space-y-2">
-          {getStatusBadge(activity)}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // Composant pour les sessions (participations et disponibles)
 function SessionCard({
   session,
@@ -434,7 +347,7 @@ function SessionCard({
   loading: boolean
   isPast?: boolean
 }) {
-  const sportConfig = SPORTS_CONFIG[session.activity.sport]
+  const sportConfig = SPORTS_CONFIG[session.activity.sport as SportType]
   const canJoin = !isPast && session.userStatus?.canJoin && !session.userStatus?.isParticipant
 
   const router = useRouter()
@@ -560,7 +473,7 @@ function GroupedActivityCard({
   loading: string | null
   isPast?: boolean
 }) {
-  const sportConfig = SPORTS_CONFIG[activity.sport]
+  const sportConfig = SPORTS_CONFIG[activity.sport as SportType]
   const router = useRouter()
 
   return (

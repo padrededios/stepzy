@@ -8,6 +8,8 @@ export interface User {
   pseudo: string;
   avatar?: string | null;
   role: 'user' | 'root';
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface UserStats {

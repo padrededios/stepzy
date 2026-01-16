@@ -90,9 +90,9 @@ export default function SessionPage() {
   const matchData: Match = {
     id: session.id,
     date: new Date(session.date),
-    sport: session.activity.sport,
+    sport: session.activity!.sport,
     maxPlayers: session.maxPlayers,
-    status: session.isCancelled ? 'cancelled' : session.status === 'active' ? 'open' : 'closed',
+    status: session.isCancelled ? 'cancelled' : session.status === 'active' ? 'open' : 'completed',
     players: confirmedPlayers,
     waitingList: waitingPlayers
   }

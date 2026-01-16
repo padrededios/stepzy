@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import NotificationCenter from '../notifications/NotificationCenter'
@@ -15,9 +15,12 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
+
+  const isActivePath = (path: string) => pathname === path
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -69,66 +72,126 @@ export function Header({ user }: HeaderProps) {
   }
 
   return (
-    <header className="bg-gradient-to-r from-blue-400 to-blue-600 shadow-lg rounded-t-2xl">
+    <header className="bg-gray-800 shadow-lg">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center h-16 relative">
-          {/* Conteneur unifié - tout centré ensemble */}
-          <div className="flex items-center space-x-6">
-            {/* Logo sans fond pour transparence totale */}
+        <div className="flex items-center justify-between h-16">
+          {/* Section gauche : Logo + Navigation */}
+          <div className="flex items-center space-x-8">
+            {/* Logo */}
             <Link
               href={user ? '/mes-activites' : '/'}
-              className="flex items-center rounded-full px-4 py-2 hover:bg-white hover:bg-opacity-10 transition-colors"
+              className="flex items-center hover:opacity-80 transition-opacity"
               aria-label="Accueil"
             >
-              <div className="flex items-center">
-                <div className="relative w-8 h-8">
-                  <Image
-                    src="/images/stepzy_logo.png"
-                    alt="Stepzy Logo"
-                    fill
-                    className="rounded-lg object-cover"
-                  />
-                </div>
-                <span className="ml-2 text-lg font-bold text-white">
-                  Stepzy
-                </span>
+              <div className="relative w-8 h-8">
+                <Image
+                  src="/images/stepzy_logo.png"
+                  alt="Stepzy Logo"
+                  fill
+                  className="rounded-lg object-cover"
+                />
               </div>
+              <span className="ml-2 text-lg font-bold text-white">
+                Stepzy
+              </span>
             </Link>
 
-            {/* Navigation pour desktop sans fond pour transparence totale */}
+            {/* Navigation pour desktop */}
             {user && (
-              <nav className="hidden md:flex rounded-full px-4 py-2">
-                <div className="flex space-x-4">
+              <nav className="hidden md:flex">
+                <div className="flex space-x-1">
                   <Link
                     href="/mes-activites"
-                    className="text-white hover:text-blue-200 px-3 py-1 text-sm font-medium transition-colors rounded-full hover:bg-white hover:bg-opacity-10"
+                    className={`relative text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors rounded-md hover:bg-gray-700 ${
+                      isActivePath('/mes-activites') ? 'bg-gray-700' : ''
+                    }`}
                   >
                     Mes activités
+                    {isActivePath('/mes-activites') && (
+                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    )}
                   </Link>
                   <Link
                     href="/s-inscrire"
-                    className="text-white hover:text-blue-200 px-3 py-1 text-sm font-medium transition-colors rounded-full hover:bg-white hover:bg-opacity-10"
+                    className={`relative text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors rounded-md hover:bg-gray-700 ${
+                      isActivePath('/s-inscrire') ? 'bg-gray-700' : ''
+                    }`}
                   >
                     S'inscrire
+                    {isActivePath('/s-inscrire') && (
+                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    )}
                   </Link>
                   <Link
                     href="/mes-statistiques"
-                    className="text-white hover:text-blue-200 px-3 py-1 text-sm font-medium transition-colors rounded-full hover:bg-white hover:bg-opacity-10"
+                    className={`relative text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors rounded-md hover:bg-gray-700 ${
+                      isActivePath('/mes-statistiques') ? 'bg-gray-700' : ''
+                    }`}
                   >
                     Mes statistiques
+                    {isActivePath('/mes-statistiques') && (
+                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    )}
                   </Link>
                 </div>
               </nav>
             )}
+          </div>
 
-            {/* Section droite sans fond pour transparence totale */}
-            {user ? (
-              <div className="flex items-center rounded-full px-4 py-2">
-                  {/* User info - clickable avec position relative pour le dropdown */}
+          {/* Section droite : Profil + Icônes */}
+          {user ? (
+              <div className="flex items-center space-x-3">
+                  {/* Icons */}
+                  <div className="hidden md:flex items-center space-x-1">
+                    {/* Notifications with badge */}
+                    <div className="relative">
+                      <button
+                        onClick={handleNotificationsClick}
+                        className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
+                        title="Notifications"
+                        aria-label="Notifications"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                      </button>
+                      {/* Notification badge */}
+                      <div className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold pointer-events-none">
+                        3
+                      </div>
+                    </div>
+
+                    {/* Settings */}
+                    <button
+                      onClick={handleSettingsClick}
+                      className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
+                      title="Paramètres"
+                      aria-label="Paramètres"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </button>
+
+                    {/* Messages */}
+                    <button
+                      onClick={handleMessagesClick}
+                      className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
+                      title="Messages"
+                      aria-label="Messages"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* User menu button */}
                   <div className="relative">
                     <button
                       onClick={toggleUserMenu}
-                      className="hover:bg-white hover:bg-opacity-10 rounded-full p-1 transition-colors mr-3"
+                      className="flex items-center space-x-2 hover:bg-gray-700 rounded-md px-3 py-2 transition-colors"
                     >
                       <div className="relative w-8 h-8">
                         <Image
@@ -138,6 +201,10 @@ export function Header({ user }: HeaderProps) {
                           className="rounded-full object-cover"
                         />
                       </div>
+                      <span className="hidden md:block text-white text-sm font-medium">{user.pseudo}</span>
+                      <svg className="hidden md:block w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </button>
 
                     {/* User dropdown menu - positionné sous l'avatar */}
@@ -174,74 +241,24 @@ export function Header({ user }: HeaderProps) {
                       </div>
                     )}
                   </div>
-
-                  {/* Icons avec espacement réduit */}
-                  <div className="flex items-center space-x-1">
-                    {/* Notifications with badge */}
-                    <div className="relative">
-                      <button
-                        onClick={handleNotificationsClick}
-                        className="p-1.5 text-white hover:bg-white hover:bg-opacity-10 rounded-full transition-colors w-8 h-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
-                        title="Notifications"
-                      >
-                        🔔
-                      </button>
-                      {/* Notification badge */}
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold pointer-events-none">
-                        3
-                      </div>
-                    </div>
-
-                    {/* Settings */}
-                    <button
-                      onClick={handleSettingsClick}
-                      className="p-1.5 text-white hover:bg-white hover:bg-opacity-10 rounded-full transition-colors w-8 h-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
-                      title="Paramètres"
-                    >
-                      ⚙️
-                    </button>
-
-                    {/* Messages */}
-                    <button
-                      onClick={handleMessagesClick}
-                      className="p-1.5 text-white hover:bg-white hover:bg-opacity-10 rounded-full transition-colors w-8 h-8 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
-                      title="Messages"
-                    >
-                      💬
-                    </button>
-                  </div>
               </div>
             ) : (
               /* Guest buttons */
               <div className="flex items-center space-x-3">
                 <Link
                   href="/login"
-                  className="text-white hover:text-blue-200 px-3 py-2 text-sm font-medium"
+                  className="text-white hover:text-gray-300 px-3 py-2 text-sm font-medium transition-colors"
                 >
                   Se connecter
                 </Link>
                 <Link
                   href="/register"
-                  className="bg-white text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   S'inscrire
                 </Link>
               </div>
             )}
-          </div>
-
-          {/* Mobile user menu button - position absolue */}
-          {user && (
-            <button
-              onClick={toggleUserMenu}
-              className="absolute right-4 p-2 text-white hover:bg-white hover:bg-opacity-10 rounded-full transition-colors md:hidden"
-              aria-label="Ouvrir le menu utilisateur"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
-            </button>
-          )}
         </div>
       </div>
 
@@ -249,22 +266,28 @@ export function Header({ user }: HeaderProps) {
       {/* Mobile navigation menu */}
       {user && (
         <div className="md:hidden">
-          <div role="navigation" aria-label="Menu mobile" className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-blue-300">
+          <div role="navigation" aria-label="Menu mobile" className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-700">
             <Link
               href="/mes-activites"
-              className="block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-white hover:bg-opacity-10 rounded-md"
+              className={`block px-3 py-2 text-base font-medium text-white hover:text-gray-300 hover:bg-gray-700 rounded-md ${
+                isActivePath('/mes-activites') ? 'bg-gray-700' : ''
+              }`}
             >
               Mes activités
             </Link>
             <Link
               href="/s-inscrire"
-              className="block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-white hover:bg-opacity-10 rounded-md"
+              className={`block px-3 py-2 text-base font-medium text-white hover:text-gray-300 hover:bg-gray-700 rounded-md ${
+                isActivePath('/s-inscrire') ? 'bg-gray-700' : ''
+              }`}
             >
               S'inscrire
             </Link>
             <Link
               href="/mes-statistiques"
-              className="block px-3 py-2 text-base font-medium text-white hover:text-blue-200 hover:bg-white hover:bg-opacity-10 rounded-md"
+              className={`block px-3 py-2 text-base font-medium text-white hover:text-gray-300 hover:bg-gray-700 rounded-md ${
+                isActivePath('/mes-statistiques') ? 'bg-gray-700' : ''
+              }`}
             >
               Mes statistiques
             </Link>

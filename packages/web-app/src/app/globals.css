@@ -3,6 +3,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Design system colors - style MPG */
+  --color-header-bg: #1f2937; /* gray-800 */
+  --color-body-bg: #f5f5f5; /* Gris clair comme MPG */
+  --color-card-bg: #ffffff;
+  --color-accent: #22c55e; /* green-500 - couleur MPG */
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
 }
 
 @theme inline {
@@ -38,4 +46,36 @@ body {
 
 .animate-slide-in-right {
   animation: slide-in-right 0.3s ease-out;
+}
+
+/* Cacher la scrollbar mais garder le scroll fonctionnel */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
+
+/* Scrollbar personnalisée subtile (alternative) */
+.subtle-scrollbar {
+  scrollbar-width: thin;
+}
+
+.subtle-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.subtle-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.subtle-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.subtle-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
 }

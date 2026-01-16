@@ -100,7 +100,7 @@ export const activitiesApi = {
    * Get my participations
    */
   async getMyParticipations() {
-    return apiClient.get<Activity[]>('/api/activities/my-participations')
+    return apiClient.get<{ upcoming: SessionWithParticipants[], past: SessionWithParticipants[] }>('/api/activities/my-participations')
   },
 
   /**

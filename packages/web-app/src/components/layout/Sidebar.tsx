@@ -34,7 +34,7 @@ export function Sidebar({ user, isOpen, onClose }: SidebarProps) {
       try {
         const result = await activitiesApi.getMyCreated()
 
-        if (result.success) {
+        if (result.success && result.data) {
           setHasCreatedActivities(result.data.length > 0)
         }
       } catch (error) {

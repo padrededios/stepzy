@@ -11,7 +11,7 @@ export interface MatchPlayer {
   matchId: string;
   status: 'confirmed' | 'waiting';
   joinedAt: Date;
-  user: User;
+  user: Partial<User> & { id: string; pseudo: string };
 }
 
 export interface Match {

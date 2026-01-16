@@ -184,7 +184,7 @@ const MatchCalendar: React.FC<MatchCalendarProps> = ({
                         })}
                       </span>
                       <span className="text-xs opacity-75">
-                        {match._count?.matchPlayers || 0}/{match.maxPlayers}
+                        {match.players?.length || 0}/{match.maxPlayers}
                       </span>
                     </div>
                     {match.description && (

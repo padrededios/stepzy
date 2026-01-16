@@ -15,8 +15,8 @@ interface UseRecurringActivitiesReturn {
 
   // Participations utilisateur
   participationActivities: {
-    upcoming: Activity[]
-    past: Activity[]
+    upcoming: SessionWithParticipants[]
+    past: SessionWithParticipants[]
   }
   loadingParticipations: boolean
   errorParticipations: string | null
@@ -41,8 +41,8 @@ export function useRecurringActivities(userId?: string): UseRecurringActivitiesR
 
   // États pour les participations
   const [participationActivities, setParticipationActivities] = useState<{
-    upcoming: Activity[]
-    past: Activity[]
+    upcoming: SessionWithParticipants[]
+    past: SessionWithParticipants[]
   }>({ upcoming: [], past: [] })
   const [loadingParticipations, setLoadingParticipations] = useState(false)
   const [errorParticipations, setErrorParticipations] = useState<string | null>(null)

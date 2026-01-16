@@ -4,25 +4,19 @@ import { useState, useEffect } from 'react'
 import UserMatchHistory from './UserMatchHistory'
 import UserBadges from './UserBadges'
 import { usersApi } from '@/lib/api'
+import { User as ImportedUser, UserStats as ImportedUserStats } from '@/types'
 
-interface User {
-  id: string
-  email: string
-  pseudo: string
-  avatar: string
-  role: 'user' | 'root'
-  createdAt: Date
-  updatedAt: Date
+interface User extends ImportedUser {
+  createdAt?: Date
+  updatedAt?: Date
 }
 
-interface UserStats {
-  totalMatches: number
-  completedMatches: number
-  cancelledMatches: number
-  attendanceRate: number
-  favoriteTime: string
-  currentStreak: number
-  longestStreak: number
+interface UserStats extends ImportedUserStats {
+  cancelledMatches?: number
+  attendanceRate?: number
+  favoriteTime?: string
+  currentStreak?: number
+  longestStreak?: number
 }
 
 interface UserProfile {
@@ -68,8 +62,8 @@ export default function UserProfile({ user, onSuccess, onError }: UserProfile) {
       setLoadingStats(true)
       const result = await usersApi.getStats(user.id)
 
-      if (result.success) {
-        setStats(result.data.stats)
+      if (result.success && result.data) {
+        setStats(result.data.stats as any)
       } else {
         onError?.('Erreur lors du chargement des statistiques')
       }
@@ -237,7 +231,7 @@ export default function UserProfile({ user, onSuccess, onError }: UserProfile) {
                 {/* Avatar */}
                 <div className="relative">
                   <img
-                    src={user.avatar}
+                    src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.pseudo)}`}
                     alt={`Avatar de ${user.pseudo}`}
                     className="w-20 h-20 rounded-full object-cover"
                   />
@@ -255,9 +249,11 @@ export default function UserProfile({ user, onSuccess, onError }: UserProfile) {
                     <>
                       <h2 className="text-2xl font-bold text-gray-900">{user.pseudo}</h2>
                       <p className="text-gray-600">{user.email}</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Membre depuis {formatMemberSince(user.createdAt)}
-                      </p>
+                      {user.createdAt && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Membre depuis {formatMemberSince(user.createdAt)}
+                        </p>
+                      )}
                     </>
                   ) : (
                     <div className="space-y-4">
@@ -452,7 +448,7 @@ export default function UserProfile({ user, onSuccess, onError }: UserProfile) {
 
         {/* Badges Section */}
         <div className="mt-8">
-          <UserBadges userId={user.id} stats={stats} />
+          <UserBadges userId={user.id} stats={stats as any} />
         </div>
 
         {/* Match History Section */}

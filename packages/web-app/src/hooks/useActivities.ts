@@ -12,6 +12,8 @@ export interface Activity {
   maxPlayers: number
   recurringDays: string[]
   recurringType: 'weekly' | 'monthly'
+  startTime: string // Format HH:MM
+  endTime: string   // Format HH:MM
   isPublic: boolean
   createdBy: string
   code: string // Code unique pour rejoindre l'activité
@@ -33,7 +35,7 @@ const fetchActivitiesFromAPI = async (userId?: string): Promise<Activity[]> => {
   try {
     const result = await activitiesApi.getAll()
 
-    if (!result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.error || 'Failed to fetch activities')
     }
 
@@ -47,6 +49,8 @@ const fetchActivitiesFromAPI = async (userId?: string): Promise<Activity[]> => {
         maxPlayers: activity.maxPlayers,
         recurringDays: activity.recurringDays,
         recurringType: activity.recurringType,
+        startTime: activity.startTime || '00:00',
+        endTime: activity.endTime || '23:59',
         isPublic: activity.isPublic,
         createdBy: activity.createdBy,
         code: activity.code,
