@@ -265,7 +265,7 @@ export function Header({ user }: HeaderProps) {
 
       {/* Mobile navigation menu */}
       {user && (
-        <div className="md:hidden">
+        <div className="md:hidden bg-gray-800">
           <div role="navigation" aria-label="Menu mobile" className="px-2 pt-2 pb-3 space-y-2 sm:px-3 border-t border-gray-700">
             <Link
               href="/mes-sessions"
