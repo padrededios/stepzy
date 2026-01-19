@@ -66,7 +66,7 @@ export function LoginForm() {
 
       if (result.data && result.data.user) {
         // Redirect to specified URL or activities page
-        const destination = redirectTo || '/mes-activites';
+        const destination = redirectTo || '/mes-sessions';
         router.replace(destination);
       } else {
         setErrors({

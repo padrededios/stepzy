@@ -119,7 +119,7 @@ export function MatchDetailClient({
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Erreur</h1>
         <p className="text-gray-600 mb-4">{error}</p>
         <button
-          onClick={() => router.push('/mes-activites')}
+          onClick={() => router.push('/mes-sessions')}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Retour aux activités
@@ -135,7 +135,7 @@ export function MatchDetailClient({
           Activité non trouvée
         </h1>
         <button
-          onClick={() => router.push('/mes-activites')}
+          onClick={() => router.push('/mes-sessions')}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Retour aux activités
@@ -152,7 +152,7 @@ export function MatchDetailClient({
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <button
-            onClick={() => router.push('/mes-activites')}
+            onClick={() => router.push('/mes-sessions')}
             className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
           >
             <svg

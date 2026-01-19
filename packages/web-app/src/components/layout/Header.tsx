@@ -79,11 +79,11 @@ export function Header({ user }: HeaderProps) {
           <div className="flex items-center space-x-8">
             {/* Logo */}
             <Link
-              href={user ? '/mes-activites' : '/'}
-              className="flex items-center hover:opacity-80 transition-opacity"
+              href={user ? '/mes-sessions' : '/'}
+              className="flex items-center hover:opacity-90 transition-opacity"
               aria-label="Accueil"
             >
-              <div className="relative w-8 h-8">
+              <div className="relative w-14 h-14">
                 <Image
                   src="/images/stepzy_logo.png"
                   alt="Stepzy Logo"
@@ -91,7 +91,7 @@ export function Header({ user }: HeaderProps) {
                   className="rounded-lg object-cover"
                 />
               </div>
-              <span className="ml-2 text-lg font-bold text-white">
+              <span className="ml-4 text-2xl font-extrabold text-white tracking-tight">
                 Stepzy
               </span>
             </Link>
@@ -99,10 +99,21 @@ export function Header({ user }: HeaderProps) {
             {/* Navigation pour desktop */}
             {user && (
               <nav className="hidden md:flex">
-                <div className="flex space-x-1">
+                <div className="flex space-x-2">
+                  <Link
+                    href="/mes-sessions"
+                    className={`relative text-white hover:text-gray-100 px-5 py-2.5 text-base font-semibold transition-colors rounded-md hover:bg-gray-700 ${
+                      isActivePath('/mes-sessions') ? 'bg-gray-700' : ''
+                    }`}
+                  >
+                    Mes sessions
+                    {isActivePath('/mes-sessions') && (
+                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                    )}
+                  </Link>
                   <Link
                     href="/mes-activites"
-                    className={`relative text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors rounded-md hover:bg-gray-700 ${
+                    className={`relative text-white hover:text-gray-100 px-5 py-2.5 text-base font-semibold transition-colors rounded-md hover:bg-gray-700 ${
                       isActivePath('/mes-activites') ? 'bg-gray-700' : ''
                     }`}
                   >
@@ -112,19 +123,8 @@ export function Header({ user }: HeaderProps) {
                     )}
                   </Link>
                   <Link
-                    href="/s-inscrire"
-                    className={`relative text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors rounded-md hover:bg-gray-700 ${
-                      isActivePath('/s-inscrire') ? 'bg-gray-700' : ''
-                    }`}
-                  >
-                    S'inscrire
-                    {isActivePath('/s-inscrire') && (
-                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                    )}
-                  </Link>
-                  <Link
                     href="/mes-statistiques"
-                    className={`relative text-white hover:text-gray-300 px-4 py-2 text-sm font-medium transition-colors rounded-md hover:bg-gray-700 ${
+                    className={`relative text-white hover:text-gray-100 px-5 py-2.5 text-base font-semibold transition-colors rounded-md hover:bg-gray-700 ${
                       isActivePath('/mes-statistiques') ? 'bg-gray-700' : ''
                     }`}
                   >
@@ -266,26 +266,26 @@ export function Header({ user }: HeaderProps) {
       {/* Mobile navigation menu */}
       {user && (
         <div className="md:hidden">
-          <div role="navigation" aria-label="Menu mobile" className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-700">
+          <div role="navigation" aria-label="Menu mobile" className="px-2 pt-2 pb-3 space-y-2 sm:px-3 border-t border-gray-700">
+            <Link
+              href="/mes-sessions"
+              className={`block px-4 py-3 text-base font-semibold text-white hover:text-gray-100 hover:bg-gray-700 rounded-md ${
+                isActivePath('/mes-sessions') ? 'bg-gray-700' : ''
+              }`}
+            >
+              Mes sessions
+            </Link>
             <Link
               href="/mes-activites"
-              className={`block px-3 py-2 text-base font-medium text-white hover:text-gray-300 hover:bg-gray-700 rounded-md ${
+              className={`block px-4 py-3 text-base font-semibold text-white hover:text-gray-100 hover:bg-gray-700 rounded-md ${
                 isActivePath('/mes-activites') ? 'bg-gray-700' : ''
               }`}
             >
               Mes activités
             </Link>
             <Link
-              href="/s-inscrire"
-              className={`block px-3 py-2 text-base font-medium text-white hover:text-gray-300 hover:bg-gray-700 rounded-md ${
-                isActivePath('/s-inscrire') ? 'bg-gray-700' : ''
-              }`}
-            >
-              S'inscrire
-            </Link>
-            <Link
               href="/mes-statistiques"
-              className={`block px-3 py-2 text-base font-medium text-white hover:text-gray-300 hover:bg-gray-700 rounded-md ${
+              className={`block px-4 py-3 text-base font-semibold text-white hover:text-gray-100 hover:bg-gray-700 rounded-md ${
                 isActivePath('/mes-statistiques') ? 'bg-gray-700' : ''
               }`}
             >

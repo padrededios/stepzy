@@ -63,7 +63,7 @@ export default function CreateActivityPage() {
 
         // Rediriger vers la page s'inscrire après 2 secondes
         setTimeout(() => {
-          router.push('/s-inscrire')
+          router.push('/mes-activites')
         }, 2000)
       } else {
         setMessage({ type: 'error', text: result.error || 'Erreur lors de la création de l\'activité' })

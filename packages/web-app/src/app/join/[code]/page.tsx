@@ -66,12 +66,12 @@ export default function JoinByCodePage() {
         if (isAlreadyMember) {
           setMessage({ type: 'success', text: 'Vous êtes déjà membre de cette activité' })
           setTimeout(() => {
-            router.push('/s-inscrire')
+            router.push('/mes-activites')
           }, 2000)
         } else {
           setMessage({ type: 'success', text: `Vous avez rejoint l'activité "${activityPreview.name}" avec succès !` })
           setTimeout(() => {
-            router.push('/s-inscrire')
+            router.push('/mes-activites')
           }, 2000)
         }
       } else {
@@ -121,7 +121,7 @@ export default function JoinByCodePage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Code invalide</h2>
             <p className="text-gray-600 mb-6">{error}</p>
             <button
-              onClick={() => router.push('/s-inscrire')}
+              onClick={() => router.push('/mes-activites')}
               className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 px-4 rounded-md font-medium transition-colors"
             >
               Retour à la page S'inscrire
@@ -269,7 +269,7 @@ export default function JoinByCodePage() {
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => router.push('/s-inscrire')}
+                onClick={() => router.push('/mes-activites')}
                 className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors font-medium"
                 disabled={isJoining}
               >

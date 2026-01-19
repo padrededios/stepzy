@@ -53,10 +53,10 @@ export default function SessionPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Session introuvable</h2>
           <p className="text-gray-600 mb-6">{error || 'Cette session n\'existe pas'}</p>
           <button
-            onClick={() => router.push('/mes-activites')}
+            onClick={() => router.push('/mes-sessions')}
             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
           >
-            Retour à mes activités
+            Retour à mes sessions
           </button>
         </div>
       </div>

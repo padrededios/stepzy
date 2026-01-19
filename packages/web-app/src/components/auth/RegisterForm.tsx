@@ -120,7 +120,7 @@ export function RegisterForm() {
       });
 
       if (result.data && result.data.user) {
-        router.replace('/mes-activites');
+        router.replace('/mes-sessions');
       } else {
         setErrors({
           general: result.error?.message || "Erreur lors de l'inscription",

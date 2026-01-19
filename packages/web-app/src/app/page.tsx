@@ -5,5 +5,5 @@ import { redirect } from 'next/navigation'
  * Les utilisateurs non connectés seront redirigés vers /login par le middleware
  */
 export default function HomePage() {
-  redirect('/mes-activites')
+  redirect('/mes-sessions')
 }
