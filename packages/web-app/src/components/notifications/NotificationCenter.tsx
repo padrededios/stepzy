@@ -160,6 +160,14 @@ export default function NotificationCenter({ userId }: NotificationCenterProps) 
         return '👋'
       case 'waiting_list_promoted':
         return '🎉'
+      case 'session_confirmed':
+        return '✅'
+      case 'session_cancelled':
+        return '❌'
+      case 'session_reminder':
+        return '⏰'
+      case 'new_sessions_available':
+        return '🆕'
       case 'announcement':
         return '📢'
       default:

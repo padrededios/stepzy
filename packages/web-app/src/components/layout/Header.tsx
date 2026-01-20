@@ -5,6 +5,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import NotificationCenter from '../notifications/NotificationCenter'
+import { useNotifications } from '@/hooks/useNotifications'
+import { useChatRooms } from '@/hooks/useChatRooms'
 import { User } from '@/types'
 import { authApi } from '@/lib/api'
 
@@ -19,6 +21,8 @@ export function Header({ user }: HeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const { unreadCount } = useNotifications()
+  const { unreadCounts } = useChatRooms()
 
   const isActivePath = (path: string) => pathname === path
 
@@ -58,7 +62,7 @@ export function Header({ user }: HeaderProps) {
   }
 
   const handleNotificationsClick = () => {
-    // TODO: Implémenter l'ouverture du panneau de notifications
+    router.push('/notifications')
   }
 
   const handleSettingsClick = () => {
@@ -155,10 +159,12 @@ export function Header({ user }: HeaderProps) {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                       </button>
-                      {/* Notification badge */}
-                      <div className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold pointer-events-none">
-                        3
-                      </div>
+                      {/* Notification badge - Only show if there are unread notifications */}
+                      {unreadCount > 0 && (
+                        <div className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold pointer-events-none">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </div>
+                      )}
                     </div>
 
                     {/* Settings */}
@@ -175,16 +181,24 @@ export function Header({ user }: HeaderProps) {
                     </button>
 
                     {/* Messages */}
-                    <button
-                      onClick={handleMessagesClick}
-                      className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
-                      title="Messages"
-                      aria-label="Messages"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={handleMessagesClick}
+                        className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
+                        title="Messages"
+                        aria-label="Messages"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                      </button>
+                      {/* Messages badge - Only show if there are unread messages */}
+                      {unreadCounts && unreadCounts.total > 0 && (
+                        <div className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold pointer-events-none">
+                          {unreadCounts.total > 9 ? '9+' : unreadCounts.total}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* User menu button */}
