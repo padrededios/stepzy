@@ -83,6 +83,22 @@ export class ActivityService {
       }
     })
 
+    // Auto-subscribe creator to their activity
+    await prisma.activitySubscription.create({
+      data: {
+        userId,
+        activityId: activity.id
+      }
+    })
+
+    // Add activity to creator's list
+    await prisma.userActivityList.create({
+      data: {
+        userId,
+        activityId: activity.id
+      }
+    })
+
     return activity
   }
 
