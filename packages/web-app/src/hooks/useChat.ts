@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { ChatMessage, TypingIndicator } from '@stepzy/shared'
+import { useChatContext } from '@/contexts/ChatContext'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 const WS_URL = API_URL.replace('http', 'ws')
@@ -28,6 +29,9 @@ export function useChat(roomId: string | null): UseChatReturn {
   const [hasMore, setHasMore] = useState(false)
   const wsRef = useRef<WebSocket | null>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Get refresh function from context
+  const { refreshUnreadCounts } = useChatContext()
 
   // Fetch messages
   const fetchMessages = useCallback(async (before?: string) => {
@@ -147,10 +151,13 @@ export function useChat(roomId: string | null): UseChatReturn {
         method: 'PUT',
         credentials: 'include'
       })
+
+      // Refresh unread counts immediately
+      await refreshUnreadCounts()
     } catch (err) {
       console.error('Error marking as read:', err)
     }
-  }, [roomId])
+  }, [roomId, refreshUnreadCounts])
 
   // WebSocket connection
   useEffect(() => {

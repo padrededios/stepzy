@@ -4,8 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import NotificationCenter from '../notifications/NotificationCenter'
-import { useNotifications } from '@/hooks/useNotifications'
+import { useNotificationsContext } from '@/contexts/NotificationsContext'
 import { useChatRooms } from '@/hooks/useChatRooms'
 import { User } from '@/types'
 import { authApi } from '@/lib/api'
@@ -21,7 +20,7 @@ export function Header({ user }: HeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
-  const { unreadCount } = useNotifications()
+  const { unreadCount } = useNotificationsContext()
   const { unreadCounts } = useChatRooms()
 
   const isActivePath = (path: string) => pathname === path

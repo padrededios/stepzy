@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Notification, NotificationFilters } from '@stepzy/shared'
+import { useNotificationsContext } from '@/contexts/NotificationsContext'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 const WS_URL = API_URL.replace('http', 'ws')
@@ -27,12 +28,14 @@ interface UseNotificationsReturn {
 
 export function useNotifications(filters?: NotificationFilters): UseNotificationsReturn {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [selectAll, setSelectAll] = useState(false)
   const wsRef = useRef<WebSocket | null>(null)
+
+  // Use global unread count from context
+  const { unreadCount, setUnreadCount, fetchUnreadCount } = useNotificationsContext()
 
   // Fetch notifications
   const fetchNotifications = useCallback(async () => {
@@ -78,23 +81,6 @@ export function useNotifications(filters?: NotificationFilters): UseNotification
     }
   }, [filters])
 
-  // Fetch unread count
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/notifications/count`, {
-        credentials: 'include'
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success) {
-          setUnreadCount(data.data.count)
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching unread count:', err)
-    }
-  }, [])
 
   // Mark notification as read
   const markAsRead = useCallback(async (id: string) => {
@@ -332,8 +318,7 @@ export function useNotifications(filters?: NotificationFilters): UseNotification
   // Initial fetch
   useEffect(() => {
     fetchNotifications()
-    fetchUnreadCount()
-  }, [fetchNotifications, fetchUnreadCount])
+  }, [fetchNotifications])
 
   return {
     notifications,
