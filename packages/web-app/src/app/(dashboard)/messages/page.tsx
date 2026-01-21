@@ -32,7 +32,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-[calc(100vh-13rem)] flex flex-col bg-white rounded-lg shadow-sm overflow-hidden">
       {/* Desktop layout */}
       <div className="hidden md:flex flex-1 overflow-hidden">
         {/* Sidebar - Room list */}
