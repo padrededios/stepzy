@@ -195,7 +195,7 @@ export default function MesActivitesPage() {
         />
 
         {/* Tab Navigation - Sticky */}
-        <div className="sticky top-16 z-10 bg-[#f5f5f5] -mx-4 px-4 lg:-mx-6 lg:px-6 pt-4 pb-4">
+        <div className="sticky top-16 z-20 bg-[#f5f5f5] -mx-4 px-4 lg:-mx-6 lg:px-6 -mt-6 lg:-mt-8 pt-6 lg:pt-8 pb-4">
           <div className="border-b border-gray-200 bg-white rounded-lg shadow-sm px-4">
             <nav className="-mb-px flex space-x-8">
               <button
