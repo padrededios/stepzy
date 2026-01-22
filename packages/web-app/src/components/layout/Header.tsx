@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useNotificationsContext } from '@/contexts/NotificationsContext'
 import { useChatRooms } from '@/hooks/useChatRooms'
+import { NotificationPanel } from '@/components/notifications/NotificationPanel'
 import { User } from '@/types'
 import { authApi } from '@/lib/api'
 
@@ -19,6 +20,7 @@ export function Header({ user }: HeaderProps) {
   const pathname = usePathname()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const { unreadCount } = useNotificationsContext()
   const { unreadCounts } = useChatRooms()
@@ -61,7 +63,7 @@ export function Header({ user }: HeaderProps) {
   }
 
   const handleNotificationsClick = () => {
-    router.push('/notifications')
+    setIsNotificationPanelOpen(true)
   }
 
   const handleSettingsClick = () => {
@@ -307,6 +309,12 @@ export function Header({ user }: HeaderProps) {
           </div>
         </div>
       )}
+
+      {/* Notification Panel */}
+      <NotificationPanel
+        isOpen={isNotificationPanelOpen}
+        onClose={() => setIsNotificationPanelOpen(false)}
+      />
     </header>
   )
 }
