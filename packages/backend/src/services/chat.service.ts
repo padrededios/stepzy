@@ -5,6 +5,9 @@
 import { prisma } from '../database/prisma'
 import { ModerationService } from './moderation.service'
 
+// Maximum number of messages to keep per room
+export const MAX_MESSAGES_PER_ROOM = 100
+
 export class ChatService {
   /**
    * Get or create a chat room for an activity
@@ -110,11 +113,43 @@ export class ChatService {
       }
     })
 
+    // Cleanup old messages to keep only the last MAX_MESSAGES_PER_ROOM
+    await this.cleanupOldMessages(roomId)
+
     return message
   }
 
   /**
-   * Get messages for a room (paginated)
+   * Delete messages beyond MAX_MESSAGES_PER_ROOM to limit storage
+   * Keeps only the most recent messages
+   */
+  static async cleanupOldMessages(roomId: string): Promise<number> {
+    // Get the ID of the message at position MAX_MESSAGES_PER_ROOM (the cutoff point)
+    const cutoffMessage = await prisma.chatMessage.findFirst({
+      where: { roomId },
+      orderBy: { createdAt: 'desc' },
+      skip: MAX_MESSAGES_PER_ROOM,
+      select: { createdAt: true }
+    })
+
+    // If no cutoff message found, there are <= MAX_MESSAGES_PER_ROOM messages
+    if (!cutoffMessage) {
+      return 0
+    }
+
+    // Delete all messages older than the cutoff
+    const deleted = await prisma.chatMessage.deleteMany({
+      where: {
+        roomId,
+        createdAt: { lte: cutoffMessage.createdAt }
+      }
+    })
+
+    return deleted.count
+  }
+
+  /**
+   * Get messages for a room (limited to MAX_MESSAGES_PER_ROOM)
    */
   static async getMessages(
     roomId: string,
@@ -127,7 +162,9 @@ export class ChatService {
       throw new Error('Vous n\'avez pas accès à ce salon')
     }
 
-    const { limit = 50, before } = options
+    // Limit to MAX_MESSAGES_PER_ROOM maximum
+    const { limit = MAX_MESSAGES_PER_ROOM, before } = options
+    const effectiveLimit = Math.min(limit, MAX_MESSAGES_PER_ROOM)
 
     const messages = await prisma.chatMessage.findMany({
       where: {
@@ -139,7 +176,7 @@ export class ChatService {
         })
       },
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take: effectiveLimit,
       include: {
         sender: {
           select: {
@@ -332,5 +369,24 @@ export class ChatService {
         }
       }
     })
+  }
+
+  /**
+   * Cleanup old messages for all rooms
+   * Useful for maintenance tasks
+   */
+  static async cleanupAllRooms(): Promise<{ roomId: string; deleted: number }[]> {
+    const rooms = await prisma.chatRoom.findMany({
+      select: { id: true }
+    })
+
+    const results = await Promise.all(
+      rooms.map(async (room) => ({
+        roomId: room.id,
+        deleted: await this.cleanupOldMessages(room.id)
+      }))
+    )
+
+    return results.filter((r) => r.deleted > 0)
   }
 }

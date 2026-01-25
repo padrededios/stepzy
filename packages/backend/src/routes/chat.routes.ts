@@ -14,7 +14,7 @@ const sendMessageSchema = z.object({
 })
 
 const getMessagesSchema = z.object({
-  limit: z.coerce.number().int().positive().max(100).default(50),
+  limit: z.coerce.number().int().positive().max(100).default(100),
   before: z.string().optional() // ISO date string
 })
 
