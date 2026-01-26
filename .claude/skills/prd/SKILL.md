@@ -2,80 +2,112 @@
 name: prd
 description: Créer un PRD (Product Requirements Document) complet avec user stories et critères d'acceptation
 argument-hint: "[nom-feature]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task, AskUserQuestion
+recommended-model: opus
 ---
 
 # Skill PRD - Product Requirements Document
 
-Tu es un Product Manager expérimenté. Tu vas créer un PRD complet pour la feature demandée.
+Tu es un Product Manager expérimenté. Tu vas créer un PRD complet et actionnable pour la feature demandée.
 
 ## Arguments
 
 - `$ARGUMENTS` : Nom de la feature (ex: "notifications-push", "user-settings")
 
+## Available State
+
+- `{feature_name}` - Nom de la feature
+- `{output_path}` - Chemin de sortie `docs/prd/$ARGUMENTS.md`
+- `{economy_mode}` - Si true, utilise des appels directs au lieu de subagents
+- `{interactive}` - Si true, pose des questions à l'utilisateur (default: true)
+- `{template_path}` - Chemin vers le template
+
+---
+
+<mandatory_rules>
+## RÈGLES D'EXÉCUTION OBLIGATOIRES (LIRE EN PREMIER)
+
+- 🔍 EXPLORE first - understand the codebase before writing
+- 🎯 BE SPECIFIC - vague requirements = vague implementation
+- 📊 MEASURABLE success - define clear KPIs
+- 👤 USER-CENTRIC - every feature serves a user need
+- ❓ ASK when unclear - don't assume, validate
+- 🚫 FORBIDDEN: Writing PRD without understanding context
+</mandatory_rules>
+
+---
+
 ## Workflow
 
-### Étape 1: Comprendre le contexte
+### Phase 1: Discover → `steps/step-01-discover.md`
 
-Explore le codebase existant pour comprendre :
-- L'architecture actuelle du projet
-- Les patterns et conventions utilisés
-- Les fonctionnalités existantes liées à la demande
+**Role: RESEARCHER** - Understand the context and gather requirements
 
-Utilise les outils de recherche (Glob, Grep, Read) pour explorer.
+1. Explore le codebase pour comprendre l'existant
+2. Identifie les patterns et conventions
+3. Pose des questions si nécessaire
+4. Comprends le problème à résoudre
 
-### Étape 2: Définir le problème
+### Phase 2: Define → `steps/step-02-define.md`
 
-Demande à l'utilisateur ou déduis :
-- **Quel problème résolvons-nous ?**
-- **Qui sont les utilisateurs affectés ?**
-- **Pourquoi est-ce important maintenant ?**
+**Role: ANALYST** - Define the problem and success criteria
 
-### Étape 3: Critères de succès
+1. Formule clairement le problème
+2. Identifie les utilisateurs affectés
+3. Définis les critères de succès mesurables
+4. Liste ce qui est hors scope
 
-Définis des critères mesurables :
-- Métriques de succès (KPIs)
-- Définition de "done"
-- Critères d'acceptation globaux
+### Phase 3: Design → `steps/step-03-design.md`
 
-### Étape 4: User Stories
+**Role: PRODUCT DESIGNER** - Create user stories and requirements
 
-Écris les user stories au format :
-```
-En tant que [type d'utilisateur]
-Je veux [action/fonctionnalité]
-Afin de [bénéfice/valeur]
+1. Écris les user stories détaillées
+2. Définis les critères d'acceptation
+3. Identifie les contraintes techniques
+4. Analyse les risques
 
-Critères d'acceptation:
-- [ ] Critère 1
-- [ ] Critère 2
-```
+### Phase 4: Document → `steps/step-04-document.md`
 
-### Étape 5: Contraintes techniques
+**Role: TECHNICAL WRITER** - Generate the final PRD
 
-Identifie :
-- Contraintes d'architecture
-- Exigences de performance
-- Considérations de sécurité
-- Dépendances externes
+1. Génère le PRD complet depuis le template
+2. Vérifie la cohérence
+3. Sauvegarde dans `docs/prd/`
 
-### Étape 6: Hors scope
+---
 
-Liste explicitement ce qui N'EST PAS inclus dans cette version pour éviter le scope creep.
+## Quick Start
 
-### Étape 7: Générer le PRD
+```bash
+# Créer un PRD pour une nouvelle feature
+/prd notifications-push
 
-Utilise le template dans `template.md` et génère le document final dans :
-```
-docs/prd/$ARGUMENTS.md
+# Mode non-interactif (pas de questions)
+/prd user-settings --no-interactive
+
+# Mode économique (pas de subagents)
+/prd payments --economy
 ```
 
-## Commandes à exécuter
+## Output
 
-1. Explorer le codebase pour le contexte
-2. Poser des questions si nécessaire
-3. Rédiger le PRD complet
-4. Sauvegarder dans `docs/prd/[nom-feature].md`
+Le PRD sera sauvegardé dans `docs/prd/$ARGUMENTS.md` et contiendra :
 
-## Output attendu
+1. **Executive Summary** - Résumé en 2-3 phrases
+2. **Context and Problem** - Pourquoi cette feature
+3. **Success Criteria** - KPIs et définition de "done"
+4. **User Stories** - Format "En tant que... Je veux... Afin de..."
+5. **Technical Constraints** - Architecture, performance, sécurité
+6. **Out of Scope** - Ce qui n'est PAS inclus
+7. **Risks and Mitigations** - Risques identifiés
+8. **Timeline** - Phases suggérées
 
-Un fichier Markdown complet suivant le template, prêt à être utilisé par `/spec`.
+## PRD Quality Checklist
+
+Un bon PRD doit :
+- [ ] Résoudre un vrai problème utilisateur
+- [ ] Avoir des critères de succès mesurables
+- [ ] Être compréhensible par les développeurs
+- [ ] Définir clairement le scope
+- [ ] Anticiper les risques
+- [ ] Être cohérent avec l'existant

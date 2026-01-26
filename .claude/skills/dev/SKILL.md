@@ -2,7 +2,8 @@
 name: dev
 description: Implémenter une feature en TDD strict à partir d'une spécification technique
 argument-hint: "[nom-spec]"
-allowed-tools: Read, Write, Edit, Bash, Grep, Glob
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task
+recommended-model: sonnet
 ---
 
 # Skill Dev - Implémentation TDD
@@ -13,11 +14,76 @@ Tu es un développeur senior pratiquant le TDD strict. Tu vas implémenter une f
 
 - `$ARGUMENTS` : Nom de la spec (correspond au fichier dans `docs/specs/`)
 
+## Available State
+
+- `{spec_name}` - Nom de la spécification
+- `{spec_path}` - Chemin vers `docs/specs/$ARGUMENTS.md`
+- `{economy_mode}` - Si true, utilise des appels directs au lieu de subagents
+- `{fast_mode}` - Si true, regroupe plusieurs tests par cycle
+- `{verbose}` - Si true, affiche les détails de chaque cycle
+
+---
+
+<mandatory_rules>
+## RÈGLES D'EXÉCUTION OBLIGATOIRES (LIRE EN PREMIER)
+
+- 🔴 RED first - write failing test BEFORE any implementation
+- 🟢 GREEN minimal - write ONLY code needed to pass the test
+- 🔵 REFACTOR clean - improve code while keeping tests green
+- 🔁 ONE test at a time - never write multiple tests before implementing
+- ⏸️ STOP on red - investigate before continuing
+- 🚫 FORBIDDEN: Writing implementation before test
+</mandatory_rules>
+
+---
+
 ## Prérequis
 
 Une spécification doit exister dans `docs/specs/$ARGUMENTS.md`. Si le fichier n'existe pas, informe l'utilisateur qu'il doit d'abord exécuter `/spec $ARGUMENTS`.
 
-## Règles TDD strictes
+---
+
+## Workflow
+
+### Phase 1: Prepare → `steps/step-01-prepare.md`
+
+**Role: PLANNER** - Understand the spec and prepare the structure
+
+1. Lis et analyse la spécification
+2. Identifie les fichiers à créer
+3. Liste les fonctionnalités à implémenter
+4. Crée la structure de fichiers vides
+
+### Phase 2: Implement → `steps/step-02-implement.md`
+
+**Role: TDD PRACTITIONER** - Implement with strict RED-GREEN-REFACTOR
+
+Pour CHAQUE fonctionnalité :
+1. 🔴 RED: Écrire le test qui échoue
+2. 🟢 GREEN: Implémenter le minimum pour passer
+3. 🔵 REFACTOR: Améliorer si nécessaire
+4. Répéter
+
+### Phase 3: Integrate → `steps/step-03-integrate.md`
+
+**Role: INTEGRATOR** - Connect all pieces
+
+1. Tests d'intégration API
+2. Vérification des endpoints
+3. Tests des scénarios complets
+
+### Phase 4: Finalize → `steps/step-04-finalize.md`
+
+**Role: QUALITY GUARDIAN** - Ensure completion
+
+1. Tous les tests passent
+2. Couverture vérifiée
+3. Documentation mise à jour
+4. Rapport final
+
+---
+
+## TDD Rules
 
 ### Règle #1: Jamais de code sans test
 Tu ne dois JAMAIS écrire de code d'implémentation avant d'avoir écrit le test correspondant qui échoue.
@@ -34,187 +100,61 @@ N'écris que le code strictement nécessaire pour faire passer le test. Pas d'op
 ### Règle #5: Refactor après GREEN
 Une fois le test passé, refactorise si nécessaire, puis vérifie que les tests passent toujours.
 
-## Workflow
+---
 
-### Étape 1: Lire la spécification
-
-Charge et analyse la spec depuis `docs/specs/$ARGUMENTS.md` :
-- Identifie tous les fichiers à créer/modifier
-- Liste toutes les fonctionnalités à implémenter
-- Comprends les schemas de validation
-- Note le plan de tests
-
-### Étape 2: Créer la structure
-
-Crée les dossiers et fichiers vides nécessaires :
-```bash
-# Exemple
-mkdir -p backend/src/services
-mkdir -p backend/tests/unit/[feature]
-touch backend/src/services/[feature].service.ts
-touch backend/tests/unit/[feature]/[feature].service.test.ts
-```
-
-### Étape 3: Cycle TDD pour chaque fonctionnalité
-
-Pour CHAQUE fonctionnalité dans la spec, suis ce cycle :
-
-#### 3.1 RED - Écrire le test
-
-```typescript
-// backend/tests/unit/[feature]/[feature].service.test.ts
-
-describe('[Feature]Service', () => {
-  describe('create', () => {
-    it('should create a new [feature] with valid data', async () => {
-      // Arrange
-      const input = { field1: 'value', field2: 123 };
-
-      // Act
-      const result = await service.create(input);
-
-      // Assert
-      expect(result).toMatchObject({
-        id: expect.any(String),
-        field1: 'value',
-        field2: 123,
-      });
-    });
-  });
-});
-```
-
-Puis exécute :
-```bash
-npm test -- --testPathPattern="[feature]"
-```
-
-**VÉRIFIE** : Le test DOIT échouer (RED)
-
-#### 3.2 GREEN - Implémenter le minimum
-
-```typescript
-// backend/src/services/[feature].service.ts
-
-export class [Feature]Service {
-  async create(input: Create[Feature]Input): Promise<[Feature]> {
-    // Code MINIMAL pour faire passer le test
-    return await prisma.[feature].create({
-      data: input,
-    });
-  }
-}
-```
-
-Puis exécute :
-```bash
-npm test -- --testPathPattern="[feature]"
-```
-
-**VÉRIFIE** : Le test DOIT passer (GREEN)
-
-#### 3.3 REFACTOR - Améliorer si nécessaire
-
-- Améliore la lisibilité
-- Élimine la duplication
-- Applique les patterns appropriés
+## Quick Start
 
 ```bash
-npm test -- --testPathPattern="[feature]"
+# Implémenter une feature depuis sa spec
+/dev notifications
+
+# Mode verbose pour voir chaque cycle
+/dev user-settings --verbose
+
+# Mode rapide (moins granulaire)
+/dev payments --fast
 ```
 
-**VÉRIFIE** : Les tests DOIVENT toujours passer
+## Output
 
-#### 3.4 Répéter
+### Implementation Report
 
-Passe à la fonctionnalité suivante et recommence le cycle RED → GREEN → REFACTOR.
+```markdown
+## Rapport d'implémentation : [Feature]
 
-### Étape 4: Tests d'intégration
+### Spec
+- Source: `docs/specs/[feature].md`
+- User Stories: [X] implémentées
 
-Après les tests unitaires, écris les tests d'intégration API :
+### TDD Cycles
+| Feature | Tests | Status |
+|---------|-------|--------|
+| Create | 5 | ✅ |
+| Read | 3 | ✅ |
+| Update | 4 | ✅ |
+| Delete | 2 | ✅ |
 
-```typescript
-// backend/tests/integration/[feature].api.test.ts
+### Tests
+- Tests unitaires : [X] passés / [X] total
+- Tests intégration : [X] passés / [X] total
+- Couverture : [X]%
 
-describe('POST /api/[feature]', () => {
-  it('should return 201 with valid data', async () => {
-    const response = await request(app)
-      .post('/api/[feature]')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ field1: 'value' });
+### Fichiers créés
+- backend/src/services/[feature].service.ts
+- backend/tests/unit/[feature]/[feature].service.test.ts
+- ...
 
-    expect(response.status).toBe(201);
-    expect(response.body.success).toBe(true);
-  });
+### Fichiers modifiés
+- prisma/schema.prisma
+- backend/src/app.ts
+- ...
 
-  it('should return 400 with invalid data', async () => {
-    const response = await request(app)
-      .post('/api/[feature]')
-      .set('Authorization', `Bearer ${token}`)
-      .send({});
-
-    expect(response.status).toBe(400);
-  });
-
-  it('should return 401 without auth', async () => {
-    const response = await request(app)
-      .post('/api/[feature]')
-      .send({ field1: 'value' });
-
-    expect(response.status).toBe(401);
-  });
-});
+### Prochaines étapes
+- [ ] Migration Prisma
+- [ ] Déploiement
 ```
 
-### Étape 5: Vérification finale
-
-```bash
-# Tous les tests doivent passer
-npm test
-
-# Vérifier la couverture
-npm test -- --coverage
-```
-
-## Checklist de développement
-
-Pour chaque fonctionnalité :
-
-- [ ] Test unitaire écrit
-- [ ] Test échoue (RED)
-- [ ] Code minimal implémenté
-- [ ] Test passe (GREEN)
-- [ ] Code refactorisé si nécessaire
-- [ ] Tests passent toujours
-
-Fin du développement :
-
-- [ ] Tous les tests unitaires passent
-- [ ] Tous les tests d'intégration passent
-- [ ] Couverture de code ≥ 80%
-- [ ] Pas de code mort
-- [ ] Pas de TODO laissés
-
-## Commandes utiles
-
-```bash
-# Lancer tous les tests
-npm test
-
-# Lancer les tests d'une feature
-npm test -- --testPathPattern="[feature]"
-
-# Lancer en mode watch
-npm test -- --watch
-
-# Avec couverture
-npm test -- --coverage
-
-# Un seul fichier
-npm test -- path/to/test.ts
-```
-
-## Anti-patterns à éviter
+## Anti-patterns
 
 ❌ **Ne fais JAMAIS ça** :
 - Écrire le code avant le test
@@ -227,54 +167,5 @@ npm test -- path/to/test.ts
 ✅ **Fais TOUJOURS ça** :
 - Un test → Un run → Une implémentation
 - Commits fréquents après chaque cycle GREEN
-- Messages de commit clairs : "feat([feature]): add create method"
+- Messages de commit clairs : `feat([feature]): add create method`
 - Garder les tests rapides (< 100ms chacun)
-
-## Structure de sortie attendue
-
-```
-backend/
-├── src/
-│   ├── routes/[feature].routes.ts      ✓ Implémenté + testé
-│   ├── services/[feature].service.ts   ✓ Implémenté + testé
-│   ├── schemas/[feature].schema.ts     ✓ Implémenté + testé
-│   └── types/[feature].types.ts        ✓ Types définis
-└── tests/
-    ├── unit/[feature]/
-    │   └── [feature].service.test.ts   ✓ Tests unitaires
-    └── integration/
-        └── [feature].api.test.ts       ✓ Tests API
-
-frontend/ (si applicable)
-├── src/
-│   └── components/[Feature]/
-│       ├── [Feature].tsx               ✓ Implémenté + testé
-│       └── [Feature].test.tsx          ✓ Tests composant
-```
-
-## Rapport final
-
-À la fin, fournis un résumé :
-
-```
-## Rapport d'implémentation : [Feature]
-
-### Tests
-- Tests unitaires : X passés / X total
-- Tests intégration : X passés / X total
-- Couverture : XX%
-
-### Fichiers créés
-- backend/src/services/[feature].service.ts
-- backend/tests/unit/[feature]/[feature].service.test.ts
-- ...
-
-### Fichiers modifiés
-- prisma/schema.prisma
-- backend/src/app.ts
-- ...
-
-### Prochaines étapes (si applicable)
-- [ ] Migration Prisma
-- [ ] Déploiement
-```

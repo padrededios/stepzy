@@ -2,145 +2,120 @@
 name: spec
 description: Créer une spécification technique détaillée à partir d'un PRD
 argument-hint: "[nom-prd]"
+allowed-tools: Read, Write, Edit, Bash, Grep, Glob, Task
+recommended-model: opus
 ---
 
 # Skill Spec - Spécification Technique
 
-Tu es un architecte logiciel senior. Tu vas créer une spécification technique complète à partir d'un PRD existant.
+Tu es un architecte logiciel senior. Tu vas créer une spécification technique complète et implémentable à partir d'un PRD existant.
 
 ## Arguments
 
 - `$ARGUMENTS` : Nom du PRD (correspond au fichier dans `docs/prd/`)
 
+## Available State
+
+- `{prd_name}` - Nom du PRD
+- `{prd_path}` - Chemin vers `docs/prd/$ARGUMENTS.md`
+- `{output_path}` - Chemin de sortie `docs/specs/$ARGUMENTS.md`
+- `{economy_mode}` - Si true, utilise des appels directs au lieu de subagents
+- `{detailed_mode}` - Si true, inclut plus de détails d'implémentation
+
+---
+
+<mandatory_rules>
+## RÈGLES D'EXÉCUTION OBLIGATOIRES (LIRE EN PREMIER)
+
+- 📖 READ PRD first - understand requirements before designing
+- 🏗️ DESIGN for implementation - spec must be directly usable
+- 🔌 API complete - every endpoint fully documented
+- 💾 DATA models complete - all fields, relations, indexes
+- 🧪 TEST plan included - what to test and how
+- 🚫 FORBIDDEN: Creating spec without reading PRD
+</mandatory_rules>
+
+---
+
 ## Prérequis
 
 Un PRD doit exister dans `docs/prd/$ARGUMENTS.md`. Si le fichier n'existe pas, informe l'utilisateur qu'il doit d'abord exécuter `/prd $ARGUMENTS`.
 
+---
+
 ## Workflow
 
-### Étape 1: Lire le PRD
+### Phase 1: Analyze → `steps/step-01-analyze.md`
 
-Charge et analyse le PRD depuis `docs/prd/$ARGUMENTS.md` :
-- Comprends les user stories et critères d'acceptation
-- Identifie les contraintes techniques mentionnées
-- Note les dépendances
+**Role: REQUIREMENTS ANALYST** - Understand the PRD completely
 
-### Étape 2: Architecture
+1. Lis et analyse le PRD
+2. Extrait les user stories et critères d'acceptation
+3. Identifie les contraintes techniques
+4. Prépare la liste des composants à spécifier
 
-Crée un diagramme ASCII des composants :
-```
-┌─────────────┐     ┌─────────────┐
-│  Frontend   │────▶│   Backend   │
-└─────────────┘     └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  Database   │
-                    └─────────────┘
-```
+### Phase 2: Architect → `steps/step-02-architect.md`
 
-Décris :
-- Les nouveaux composants à créer
-- Les modifications aux composants existants
-- Les interactions entre composants
+**Role: SYSTEM ARCHITECT** - Design the technical solution
 
-### Étape 3: API Endpoints
+1. Crée les diagrammes d'architecture
+2. Définit les composants et leurs responsabilités
+3. Spécifie les flux de données
+4. Identifie les patterns à utiliser
 
-Pour chaque endpoint, documente :
-```
-### POST /api/[resource]
+### Phase 3: Detail → `steps/step-03-detail.md`
 
-**Description**: [Ce que fait l'endpoint]
+**Role: API DESIGNER** - Specify APIs, data models, and validations
 
-**Auth**: Required | Optional | None
+1. Documente chaque endpoint API
+2. Définit les modèles de données (Prisma)
+3. Crée les schémas de validation (Zod)
+4. Spécifie la gestion des erreurs
 
-**Request Body**:
-```json
-{
-  "field": "type"
-}
-```
+### Phase 4: Finalize → `steps/step-04-finalize.md`
 
-**Response 200**:
-```json
-{
-  "data": {}
-}
-```
+**Role: TECHNICAL WRITER** - Complete and document
 
-**Erreurs**:
-- 400: [Validation error]
-- 401: [Unauthorized]
-- 404: [Not found]
+1. Crée le plan de tests
+2. Liste les fichiers à créer/modifier
+3. Génère la spec finale
+4. Vérifie la cohérence
+
+---
+
+## Quick Start
+
+```bash
+# Créer une spec depuis un PRD
+/spec notifications-push
+
+# Mode détaillé (plus d'infos d'implémentation)
+/spec user-settings --detailed
+
+# Mode économique (pas de subagents)
+/spec payments --economy
 ```
 
-### Étape 4: Schéma Base de Données
+## Output
 
-Définis les modèles Prisma :
-```prisma
-model NouveauModel {
-  id        String   @id @default(cuid())
-  field     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+La spec sera sauvegardée dans `docs/specs/$ARGUMENTS.md` et contiendra :
 
-  // Relations
-  relation  Relation @relation(fields: [relationId], references: [id])
-}
-```
+1. **Overview** - Résumé technique et lien PRD
+2. **Architecture** - Diagrammes et composants
+3. **API Endpoints** - Documentation complète
+4. **Database** - Modèles Prisma
+5. **Validation** - Schémas Zod
+6. **Error Handling** - Codes et messages
+7. **Security** - Auth, authz, validation
+8. **Test Plan** - Tests unitaires, intégration, E2E
+9. **Files to Create** - Liste exhaustive
 
-Inclus :
-- Nouveaux modèles
-- Modifications aux modèles existants
-- Index nécessaires
-- Relations
+## Spec Quality Checklist
 
-### Étape 5: Gestion des erreurs
-
-Définis les codes d'erreur custom :
-```typescript
-enum ErrorCode {
-  FEATURE_ERROR_001 = 'Description claire',
-  FEATURE_ERROR_002 = 'Description claire',
-}
-```
-
-Spécifie :
-- Format des messages d'erreur
-- Stratégie de logging
-- Retry policy si applicable
-
-### Étape 6: Sécurité
-
-Détaille :
-- Authentification requise
-- Autorisations (qui peut faire quoi)
-- Validation des inputs (Zod schemas)
-- Rate limiting si nécessaire
-- Sanitization des données
-
-### Étape 7: Plan de tests
-
-Liste ce qui doit être testé :
-```
-## Tests unitaires
-- [ ] [Fonction/Service 1]
-- [ ] [Fonction/Service 2]
-
-## Tests d'intégration
-- [ ] [Endpoint 1]
-- [ ] [Endpoint 2]
-
-## Tests E2E (si applicable)
-- [ ] [Scénario 1]
-```
-
-### Étape 8: Générer la spec
-
-Utilise le template dans `template.md` et génère le document final dans :
-```
-docs/specs/$ARGUMENTS.md
-```
-
-## Output attendu
-
-Un fichier Markdown complet dans `docs/specs/[nom].md`, prêt à être utilisé par `/dev`.
+Une bonne spec doit :
+- [ ] Être directement implémentable
+- [ ] Avoir tous les endpoints documentés
+- [ ] Inclure les modèles de données complets
+- [ ] Spécifier tous les cas d'erreur
+- [ ] Avoir un plan de tests clair
+- [ ] Être cohérente avec le PRD
