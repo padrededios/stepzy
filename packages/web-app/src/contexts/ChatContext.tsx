@@ -10,6 +10,7 @@ interface ChatContextType {
   error: string | null
   refreshRooms: () => Promise<void>
   refreshUnreadCounts: () => Promise<void>
+  incrementMessageCount: (roomId: string) => void
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -48,6 +49,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
     }
+  }, [])
+
+  // Increment message count for a specific room
+  const incrementMessageCount = useCallback((roomId: string) => {
+    setRooms(prev =>
+      prev.map(room =>
+        room.id === roomId
+          ? { ...room, messageCount: room.messageCount + 1 }
+          : room
+      )
+    )
   }, [])
 
   // Fetch unread counts
@@ -92,7 +104,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [refreshUnreadCounts])
 
   return (
-    <ChatContext.Provider value={{ rooms, unreadCounts, loading, error, refreshRooms, refreshUnreadCounts }}>
+    <ChatContext.Provider value={{ rooms, unreadCounts, loading, error, refreshRooms, refreshUnreadCounts, incrementMessageCount }}>
       {children}
     </ChatContext.Provider>
   )

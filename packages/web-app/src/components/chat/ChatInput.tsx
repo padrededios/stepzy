@@ -33,6 +33,10 @@ export function ChatInput({ onSendMessage, onTyping, disabled = false }: ChatInp
       console.error('Error sending message:', error)
     } finally {
       setSending(false)
+      // Restore focus to textarea after DOM update (React state is async)
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 0)
     }
   }
 

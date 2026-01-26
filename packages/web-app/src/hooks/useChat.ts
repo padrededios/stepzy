@@ -31,7 +31,7 @@ export function useChat(roomId: string | null): UseChatReturn {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Get refresh function from context
-  const { refreshUnreadCounts } = useChatContext()
+  const { refreshUnreadCounts, incrementMessageCount } = useChatContext()
 
   // Fetch messages
   const fetchMessages = useCallback(async (before?: string) => {
@@ -113,12 +113,16 @@ export function useChat(roomId: string | null): UseChatReturn {
           updatedAt: new Date(data.data.updatedAt)
         }
         setMessages(prev => [...prev, newMessage])
+        // Update message count in room list
+        if (roomId) {
+          incrementMessageCount(roomId)
+        }
       }
     } catch (err) {
       console.error('Error sending message:', err)
       throw err
     }
-  }, [roomId])
+  }, [roomId, incrementMessageCount])
 
   // Set typing indicator
   const setTyping = useCallback((isTyping: boolean) => {
