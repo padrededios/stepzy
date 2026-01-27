@@ -182,7 +182,8 @@ export class NotificationService {
 
       if (existingReminder) continue
 
-      const sessionDate = new Date(session.date).toLocaleDateString('fr-FR', {
+      const sessionDateObj = new Date(session.date)
+      const sessionDate = sessionDateObj.toLocaleDateString('fr-FR', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -190,11 +191,15 @@ export class NotificationService {
         minute: '2-digit'
       })
 
+      // Determine if session is today or tomorrow
+      const isSessionToday = sessionDateObj.toDateString() === now.toDateString()
+      const timeLabel = isSessionToday ? 'aujourd\'hui' : 'demain'
+
       reminders.push({
         userIds,
         type: 'session_reminder',
         title: 'Rappel de session',
-        message: `N'oubliez pas : ${session.activity.name} demain le ${sessionDate}`,
+        message: `N'oubliez pas : ${session.activity.name} ${timeLabel} le ${sessionDate}`,
         activityId: session.activityId,
         sessionId: session.id
       })
