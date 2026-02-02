@@ -194,44 +194,46 @@ export default function MesActivitesPage() {
           isLoading={actionLoading === confirmDialog.activityId}
         />
 
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('upcoming')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'upcoming'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Mes participations ({upcomingParticipations.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('available')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'available'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Sessions disponibles ({availableSessions.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('past')}
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'past'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Historique ({pastParticipations.length})
-            </button>
-          </nav>
+        {/* Tab Navigation - Sticky */}
+        <div className="sticky top-16 z-20 bg-[#f5f5f5] -mx-4 px-4 lg:-mx-6 lg:px-6 -mt-6 lg:-mt-8 pt-6 lg:pt-8 pb-4">
+          <div className="border-b border-gray-200 bg-white rounded-lg shadow-sm px-4">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('upcoming')}
+                className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'upcoming'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Mes participations ({upcomingParticipations.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('available')}
+                className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'available'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Sessions disponibles ({availableSessions.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('past')}
+                className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'past'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Historique ({pastParticipations.length})
+              </button>
+            </nav>
+          </div>
         </div>
 
         {/* Activities List */}
-        <div className="space-y-4">
+        <div className="space-y-4 pt-4">
           {activeTab === 'upcoming' && (
             <>
               {loadingParticipations ? (

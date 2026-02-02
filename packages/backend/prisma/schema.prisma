@@ -38,6 +38,10 @@ model User {
   activitySubscriptions ActivitySubscription[]
   activityList UserActivityList[]
 
+  // Relations pour chat
+  chatMessages ChatMessage[]
+  chatReadStatus ChatRoomReadStatus[]
+
   @@map("users")
 }
 
@@ -164,12 +168,16 @@ model Notification {
   data      Json?            // Additional data for the notification
   read      Boolean          @default(false)
   matchId   String?          // Optional match reference
+  activityId String?         // Optional activity reference
+  sessionId  String?         // Optional session reference
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
   // Relations
-  user  User   @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
-  match Match? @relation(fields: [matchId], references: [id], onDelete: SetNull)
+  user     User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  match    Match?           @relation(fields: [matchId], references: [id], onDelete: SetNull)
+  activity Activity?        @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  session  ActivitySession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@map("notifications")
@@ -203,6 +211,11 @@ enum NotificationType {
   waiting_list_promoted
   announcement
   system
+  // Nouveaux types pour sessions d'activités
+  session_confirmed    // Session atteint minPlayers
+  session_cancelled    // Session annulée
+  session_reminder     // Rappel 24h avant
+  new_sessions_available // Nouvelles sessions disponibles
 
   @@map("notification_type")
 }
@@ -243,6 +256,8 @@ model Activity {
   sessions  ActivitySession[]
   subscriptions ActivitySubscription[]
   userLists UserActivityList[]
+  notifications Notification[]
+  chatRoom  ChatRoom?
 
   @@map("activities")
 }
@@ -261,6 +276,7 @@ model ActivitySession {
   // Relations
   activity     Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
   participants ActivityParticipant[]
+  notifications Notification[]
 
   @@map("activity_sessions")
 }
@@ -334,4 +350,60 @@ enum ParticipantStatus {
   waiting     // Liste d'attente
 
   @@map("participant_status")
+}
+
+// ===============================
+// Modèles pour le Chat
+// ===============================
+
+// Modèle ChatRoom - Un salon de discussion par activité
+model ChatRoom {
+  id          String   @id @default(cuid())
+  activityId  String   @unique // Un seul salon par activité
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  messages   ChatMessage[]
+  readStatus ChatRoomReadStatus[]
+
+  @@map("chat_rooms")
+}
+
+// Modèle ChatMessage - Message dans un salon
+model ChatMessage {
+  id          String   @id @default(cuid())
+  roomId      String
+  senderId    String
+  content     String   // Contenu du message (peut être filtré)
+  originalContent String? // Contenu original si modéré
+  isModerated Boolean  @default(false) // True si le message a été filtré
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt])
+  @@map("chat_messages")
+}
+
+// Modèle ChatRoomReadStatus - Suivi des messages non lus par utilisateur
+model ChatRoomReadStatus {
+  id            String   @id @default(cuid())
+  roomId        String
+  userId        String
+  lastReadAt    DateTime @default(now()) // Dernier moment où l'utilisateur a lu le salon
+  lastMessageId String?  // ID du dernier message lu (optionnel, pour optimisation)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@map("chat_room_read_status")
 }

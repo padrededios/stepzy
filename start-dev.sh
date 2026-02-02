@@ -58,7 +58,14 @@ docker compose -f docker-compose.dev.yml up -d
 # Wait for PostgreSQL to be ready
 echo "⏳ Waiting for PostgreSQL to be ready..."
 until docker exec stepzy-postgres pg_isready -U stepzy_user > /dev/null 2>&1; do
-  echo "  Waiting for PostgreSQL..."
+  echo "  Waiting for PostgreSQL to start..."
+  sleep 1
+done
+
+# Additional check: ensure we can actually connect to the database
+echo "  PostgreSQL started, verifying database connection..."
+until docker exec stepzy-postgres psql -U stepzy_user -d stepzy_dev -c "SELECT 1" > /dev/null 2>&1; do
+  echo "  Waiting for database to be ready..."
   sleep 1
 done
 echo "✅ PostgreSQL is ready!"

@@ -4,6 +4,7 @@
 
 import { prisma } from '../database/prisma'
 import type { Activity, DayOfWeek, ActivitySession } from '@stepzy/shared'
+import { NotificationService } from './notification.service'
 
 export class ActivitySessionService {
   /**
@@ -31,6 +32,14 @@ export class ActivitySessionService {
       sessions.push(...(await this.generateWeeklySessions(activity as Activity, fromDate, endDate)))
     } else if (activity.recurringType === 'monthly') {
       sessions.push(...(await this.generateMonthlySessions(activity as Activity, fromDate, endDate)))
+    }
+
+    // Notify subscribers about new sessions
+    if (sessions.length > 0) {
+      const sessionIds = sessions.map(s => s.id)
+      await NotificationService.notifyNewSessions(activityId, sessionIds).catch(err => {
+        console.error('[ActivitySessionService] Error notifying new sessions:', err)
+      })
     }
 
     return sessions
@@ -292,6 +301,7 @@ export class ActivitySessionService {
     const session = await prisma.activitySession.findUnique({
       where: { id: sessionId },
       include: {
+        activity: true,
         participants: true
       }
     })
@@ -332,6 +342,15 @@ export class ActivitySessionService {
         }
       }
     })
+
+    // Check if session just reached minPlayers (confirmed)
+    const newConfirmedCount = status === 'confirmed' ? confirmedCount + 1 : confirmedCount
+    if (newConfirmedCount === session.activity.minPlayers) {
+      // Session is now confirmed - notify all participants
+      await NotificationService.notifySessionConfirmed(sessionId).catch(err => {
+        console.error('[ActivitySessionService] Error notifying session confirmed:', err)
+      })
+    }
 
     return participant
   }
@@ -414,8 +433,8 @@ export class ActivitySessionService {
   /**
    * Update session
    */
-  static async update(sessionId: string, data: { maxPlayers?: number; isCancelled?: boolean }) {
-    return await prisma.activitySession.update({
+  static async update(sessionId: string, data: { maxPlayers?: number; isCancelled?: boolean }, reason?: string) {
+    const updatedSession = await prisma.activitySession.update({
       where: { id: sessionId },
       data,
       include: {
@@ -443,5 +462,14 @@ export class ActivitySessionService {
         }
       }
     })
+
+    // If session was cancelled, notify participants
+    if (data.isCancelled === true) {
+      await NotificationService.notifySessionCancelled(sessionId, reason).catch(err => {
+        console.error('[ActivitySessionService] Error notifying session cancelled:', err)
+      })
+    }
+
+    return updatedSession
   }
 }

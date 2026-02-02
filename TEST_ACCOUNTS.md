@@ -1,8 +1,8 @@
 # Comptes de test - Base de données
 
 ## Compte administrateur (root)
-- **Email** : `admin@futsal.local`
-- **Mot de passe** : `admin123!`
+- **Email** : `admin@stepzy.local`
+- **Mot de passe** : `RootPass123!`
 - **Pseudo** : Admin
 - **Rôle** : root
 
