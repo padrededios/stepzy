@@ -5,6 +5,7 @@
 import type { FastifyInstance } from 'fastify'
 import { ActivityService } from '../services/activity.service'
 import { ActivitySessionService } from '../services/activity-session.service'
+import { ChatService } from '../services/chat.service'
 import { EmailService } from '../services/email.service'
 import { securityLogger } from '../services/security-logger.service'
 import { requireAuth } from '../middleware/auth.middleware'
@@ -104,6 +105,9 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
 
       // Generate sessions (2 weeks ahead)
       await ActivitySessionService.generateSessions(activity.id, new Date(), 2)
+
+      // Create chat room for the activity
+      await ChatService.getOrCreateRoom(activity.id)
 
       // Fetch activity with sessions
       const activityWithSessions = await ActivityService.findById(activity.id, request.user!.id)
