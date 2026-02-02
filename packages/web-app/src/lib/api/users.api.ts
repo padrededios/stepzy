@@ -3,18 +3,9 @@
  */
 
 import { apiClient } from './client'
-import type { User } from '@stepzy/shared'
+import type { User, UserStats } from '@stepzy/shared'
 
-export interface UserStats {
-  totalSessions: number
-  completedSessions: number
-  cancelledSessions: number
-  activeSessions: number
-  attendanceRate: number
-  favoriteTime: string
-  currentStreak: number
-  longestStreak: number
-}
+export type { UserStats } from '@stepzy/shared'
 
 export interface UpdateProfileData {
   pseudo: string

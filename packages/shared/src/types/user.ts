@@ -10,11 +10,32 @@ export interface User {
   role: 'user' | 'root';
 }
 
-export interface UserStats {
+export interface SportStat {
+  sport: string;
   totalMatches: number;
-  confirmedMatches: number;
-  waitingMatches: number;
   completedMatches: number;
+  cancelledMatches: number;
+  hoursPlayed: number;
+}
+
+export interface MonthlyActivity {
+  month: string;
+  matches: number;
+}
+
+export interface UserStats {
+  totalSessions: number;
+  completedSessions: number;
+  cancelledSessions: number;
+  activeSessions: number;
+  attendanceRate: number;
+  favoriteTime: string;
+  currentStreak: number;
+  longestStreak: number;
+  totalHours: number;
+  sportStats: SportStat[];
+  monthlyActivity: MonthlyActivity[];
+  uniqueSports: number;
 }
 
 export interface UserProfile extends User {

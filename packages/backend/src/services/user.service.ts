@@ -84,10 +84,10 @@ export class UserService {
   }
 
   /**
-   * Get user statistics
+   * Get user statistics (enhanced with sport breakdown and monthly activity)
    */
   static async getStats(userId: string) {
-    // Get user's activity participations
+    // Get user's activity participations with activity details for sport breakdown
     const participations = await prisma.activityParticipant.findMany({
       where: {
         userId
@@ -96,7 +96,14 @@ export class UserService {
         session: {
           select: {
             date: true,
-            status: true
+            status: true,
+            activity: {
+              select: {
+                sport: true,
+                startTime: true,
+                endTime: true
+              }
+            }
           }
         }
       },
@@ -105,7 +112,7 @@ export class UserService {
       }
     })
 
-    // Calculate statistics
+    // Calculate basic statistics
     const totalSessions = participations.length
     const completedSessions = participations.filter(p =>
       p.session.status === 'completed'
@@ -139,7 +146,7 @@ export class UserService {
         )
       : '12:00'
 
-    // Calculate streaks
+    // Calculate streaks (sessions within 7 days of each other)
     const sortedSessions = participations
       .filter(p => p.session.status === 'completed')
       .sort((a, b) => new Date(a.session.date).getTime() - new Date(b.session.date).getTime())
@@ -148,11 +155,15 @@ export class UserService {
     let longestStreak = 0
     let tempStreak = 0
 
-    // Calculate current streak
+    // Calculate current streak from most recent sessions
     const recentSessions = sortedSessions.slice().reverse()
     for (let i = 0; i < recentSessions.length; i++) {
       currentStreak++
-      if (i >= 2) break
+      if (i < recentSessions.length - 1) {
+        const gap = new Date(recentSessions[i].session.date).getTime() -
+          new Date(recentSessions[i + 1].session.date).getTime()
+        if (gap > 7 * 24 * 60 * 60 * 1000) break
+      }
     }
 
     // Calculate longest streak
@@ -167,6 +178,65 @@ export class UserService {
       }
     }
 
+    currentStreak = Math.min(currentStreak, completedSessions)
+    longestStreak = Math.max(longestStreak, currentStreak)
+
+    // Calculate total hours from activity start/end times
+    const calculateHours = (startTime: string, endTime: string): number => {
+      const [startH, startM] = startTime.split(':').map(Number)
+      const [endH, endM] = endTime.split(':').map(Number)
+      return Math.max(0, (endH + endM / 60) - (startH + startM / 60))
+    }
+
+    const totalHours = Math.round(
+      participations
+        .filter(p => p.session.status === 'completed')
+        .reduce((sum, p) => sum + calculateHours(p.session.activity.startTime, p.session.activity.endTime), 0)
+    )
+
+    // Calculate sport-specific statistics
+    const sportMap: Record<string, { total: number; completed: number; cancelled: number; hours: number }> = {}
+    for (const p of participations) {
+      const sport = p.session.activity.sport
+      if (!sportMap[sport]) {
+        sportMap[sport] = { total: 0, completed: 0, cancelled: 0, hours: 0 }
+      }
+      sportMap[sport].total++
+      if (p.session.status === 'completed') {
+        sportMap[sport].completed++
+        sportMap[sport].hours += calculateHours(p.session.activity.startTime, p.session.activity.endTime)
+      }
+      if (p.session.status === 'cancelled') {
+        sportMap[sport].cancelled++
+      }
+    }
+
+    const sportStats = Object.entries(sportMap).map(([sport, data]) => ({
+      sport,
+      totalMatches: data.total,
+      completedMatches: data.completed,
+      cancelledMatches: data.cancelled,
+      hoursPlayed: Math.round(data.hours)
+    })).sort((a, b) => b.totalMatches - a.totalMatches)
+
+    // Calculate monthly activity (last 6 months)
+    const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
+    const now = new Date()
+    const monthlyActivity: Array<{ month: string; matches: number }> = []
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthKey = `${d.getFullYear()}-${d.getMonth()}`
+      const count = participations.filter(p => {
+        const pDate = new Date(p.session.date)
+        return pDate.getFullYear() === d.getFullYear() && pDate.getMonth() === d.getMonth()
+      }).length
+      monthlyActivity.push({
+        month: monthNames[d.getMonth()],
+        matches: count
+      })
+    }
+
     return {
       totalSessions,
       completedSessions,
@@ -174,8 +244,12 @@ export class UserService {
       activeSessions,
       attendanceRate,
       favoriteTime,
-      currentStreak: Math.min(currentStreak, completedSessions),
-      longestStreak: Math.max(longestStreak, currentStreak)
+      currentStreak,
+      longestStreak,
+      totalHours,
+      sportStats,
+      monthlyActivity,
+      uniqueSports: Object.keys(sportMap).length
     }
   }
 
