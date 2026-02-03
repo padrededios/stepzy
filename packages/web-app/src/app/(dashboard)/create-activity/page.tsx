@@ -12,6 +12,7 @@ import { ScheduleStep } from '@/components/wizard/steps/ScheduleStep'
 import { SummaryStep } from '@/components/wizard/steps/SummaryStep'
 import { Toast } from '@/components/ui/Toast'
 import { activitiesApi } from '@/lib/api'
+import { useChatContext } from '@/contexts/ChatContext'
 import { DayOfWeek, RecurringType } from '@/types/activity'
 import { SportType } from '@/config/sports'
 
@@ -19,6 +20,7 @@ const STEP_LABELS = ['Sport', 'Informations', 'Participants', 'Planning', 'Réca
 
 export default function CreateActivityPage() {
   const router = useRouter()
+  const { refreshRooms } = useChatContext()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
@@ -60,6 +62,9 @@ export default function CreateActivityPage() {
 
         // Nettoyer les données sauvegardées
         localStorage.removeItem('wizard-create-activity')
+
+        // Rafraîchir les salons de chat pour inclure le nouveau salon
+        await refreshRooms()
 
         // Rediriger vers la page s'inscrire après 2 secondes
         setTimeout(() => {

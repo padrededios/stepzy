@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useChatRooms } from '@/hooks/useChatRooms'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -10,8 +10,14 @@ import { ChatRoom } from '@/components/chat/ChatRoom'
 export default function MessagesPage() {
   const user = useCurrentUser()
   const router = useRouter()
-  const { rooms, unreadCounts, loading } = useChatRooms()
+  const { rooms, unreadCounts, loading, refreshRooms } = useChatRooms()
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
+
+  // Rafraîchir les salons à chaque accès à la page
+  // Cela garantit que les nouveaux salons (créés après une nouvelle activité) sont visibles
+  useEffect(() => {
+    refreshRooms()
+  }, [refreshRooms])
 
   const selectedRoom = rooms.find(r => r.id === selectedRoomId)
 
