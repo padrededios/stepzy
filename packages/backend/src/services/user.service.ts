@@ -112,11 +112,12 @@ export class UserService {
       }
     })
 
-    // Calculate basic statistics
-    const totalSessions = participations.length
-    const completedSessions = participations.filter(p =>
-      p.session.status === 'completed'
-    ).length
+    // Filter only completed sessions for stats (sessions that have been played)
+    const completedParticipations = participations.filter(p => p.session.status === 'completed')
+
+    // Calculate basic statistics based on completed sessions only
+    const totalSessions = completedParticipations.length
+    const completedSessions = totalSessions
     const cancelledSessions = participations.filter(p =>
       p.session.status === 'cancelled'
     ).length
@@ -124,12 +125,14 @@ export class UserService {
       p.session.status === 'active' && new Date(p.session.date) > new Date()
     ).length
 
-    const attendanceRate = totalSessions > 0
-      ? Math.round((completedSessions / totalSessions) * 100)
+    // Attendance rate: completed vs (completed + cancelled) - excludes future sessions
+    const pastSessions = completedSessions + cancelledSessions
+    const attendanceRate = pastSessions > 0
+      ? Math.round((completedSessions / pastSessions) * 100)
       : 0
 
-    // Calculate favorite time slot
-    const timeSlots = participations.map(p => {
+    // Calculate favorite time slot (based on completed sessions only)
+    const timeSlots = completedParticipations.map(p => {
       const hour = new Date(p.session.date).getHours()
       const minute = new Date(p.session.date).getMinutes()
       return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
@@ -147,8 +150,8 @@ export class UserService {
       : '12:00'
 
     // Calculate streaks (sessions within 7 days of each other)
-    const sortedSessions = participations
-      .filter(p => p.session.status === 'completed')
+    const sortedSessions = completedParticipations
+      .slice()
       .sort((a, b) => new Date(a.session.date).getTime() - new Date(b.session.date).getTime())
 
     let currentStreak = 0
@@ -189,45 +192,37 @@ export class UserService {
     }
 
     const totalHours = Math.round(
-      participations
-        .filter(p => p.session.status === 'completed')
+      completedParticipations
         .reduce((sum, p) => sum + calculateHours(p.session.activity.startTime, p.session.activity.endTime), 0)
     )
 
-    // Calculate sport-specific statistics
-    const sportMap: Record<string, { total: number; completed: number; cancelled: number; hours: number }> = {}
-    for (const p of participations) {
+    // Calculate sport-specific statistics (based on completed sessions only)
+    const sportMap: Record<string, { completed: number; hours: number }> = {}
+    for (const p of completedParticipations) {
       const sport = p.session.activity.sport
       if (!sportMap[sport]) {
-        sportMap[sport] = { total: 0, completed: 0, cancelled: 0, hours: 0 }
+        sportMap[sport] = { completed: 0, hours: 0 }
       }
-      sportMap[sport].total++
-      if (p.session.status === 'completed') {
-        sportMap[sport].completed++
-        sportMap[sport].hours += calculateHours(p.session.activity.startTime, p.session.activity.endTime)
-      }
-      if (p.session.status === 'cancelled') {
-        sportMap[sport].cancelled++
-      }
+      sportMap[sport].completed++
+      sportMap[sport].hours += calculateHours(p.session.activity.startTime, p.session.activity.endTime)
     }
 
     const sportStats = Object.entries(sportMap).map(([sport, data]) => ({
       sport,
-      totalMatches: data.total,
+      totalMatches: data.completed,
       completedMatches: data.completed,
-      cancelledMatches: data.cancelled,
+      cancelledMatches: 0,
       hoursPlayed: Math.round(data.hours)
     })).sort((a, b) => b.totalMatches - a.totalMatches)
 
-    // Calculate monthly activity (last 6 months)
+    // Calculate monthly activity (last 6 months, completed sessions only)
     const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
     const now = new Date()
     const monthlyActivity: Array<{ month: string; matches: number }> = []
 
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      const monthKey = `${d.getFullYear()}-${d.getMonth()}`
-      const count = participations.filter(p => {
+      const count = completedParticipations.filter(p => {
         const pDate = new Date(p.session.date)
         return pDate.getFullYear() === d.getFullYear() && pDate.getMonth() === d.getMonth()
       }).length
