@@ -61,6 +61,7 @@ const { usersRoutes } = await import('./routes/users.routes.js')
 const { adminRoutes } = await import('./routes/admin.routes.js')
 const { notificationsRoutes } = await import('./routes/notifications.routes.js')
 const { chatRoutes } = await import('./routes/chat.routes.js')
+const { announcementsRoutes } = await import('./routes/announcements.routes.js')
 
 await fastify.register(authRoutes)
 await fastify.register(activitiesRoutes)
@@ -69,6 +70,7 @@ await fastify.register(usersRoutes)
 await fastify.register(adminRoutes)
 await fastify.register(notificationsRoutes)
 await fastify.register(chatRoutes)
+await fastify.register(announcementsRoutes)
 
 // API info endpoint
 fastify.get('/api', async () => {
@@ -84,6 +86,7 @@ fastify.get('/api', async () => {
       admin: '/api/admin',
       notifications: '/api/notifications',
       chat: '/api/chat',
+      announcements: '/api/announcements',
       api: '/api'
     },
     websocket: {

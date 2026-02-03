@@ -115,6 +115,17 @@ export interface SessionWithParticipants extends ActivitySession {
   confirmedParticipants: number
   waitingParticipants: number
   userParticipation?: ActivityParticipant | null
+  stats?: {
+    confirmedCount: number
+    waitingCount: number
+    interestedCount: number
+    availableSpots: number
+  }
+  userStatus?: {
+    isParticipant: boolean
+    canJoin: boolean
+    participantStatus: ParticipantStatus | null
+  }
 }
 
 // Types pour les requêtes API

@@ -25,7 +25,7 @@ export interface Match {
   waitingList: MatchPlayer[];
 }
 
-export interface Activity extends Match {
+export interface MatchActivity extends Match {
   currentPlayers: number;
   isParticipant: boolean;
   isWaitingList: boolean;

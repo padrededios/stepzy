@@ -64,8 +64,8 @@ export function useRecurringActivities(userId?: string): UseRecurringActivitiesR
     try {
       const result = await activitiesApi.getMyCreated()
 
-      if (result.success) {
-        setCreatedActivities(result.data)
+      if (result.success && result.data) {
+        setCreatedActivities(result.data as unknown as Activity[])
       } else {
         setErrorCreated(result.error || 'Erreur lors de la récupération des activités créées')
       }
@@ -88,7 +88,7 @@ export function useRecurringActivities(userId?: string): UseRecurringActivitiesR
     try {
       const result = await activitiesApi.getMyParticipations()
 
-      if (result.success) {
+      if (result.success && result.data) {
         setParticipationActivities({
           upcoming: result.data.upcoming || [],
           past: result.data.past || []
@@ -142,7 +142,7 @@ export function useRecurringActivities(userId?: string): UseRecurringActivitiesR
 
         return {
           success: true,
-          message: result.data?.message || 'Inscription réussie'
+          message: result.message || 'Inscription réussie'
         }
       } else {
         return {
@@ -174,7 +174,7 @@ export function useRecurringActivities(userId?: string): UseRecurringActivitiesR
 
         return {
           success: true,
-          message: result.data?.message || 'Désinscription réussie'
+          message: result.message || 'Désinscription réussie'
         }
       } else {
         return {

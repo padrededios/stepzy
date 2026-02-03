@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { useNotificationsContext } from '@/contexts/NotificationsContext'
 import { useChatRooms } from '@/hooks/useChatRooms'
 import { NotificationPanel } from '@/components/notifications/NotificationPanel'
+import { NewsPanel } from '@/components/news/NewsPanel'
 import { User } from '@/types'
 import { authApi } from '@/lib/api'
 
@@ -21,9 +22,35 @@ export function Header({ user }: HeaderProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false)
+  const [isNewsPanelOpen, setIsNewsPanelOpen] = useState(false)
+  const [newsCount, setNewsCount] = useState(0)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const { unreadCount } = useNotificationsContext()
   const { unreadCounts } = useChatRooms()
+
+  // Fetch news count
+  useEffect(() => {
+    const fetchNewsCount = async () => {
+      try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+        const response = await fetch(`${API_BASE_URL}/api/announcements/count`, {
+          credentials: 'include'
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success) {
+            setNewsCount(data.data.count)
+          }
+        }
+      } catch (error) {
+        // Ignore error
+      }
+    }
+
+    if (user) {
+      fetchNewsCount()
+    }
+  }, [user])
 
   const isActivePath = (path: string) => pathname === path
 
@@ -66,14 +93,16 @@ export function Header({ user }: HeaderProps) {
     setIsNotificationPanelOpen(true)
   }
 
-  const handleSettingsClick = () => {
-    // TODO: Rediriger vers la page des paramètres
-    router.push('/settings')
+  const handleNewsClick = () => {
+    setIsNewsPanelOpen(true)
   }
 
   const handleMessagesClick = () => {
-    // TODO: Rediriger vers la page des messages
     router.push('/messages')
+  }
+
+  const handleHelpClick = () => {
+    router.push('/aide')
   }
 
   return (
@@ -168,19 +197,6 @@ export function Header({ user }: HeaderProps) {
                       )}
                     </div>
 
-                    {/* Settings */}
-                    <button
-                      onClick={handleSettingsClick}
-                      className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
-                      title="Paramètres"
-                      aria-label="Paramètres"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </button>
-
                     {/* Messages */}
                     <div className="relative">
                       <button
@@ -200,6 +216,41 @@ export function Header({ user }: HeaderProps) {
                         </div>
                       )}
                     </div>
+
+                    {/* Separator */}
+                    <div className="w-px h-6 bg-gray-600 mx-1"></div>
+
+                    {/* News/Actualités */}
+                    <div className="relative">
+                      <button
+                        onClick={handleNewsClick}
+                        className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
+                        title="Actualités"
+                        aria-label="Actualités"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                        </svg>
+                      </button>
+                      {/* News badge - Only show if there are recent news */}
+                      {newsCount > 0 && (
+                        <div className="absolute top-0 right-0 w-5 h-5 bg-indigo-500 text-white text-xs rounded-full flex items-center justify-center font-bold pointer-events-none">
+                          {newsCount > 9 ? '9+' : newsCount}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Help */}
+                    <button
+                      onClick={handleHelpClick}
+                      className="p-2 text-white hover:bg-gray-700 rounded-full transition-colors"
+                      title="Aide"
+                      aria-label="Aide"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
                   </div>
 
                   {/* User menu button */}
@@ -314,6 +365,12 @@ export function Header({ user }: HeaderProps) {
       <NotificationPanel
         isOpen={isNotificationPanelOpen}
         onClose={() => setIsNotificationPanelOpen(false)}
+      />
+
+      {/* News Panel */}
+      <NewsPanel
+        isOpen={isNewsPanelOpen}
+        onClose={() => setIsNewsPanelOpen(false)}
       />
     </header>
   )

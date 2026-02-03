@@ -16,8 +16,8 @@ export class ApiClient {
       const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`
 
       // Only add Content-Type if there's a body
-      const headers: HeadersInit = {
-        ...options.headers,
+      const headers: Record<string, string> = {
+        ...(options.headers as Record<string, string>),
       }
 
       if (options.body) {

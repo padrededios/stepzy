@@ -30,8 +30,13 @@ export interface Activity {
   endTime: string   // Format HH:MM
 
   // Relations
-  creator: User
+  creator: {
+    id: string
+    pseudo: string
+    avatar: string | null
+  }
   sessions?: ActivitySession[]
+  code?: string
 }
 
 export interface ActivitySession {
@@ -63,7 +68,11 @@ export interface ActivityParticipant {
 
   // Relations
   session?: ActivitySession
-  user: User
+  user: {
+    id: string
+    pseudo: string
+    avatar: string | null
+  }
 }
 
 // Types pour les formulaires
@@ -107,13 +116,13 @@ export interface SessionWithParticipants extends ActivitySession {
   confirmedParticipants: number
   waitingParticipants: number
   userParticipation?: ActivityParticipant | null
-  stats: {
+  stats?: {
     confirmedCount: number
     waitingCount: number
     interestedCount: number
     availableSpots: number
   }
-  userStatus: {
+  userStatus?: {
     isParticipant: boolean
     canJoin: boolean
     participantStatus: ParticipantStatus | null

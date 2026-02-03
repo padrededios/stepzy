@@ -93,6 +93,35 @@ export async function requireAuth(
  * Optional authentication middleware
  * Attaches user if authenticated, but doesn't require it
  */
+/**
+ * Middleware to require admin role
+ * Must be used after requireAuth
+ */
+export async function requireAdmin(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  if (!request.user) {
+    return reply.status(401).send({
+      success: false,
+      error: 'Non authentifié',
+      message: 'Vous devez être connecté pour accéder à cette ressource'
+    })
+  }
+
+  if (request.user.role !== 'root') {
+    return reply.status(403).send({
+      success: false,
+      error: 'Accès refusé',
+      message: 'Vous devez être administrateur pour accéder à cette ressource'
+    })
+  }
+}
+
+/**
+ * Optional authentication middleware
+ * Attaches user if authenticated, but doesn't require it
+ */
 export async function optionalAuth(
   request: FastifyRequest,
   _reply: FastifyReply

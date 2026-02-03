@@ -37,7 +37,10 @@ export const authApi = {
    * Sign up with email/password
    */
   async signUp(data: SignUpData) {
-    return authClient.signUp.email(data)
+    return authClient.signUp.email({
+      ...data,
+      name: data.pseudo // Map pseudo to name for better-auth
+    } as any)
   },
 
   /**

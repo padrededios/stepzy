@@ -170,6 +170,17 @@ interface SessionWithParticipants extends ActivitySession {
     confirmedParticipants: number;
     waitingParticipants: number;
     userParticipation?: ActivityParticipant | null;
+    stats?: {
+        confirmedCount: number;
+        waitingCount: number;
+        interestedCount: number;
+        availableSpots: number;
+    };
+    userStatus?: {
+        isParticipant: boolean;
+        canJoin: boolean;
+        participantStatus: ParticipantStatus | null;
+    };
 }
 interface ActivityFilters {
     sport?: SportType;
@@ -344,6 +355,37 @@ interface GetMessagesOptions {
 }
 
 /**
+ * Announcement/News type definitions
+ */
+type AnnouncementPriority = 'low' | 'normal' | 'high' | 'urgent';
+interface Announcement {
+    id: string;
+    title: string;
+    content: string;
+    authorId: string;
+    priority: AnnouncementPriority;
+    active: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    author?: {
+        id: string;
+        pseudo: string;
+        avatar?: string | null;
+    };
+}
+interface CreateAnnouncementData {
+    title: string;
+    content: string;
+    priority?: AnnouncementPriority;
+}
+interface UpdateAnnouncementData {
+    title?: string;
+    content?: string;
+    priority?: AnnouncementPriority;
+    active?: boolean;
+}
+
+/**
  * Main type exports for the application
  */
 
@@ -370,4 +412,4 @@ interface LoginData {
     password: string;
 }
 
-export { type Activity, type ActivityCodeInfo, type ActivityCodeResponse, type ActivityFilters, type ActivityParticipant, type ActivitySession, type ActivityWithStats, type ApiResponse, type ChatMessage, type ChatRoom, type ChatRoomReadStatus, type ChatRoomWithStats, type CreateActivityData, type CreateUserData, DAY_LABELS, type DayOfWeek, type ErrorMessage, type GetMessagesOptions, type JoinActivityByCodeData, type LoginData, type Match, type MatchActivity, type MatchPlayer, type MatchStatus, type MonthlyActivity, type Notification, type NotificationFilters, type NotificationResponse, type NotificationType, PARTICIPANT_STATUS_LABELS, type ParticipantStatus, type PlayerStatus, RECURRING_TYPE_LABELS, type RecurringType, type SendMessageRequest, type SessionFilters, type SessionStatus, type SessionWithParticipants, type SportStat, SportType, type TypingIndicator, type TypingRequest, type UnreadCount, type UnreadCounts, type UpdateActivityData, type UpdateSessionData, type UpdateUserData, type User, type UserProfile, type UserRole, type UserStats, type WSChatMessage, type WSChatMessageType, type WSNotificationMessage };
+export { type Activity, type ActivityCodeInfo, type ActivityCodeResponse, type ActivityFilters, type ActivityParticipant, type ActivitySession, type ActivityWithStats, type Announcement, type AnnouncementPriority, type ApiResponse, type ChatMessage, type ChatRoom, type ChatRoomReadStatus, type ChatRoomWithStats, type CreateActivityData, type CreateAnnouncementData, type CreateUserData, DAY_LABELS, type DayOfWeek, type ErrorMessage, type GetMessagesOptions, type JoinActivityByCodeData, type LoginData, type Match, type MatchActivity, type MatchPlayer, type MatchStatus, type MonthlyActivity, type Notification, type NotificationFilters, type NotificationResponse, type NotificationType, PARTICIPANT_STATUS_LABELS, type ParticipantStatus, type PlayerStatus, RECURRING_TYPE_LABELS, type RecurringType, type SendMessageRequest, type SessionFilters, type SessionStatus, type SessionWithParticipants, type SportStat, SportType, type TypingIndicator, type TypingRequest, type UnreadCount, type UnreadCounts, type UpdateActivityData, type UpdateAnnouncementData, type UpdateSessionData, type UpdateUserData, type User, type UserProfile, type UserRole, type UserStats, type WSChatMessage, type WSChatMessageType, type WSNotificationMessage };

@@ -10,7 +10,8 @@ import type {
   ActivityFilters,
   JoinActivityByCodeData,
   ActivityCodeResponse,
-  ActivityCodeInfo
+  ActivityCodeInfo,
+  SessionWithParticipants
 } from '@stepzy/shared'
 
 export const activitiesApi = {

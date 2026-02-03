@@ -8,6 +8,7 @@ export * from './match';
 export * from './activity';
 export * from './notification';
 export * from './chat';
+export * from './announcement';
 
 // Re-export SportType from constants (used by activity types)
 export type { SportType } from '../constants/sports';

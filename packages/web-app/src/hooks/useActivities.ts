@@ -25,6 +25,7 @@ export interface Activity {
   upcomingSessionsCount: number
   totalParticipants: number
   isParticipant: boolean
+  isWaitingList: boolean
   isSubscribed: boolean // Nouveau champ
   canManage: boolean
 }
@@ -58,6 +59,7 @@ const fetchActivitiesFromAPI = async (userId?: string): Promise<Activity[]> => {
         upcomingSessionsCount: activity.upcomingSessionsCount || 0,
         totalParticipants: activity.totalParticipants || 0,
         isParticipant: activity.userStatus?.isParticipant || false,
+        isWaitingList: activity.userStatus?.isWaitingList || false,
         isSubscribed: activity.userStatus?.isSubscribed || false,
         canManage: userId === activity.createdBy
       }
@@ -187,11 +189,11 @@ export function useActivities(userId?: string) {
       activity.isParticipant || activity.isWaitingList
     )
 
-    const now = new Date()
-
+    // Les activités sont récurrentes, elles n'ont pas de date de fin
+    // On retourne toutes les activités de l'utilisateur
     return {
-      upcoming: userActivities.filter(activity => new Date(activity.date) > now),
-      past: userActivities.filter(activity => new Date(activity.date) <= now)
+      upcoming: userActivities,
+      past: [] as Activity[]
     }
   }
 
@@ -208,16 +210,17 @@ export function useActivities(userId?: string) {
     try {
       const result = await activitiesApi.joinByCode(code)
 
-      if (result.success) {
+      if (result.success && result.data) {
         // Recharger les activités depuis l'API
         const fetchedActivities = await fetchActivitiesFromAPI(userId)
         setActivities(fetchedActivities)
 
+        const alreadyMember = result.data.alreadyMember || false
         return {
           success: true,
-          activity: result.data,
-          alreadyMember: result.alreadyMember || false,
-          message: result.message || (result.alreadyMember
+          activity: result.data.activity,
+          alreadyMember,
+          message: result.message || (alreadyMember
             ? 'Vous êtes déjà membre de cette activité'
             : `Vous avez rejoint l'activité avec succès`)
         }
