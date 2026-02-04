@@ -102,6 +102,8 @@ export default function SessionPage() {
       <MatchView
         match={matchData}
         currentUser={user}
+        creatorId={session.activity?.createdBy}
+        sessionId={session.id}
         onMatchUpdate={fetchSession}
         onError={(message) => setError(message)}
       />

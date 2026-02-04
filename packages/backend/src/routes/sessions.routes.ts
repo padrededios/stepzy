@@ -103,6 +103,52 @@ export async function sessionsRoutes(fastify: FastifyInstance) {
     }
   })
 
+  // POST /api/sessions/:id/swap-players - Swap a field player with a substitute
+  fastify.post('/api/sessions/:id/swap-players', {
+    preHandler: [requireAuth, validate({
+      params: commonSchemas.idParam,
+      body: z.object({
+        fieldPlayerId: z.string().min(1),
+        substitutePlayerId: z.string().min(1)
+      })
+    })]
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+      const { fieldPlayerId, substitutePlayerId } = request.body as {
+        fieldPlayerId: string
+        substitutePlayerId: string
+      }
+
+      const session = await ActivitySessionService.swapPlayers(
+        id,
+        fieldPlayerId,
+        substitutePlayerId,
+        request.user!.id
+      )
+
+      return reply.send({
+        success: true,
+        data: session,
+        message: 'Joueurs échangés avec succès'
+      })
+    } catch (error) {
+      request.log.error(error)
+
+      if (error instanceof Error) {
+        return reply.status(400).send({
+          success: false,
+          error: error.message
+        })
+      }
+
+      return reply.status(500).send({
+        success: false,
+        error: 'Erreur lors de l\'échange des joueurs'
+      })
+    }
+  })
+
   // POST /api/sessions/:id/leave - Leave session
   fastify.post('/api/sessions/:id/leave', {
     preHandler: [requireAuth, validate({ params: commonSchemas.idParam })]

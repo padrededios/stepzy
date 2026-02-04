@@ -150,6 +150,122 @@ async function main() {
 
   console.log('✅ Joueurs inscrits aux matchs de démonstration')
 
+  // --- Test Activity: Football 4v4 with substitutes for testing swap ---
+  // Create extra test users for substitutes
+  const extraUsers = await Promise.all(
+    Array.from({ length: 7 }, (_, i) =>
+      prisma.user.upsert({
+        where: { email: `testplayer${i + 4}@test.com` },
+        update: {},
+        create: {
+          email: `testplayer${i + 4}@test.com`,
+          password: await bcrypt.hash('password123', 10),
+          pseudo: `Joueur${i + 4}`,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Joueur${i + 4}`,
+          role: 'user',
+        },
+      })
+    )
+  )
+  console.log(`✅ ${extraUsers.length} joueurs de test supplémentaires créés`)
+
+  // Create Football 4v4 activity (max 8 players) created by admin
+  const testActivityCode = 'SWAPTEST'
+  const existingTestActivity = await prisma.activity.findUnique({
+    where: { code: testActivityCode }
+  })
+  if (existingTestActivity) {
+    await prisma.activity.delete({ where: { code: testActivityCode } })
+  }
+
+  const swapTestActivity = await prisma.activity.create({
+    data: {
+      name: 'Football 4v4 - Test Remplacements',
+      description: 'Activité de test pour la fonctionnalité de remplacement de joueurs',
+      sport: 'football',
+      maxPlayers: 8,
+      minPlayers: 4,
+      createdBy: rootUser.id,
+      isPublic: true,
+      code: testActivityCode,
+      recurringDays: ['friday'],
+      recurringType: 'weekly',
+      startTime: '19:00',
+      endTime: '20:30',
+    },
+  })
+  console.log(`✅ Activité de test remplacements créée: ${swapTestActivity.name} (code: ${testActivityCode})`)
+
+  // Create a session for tomorrow
+  const testSessionDate = new Date()
+  testSessionDate.setDate(testSessionDate.getDate() + 1)
+  testSessionDate.setHours(19, 0, 0, 0)
+
+  const testSession = await prisma.activitySession.create({
+    data: {
+      activityId: swapTestActivity.id,
+      date: testSessionDate,
+      maxPlayers: 8,
+      status: 'active',
+    },
+  })
+
+  // Subscribe admin to the activity
+  await prisma.activitySubscription.upsert({
+    where: {
+      activityId_userId: {
+        activityId: swapTestActivity.id,
+        userId: rootUser.id,
+      },
+    },
+    update: {},
+    create: {
+      activityId: swapTestActivity.id,
+      userId: rootUser.id,
+    },
+  })
+
+  // Add 8 confirmed players (max capacity)
+  const allTestPlayers = [rootUser, ...testUsers, ...extraUsers]
+  for (let i = 0; i < Math.min(8, allTestPlayers.length); i++) {
+    await prisma.activityParticipant.upsert({
+      where: {
+        sessionId_userId: {
+          sessionId: testSession.id,
+          userId: allTestPlayers[i].id,
+        },
+      },
+      update: {},
+      create: {
+        sessionId: testSession.id,
+        userId: allTestPlayers[i].id,
+        status: 'confirmed',
+      },
+    })
+  }
+
+  // Add 2 substitutes (waiting)
+  for (let i = 8; i < Math.min(10, allTestPlayers.length); i++) {
+    await prisma.activityParticipant.upsert({
+      where: {
+        sessionId_userId: {
+          sessionId: testSession.id,
+          userId: allTestPlayers[i].id,
+        },
+      },
+      update: {},
+      create: {
+        sessionId: testSession.id,
+        userId: allTestPlayers[i].id,
+        status: 'waiting',
+      },
+    })
+  }
+
+  console.log(`✅ Session de test créée avec 8 joueurs confirmés + 2 remplaçants`)
+  console.log(`   Session ID: ${testSession.id}`)
+  console.log(`   Pour tester: se connecter en tant qu'admin et aller sur /sessions/${testSession.id}`)
+
   console.log('🌱 Seed terminé avec succès!')
   console.log('')
   console.log('🔐 Identifiants administrateur:')

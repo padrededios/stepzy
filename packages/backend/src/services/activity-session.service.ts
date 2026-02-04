@@ -431,6 +431,78 @@ export class ActivitySessionService {
   }
 
   /**
+   * Swap two players in a session (creator only)
+   * Swaps a confirmed player with a waiting player
+   */
+  static async swapPlayers(
+    sessionId: string,
+    fieldPlayerId: string,
+    substitutePlayerId: string,
+    requestUserId: string
+  ) {
+    const session = await prisma.activitySession.findUnique({
+      where: { id: sessionId },
+      include: {
+        activity: true,
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                pseudo: true,
+                avatar: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (!session) {
+      throw new Error('Session non trouvée')
+    }
+
+    // Only the activity creator can swap players
+    if (session.activity.createdBy !== requestUserId) {
+      throw new Error('Seul le créateur de l\'activité peut remplacer des joueurs')
+    }
+
+    const fieldPlayer = session.participants.find(p => p.id === fieldPlayerId)
+    const substitutePlayer = session.participants.find(p => p.id === substitutePlayerId)
+
+    if (!fieldPlayer) {
+      throw new Error('Joueur sur le terrain non trouvé')
+    }
+
+    if (!substitutePlayer) {
+      throw new Error('Remplaçant non trouvé')
+    }
+
+    if (fieldPlayer.status !== 'confirmed') {
+      throw new Error('Le joueur à remplacer doit être sur le terrain (confirmé)')
+    }
+
+    if (substitutePlayer.status !== 'waiting') {
+      throw new Error('Le remplaçant doit être sur le banc (en attente)')
+    }
+
+    // Swap statuses: field player becomes waiting, substitute becomes confirmed
+    await prisma.$transaction([
+      prisma.activityParticipant.update({
+        where: { id: fieldPlayerId },
+        data: { status: 'waiting' }
+      }),
+      prisma.activityParticipant.update({
+        where: { id: substitutePlayerId },
+        data: { status: 'confirmed' }
+      })
+    ])
+
+    // Return updated session
+    return this.findById(sessionId)
+  }
+
+  /**
    * Update session
    */
   static async update(sessionId: string, data: { maxPlayers?: number; isCancelled?: boolean }, reason?: string) {

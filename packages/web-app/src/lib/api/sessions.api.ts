@@ -32,5 +32,15 @@ export const sessionsApi = {
    */
   async leave(id: string) {
     return apiClient.post(`/api/sessions/${id}/leave`)
+  },
+
+  /**
+   * Swap a field player with a substitute (creator only)
+   */
+  async swapPlayers(id: string, fieldPlayerId: string, substitutePlayerId: string) {
+    return apiClient.post(`/api/sessions/${id}/swap-players`, {
+      fieldPlayerId,
+      substitutePlayerId
+    })
   }
 }
