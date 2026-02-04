@@ -170,7 +170,7 @@ async function main() {
   )
   console.log(`✅ ${extraUsers.length} joueurs de test supplémentaires créés`)
 
-  // Create Football 4v4 activity (max 8 players) created by admin
+  // Create Football 4v4 activity (max 8 players) created by player1
   const testActivityCode = 'SWAPTEST'
   const existingTestActivity = await prisma.activity.findUnique({
     where: { code: testActivityCode }
@@ -186,7 +186,7 @@ async function main() {
       sport: 'football',
       maxPlayers: 8,
       minPlayers: 4,
-      createdBy: rootUser.id,
+      createdBy: testUsers[0].id,
       isPublic: true,
       code: testActivityCode,
       recurringDays: ['friday'],
