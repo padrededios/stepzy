@@ -152,6 +152,7 @@ async function main() {
 
   // --- Test Activity: Football 4v4 with substitutes for testing swap ---
   // Create extra test users for substitutes
+  const extraPassword = await bcrypt.hash('password123', 10)
   const extraUsers = await Promise.all(
     Array.from({ length: 7 }, (_, i) =>
       prisma.user.upsert({
@@ -159,7 +160,7 @@ async function main() {
         update: {},
         create: {
           email: `testplayer${i + 4}@test.com`,
-          password: await bcrypt.hash('password123', 10),
+          password: extraPassword,
           pseudo: `Joueur${i + 4}`,
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Joueur${i + 4}`,
           role: 'user',
