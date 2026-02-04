@@ -211,42 +211,27 @@ async function main() {
     },
   })
 
-  // Subscribe admin to the activity
-  await prisma.activitySubscription.upsert({
-    where: {
-      activityId_userId: {
-        activityId: swapTestActivity.id,
-        userId: rootUser.id,
-      },
-    },
-    update: {},
-    create: {
-      activityId: swapTestActivity.id,
-      userId: rootUser.id,
-    },
-  })
-
-  // Add 8 confirmed players (max capacity)
+  // Add 8 confirmed players + 2 substitutes and subscribe them all
   const allTestPlayers = [rootUser, ...testUsers, ...extraUsers]
-  for (let i = 0; i < Math.min(8, allTestPlayers.length); i++) {
-    await prisma.activityParticipant.upsert({
+  const totalParticipants = Math.min(10, allTestPlayers.length)
+
+  for (let i = 0; i < totalParticipants; i++) {
+    // Subscribe every participant to the activity
+    await prisma.activitySubscription.upsert({
       where: {
-        sessionId_userId: {
-          sessionId: testSession.id,
+        activityId_userId: {
+          activityId: swapTestActivity.id,
           userId: allTestPlayers[i].id,
         },
       },
       update: {},
       create: {
-        sessionId: testSession.id,
+        activityId: swapTestActivity.id,
         userId: allTestPlayers[i].id,
-        status: 'confirmed',
       },
     })
-  }
 
-  // Add 2 substitutes (waiting)
-  for (let i = 8; i < Math.min(10, allTestPlayers.length); i++) {
+    // Add as participant: first 8 confirmed, last 2 waiting
     await prisma.activityParticipant.upsert({
       where: {
         sessionId_userId: {
@@ -258,14 +243,14 @@ async function main() {
       create: {
         sessionId: testSession.id,
         userId: allTestPlayers[i].id,
-        status: 'waiting',
+        status: i < 8 ? 'confirmed' : 'waiting',
       },
     })
   }
 
   console.log(`✅ Session de test créée avec 8 joueurs confirmés + 2 remplaçants`)
   console.log(`   Session ID: ${testSession.id}`)
-  console.log(`   Pour tester: se connecter en tant qu'admin et aller sur /sessions/${testSession.id}`)
+  console.log(`   Pour tester: se connecter et aller sur /sessions/${testSession.id}`)
 
   console.log('🌱 Seed terminé avec succès!')
   console.log('')
