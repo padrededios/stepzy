@@ -4,7 +4,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@context-labs/mcp-server-context7"
+        "@upstash/context7-mcp@latest"
       ]
     }
   }
